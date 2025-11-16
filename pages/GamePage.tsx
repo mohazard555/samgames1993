@@ -28,9 +28,7 @@ import ColorBalloonPop from '../games/ColorBalloonPop';
 import MindAdventures from '../games/MindAdventures';
 import SmartThinkingCubes from '../games/SmartThinkingCubes';
 import WonderBubbles from '../games/WonderBubbles';
-import LittleMaze from '../games/LittleMaze';
 import ArrangeWonderBlocks from '../games/ArrangeWonderBlocks';
-import GlowingPlanetJourney from '../games/GlowingPlanetJourney';
 import AdventurousRabbitJumps from '../games/AdventurousRabbitJumps';
 import MysteriousDesertTreasure from '../games/MysteriousDesertTreasure';
 import PressTheCorrectColor from '../games/PressTheCorrectColor';
@@ -56,8 +54,6 @@ import ShapeComposition from '../games/ShapeComposition';
 import CountTheSides from '../games/CountTheSides';
 import ShapeSorting from '../games/ShapeSorting';
 import FindTheLetter from '../games/FindTheLetter';
-
-// Import NEW educational and intelligence games
 import FillMissingLetter from '../games/FillMissingLetter';
 import MatchingShadow from '../games/MatchingShadow';
 import ColorMixing from '../games/ColorMixing';
@@ -72,6 +68,42 @@ import CountTheDots from '../games/CountTheDots';
 import ClockPuzzle from '../games/ClockPuzzle';
 import LogicPatterns from '../games/LogicPatterns';
 import HiddenWord from '../games/HiddenWord';
+import FamousLandmarks from '../games/FamousLandmarks';
+import AnimalHabitats from '../games/AnimalHabitats';
+import GuessTheSound from '../games/GuessTheSound';
+import VegetableOrFruit from '../games/VegetableOrFruit';
+import JobsAndTools from '../games/JobsAndTools';
+import ContinentsQuiz from '../games/ContinentsQuiz';
+import HealthyFood from '../games/HealthyFood';
+import InventionsQuiz from '../games/InventionsQuiz';
+import SeaCreatures from '../games/SeaCreatures';
+import TransportationTypes from '../games/TransportationTypes';
+import SolarSystemQuiz from '../games/SolarSystemQuiz';
+import StoryCharacters from '../games/StoryCharacters';
+import BodyPartsQuiz from '../games/BodyPartsQuiz';
+import WeatherTypes from '../games/WeatherTypes';
+import FeelingsAndEmotions from '../games/FeelingsAndEmotions';
+import DaysOfTheWeek from '../games/DaysOfTheWeek';
+import MonthsQuiz from '../games/MonthsQuiz';
+import AnimalGroups from '../games/AnimalGroups';
+import FamousPaintings from '../games/FamousPaintings';
+import MusicalInstruments from '../games/MusicalInstruments';
+import DinosaurQuiz from '../games/DinosaurQuiz';
+import WorldFlags from '../games/WorldFlags';
+
+// Import 12 new games
+import FunnyMonsterMaker from '../games/FunnyMonsterMaker';
+import FastCarRacing from '../games/FastCarRacing';
+import PipePuzzle from '../games/PipePuzzle';
+import MathCandyShop from '../games/MathCandyShop';
+import HiddenObjectGame from '../games/HiddenObjectGame';
+import MagicBalloonJourney from '../games/MagicBalloonJourney';
+import IceCreamMaker from '../games/IceCreamMaker';
+import BearDressUp from '../games/BearDressUp';
+import TicTacToe from '../games/TicTacToe';
+import DailyRoutine from '../games/DailyRoutine';
+import BabyDinoCare from '../games/BabyDinoCare';
+import JungleMonkeyAdventure from '../games/JungleMonkeyAdventure';
 
 
 // Define a type for game components for better type safety
@@ -105,9 +137,7 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'فرقعة بالونات الألوان': ColorBalloonPop,
   'مكعبات التفكير الذكي': SmartThinkingCubes,
   'ذكاء الفقاعات العجيبة': WonderBubbles,
-  'ألغاز المتاهة الصغيرة': LittleMaze,
   'ترتيب الكتل العجيبة': ArrangeWonderBlocks,
-  'رحلة الكوكب المضيء': GlowingPlanetJourney,
   'قفزات الأرنب المغامر': AdventurousRabbitJumps,
   'كنز الصحراء الغامض': MysteriousDesertTreasure,
   'اضغط اللون الصحيح': PressTheCorrectColor,
@@ -136,8 +166,6 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'عد الأضلاع': CountTheSides,
   'فرز الأشكال': ShapeSorting,
   'البحث عن الحرف': FindTheLetter,
-  
-  // === New Educational & Intelligence Games ===
   'إملأ الحرف الناقص': FillMissingLetter,
   'البحث عن الظل المطابق': MatchingShadow,
   'مزج الألوان': ColorMixing,
@@ -152,6 +180,42 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'لغز الساعة': ClockPuzzle,
   'الأنماط المنطقية': LogicPatterns,
   'الكلمة المخفية': HiddenWord,
+  'معالم شهيرة': FamousLandmarks,
+  'موطن الحيوانات': AnimalHabitats,
+  'خمن الصوت': GuessTheSound,
+  'فاكهة أم خضار؟': VegetableOrFruit,
+  'المهن وأدواتها': JobsAndTools,
+  'مسابقة القارات': ContinentsQuiz,
+  'الطعام الصحي': HealthyFood,
+  'مسابقة الاختراعات': InventionsQuiz,
+  'مخلوقات البحر': SeaCreatures,
+  'أنواع المواصلات': TransportationTypes,
+  'المجموعة الشمسية': SolarSystemQuiz,
+  'شخصيات القصص': StoryCharacters,
+  'أجزاء الجسم': BodyPartsQuiz,
+  'أنواع الطقس': WeatherTypes,
+  'المشاعر والأحاسيس': FeelingsAndEmotions,
+  'أيام الأسبوع': DaysOfTheWeek,
+  'شهور السنة': MonthsQuiz,
+  'مجموعات الحيوانات': AnimalGroups,
+  'لوحات عالمية': FamousPaintings,
+  'الآلات الموسيقية': MusicalInstruments,
+  'مسابقة الديناصورات': DinosaurQuiz,
+  'أعلام الدول': WorldFlags,
+
+  // === 12 New Games ===
+  'صانع الوحوش المضحكة': FunnyMonsterMaker,
+  'سباق السيارات السريع': FastCarRacing,
+  'لغز توصيل الأنابيب': PipePuzzle,
+  'متجر الحلوى للرياضيات': MathCandyShop,
+  'البحث عن الأشياء المفقودة': HiddenObjectGame,
+  'رحلة المنطاد السحرية': MagicBalloonJourney,
+  'صانع الآيس كريم': IceCreamMaker,
+  'تلبيس الدببة اللطيفة': BearDressUp,
+  'لعبة إكس أو': TicTacToe,
+  'ترتيب أحداث اليوم': DailyRoutine,
+  'رعاية طفل الديناصور': BabyDinoCare,
+  'مغامرة القرد في الغابة': JungleMonkeyAdventure,
 };
 
 const GamePage: React.FC = () => {

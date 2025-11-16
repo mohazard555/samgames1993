@@ -14,19 +14,16 @@ const ANIMALS = [
   { name: 'باندا', emoji: '🐼', silhouette: 'https://img.icons8.com/material-outlined/96/000000/panda.png' },
 ];
 
-// Simple silhouette component
+// Simple silhouette component using a filtered image for reliability
 const Silhouette: React.FC<{ animal: typeof ANIMALS[0] }> = ({ animal }) => (
-    <div className="w-48 h-48 bg-gray-800 flex items-center justify-center rounded-2xl" style={{
-        maskImage: `url(${animal.silhouette})`,
-        WebkitMaskImage: `url(${animal.silhouette})`,
-        maskSize: 'contain',
-        WebkitMaskSize: 'contain',
-        maskRepeat: 'no-repeat',
-        WebkitMaskRepeat: 'no-repeat',
-        maskPosition: 'center',
-        WebkitMaskPosition: 'center',
-    }}>
-    </div>
+    <img 
+        src={animal.silhouette} 
+        alt={`ظل ${animal.name}`}
+        className="w-48 h-48"
+        style={{
+            filter: 'brightness(0)'
+        }}
+    />
 );
 
 const AnimalMatching: React.FC<GameProps> = ({ gameName }) => {

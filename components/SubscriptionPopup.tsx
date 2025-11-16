@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 
 interface SubscriptionPopupProps {
@@ -9,43 +9,113 @@ interface SubscriptionPopupProps {
 
 const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ isOpen, onClose, onSubscribed }) => {
   const { settings } = useSettings();
+  const [step, setStep] = useState<'initial' | 'waiting' | 'ready'>('initial');
+  const [countdown, setCountdown] = useState(30);
+  const timerRef = useRef<number | null>(null);
+
+  // Timer effect
+  useEffect(() => {
+    if (isOpen && step === 'waiting' && countdown > 0) {
+      timerRef.current = window.setTimeout(() => setCountdown(c => c - 1), 1000);
+    } else if (countdown === 0 && step === 'waiting') {
+      setStep('ready');
+    }
+    
+    // Cleanup timer on unmount or state change
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [isOpen, step, countdown]);
+
+  // Reset state when popup is closed or reopened
+  useEffect(() => {
+    if (!isOpen) {
+      // Use a timeout to reset state after the closing animation
+      setTimeout(() => {
+        setStep('initial');
+        setCountdown(30);
+        if (timerRef.current) clearTimeout(timerRef.current);
+      }, 300);
+    }
+  }, [isOpen]);
 
   const handleSubscribeClick = () => {
     const urls = settings.youtubeUrls.split('\n').filter(url => url.trim() !== '');
     if (urls.length > 0) {
       const randomUrl = urls[Math.floor(Math.random() * urls.length)];
       window.open(randomUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      alert('لا توجد روابط يوتيوب مهيئة حالياً.');
     }
+    setStep('waiting');
   };
-
+  
   const handleProceedClick = () => {
       onSubscribed();
   };
 
+  const handleClose = () => {
+    onClose();
+  };
+
+
   if (!isOpen) return null;
+  
+  const renderContent = () => {
+      switch (step) {
+          case 'waiting':
+              return {
+                  title: "شكراً لك!",
+                  description: (
+                    <>
+                        <p>نرجو منك التفاعل معنا والاشتراك ليصلك كل جديد وممتع.</p>
+                        <p className="mt-2">يرجى مشاهدة الفيديو لمدة 30 ثانية على الأقل لدعمنا.</p>
+                        <p className="font-bold text-lg mt-4 text-blue-600 animate-pulse">
+                            انتظر من فضلك... تبقى {countdown} ثانية
+                        </p>
+                    </>
+                  )
+              };
+          case 'ready':
+              return {
+                  title: "شكراً لدعمك!",
+                  description: "يمكنك الآن المتابعة إلى اللعبة."
+              };
+          case 'initial':
+          default:
+              return {
+                  title: "اشترك أولاً للاستمرار",
+                  description: "لدعمنا، يرجى الاشتراك في قناتنا على يوتيوب ثم المتابعة إلى اللعبة."
+              };
+      }
+  }
+  
+  const { title, description } = renderContent();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-100 opacity-100 animate-scale-up">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">اشترك أولاً للاستمرار</h2>
-        <p className="text-gray-600 mb-6">لدعمنا، يرجى الاشتراك في قناتنا على يوتيوب ثم المتابعة إلى اللعبة.</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
+        <div className="text-gray-600 mb-6 min-h-[120px] flex flex-col justify-center">{description}</div>
         <div className="flex flex-col gap-3">
-          <button
-            onClick={handleSubscribeClick}
-            className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            الاشتراك في يوتيوب
-          </button>
+          {step !== 'ready' && (
+             <button
+                onClick={handleSubscribeClick}
+                disabled={step === 'waiting'}
+                className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-red-300 disabled:cursor-not-allowed"
+              >
+                {step === 'initial' ? 'الاشتراك في يوتيوب' : '...جاري الانتظار'}
+              </button>
+          )}
            <button
             onClick={handleProceedClick}
-            className="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors"
+            disabled={step !== 'ready'}
+            className="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors disabled:bg-sky-300 disabled:cursor-not-allowed"
           >
             لقد اشتركت، افتح اللعبة
           </button>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors"
           >
             إغلاق
