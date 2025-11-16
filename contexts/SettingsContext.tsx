@@ -5,8 +5,11 @@ import { Settings } from '../types';
 const defaultSettings: Settings = {
   siteName: 'ToysGame World',
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
-  youtubeUrls: 'https://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A\nhttps://www.youtube.com/@mkstudio_963',
+  subscriptionUrl: 'https://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
+  youtubeUrls: 'https://www.youtube.com/@mkstudio_963',
   backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  contactEmail: 'contact@toysgameworld.com',
+  feedbackEmail: 'feedback@toysgameworld.com',
   adSettings: {
     enabled: false,
     name: 'مفاجأة!',

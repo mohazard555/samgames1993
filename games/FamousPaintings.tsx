@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 interface GameProps { gameName: string; }
 
 const PAINTINGS = [
-    { name: "الموناليزا", artist: "ليوناردو دافنشي", image: 'https://img.icons8.com/plasticine/200/mona-lisa.png', options: ["فان جوخ", "ليوناردو دافنشي", "بيكاسو"] },
-    { name: "ليلة النجوم", artist: "فان جوخ", image: 'https://img.icons8.com/plasticine/200/starry-night.png', options: ["فان جوخ", "دافنشي", "مونيه"] },
-    { name: "الصرخة", artist: "إدفارد مونك", image: 'https://img.icons8.com/plasticine/200/the-scream.png', options: ["رامبرانت", "مونيه", "إدفارد مونك"] },
+    { name: "الموناليزا", artist: "ليوناردو دافنشي", image: 'https://img.icons8.com/fluency/200/mona-lisa.png', options: ["فان جوخ", "ليوناردو دافنشي", "بيكاسو"] },
+    { name: "ليلة النجوم", artist: "فان جوخ", image: 'https://img.icons8.com/fluency/200/starry-night.png', options: ["فان جوخ", "دافنشي", "مونيه"] },
+    { name: "الصرخة", artist: "إدفارد مونك", image: 'https://img.icons8.com/fluency/200/the-scream.png', options: ["رامبرانت", "مونيه", "إدفارد مونك"] },
 ];
 
 const FamousPaintings: React.FC<GameProps> = ({ gameName }) => {

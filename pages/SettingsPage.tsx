@@ -126,9 +126,21 @@ const SettingsPage: React.FC = () => {
             <label className="block text-lg font-medium text-gray-700 mb-2">موسيقى الخلفية</label>
             <input type="file" id="backgroundMusicUrl" accept="audio/*" onChange={(e) => handleFileChange(e, 'backgroundMusicUrl')} className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"/>
           </div>
+           <div>
+            <label htmlFor="subscriptionUrl" className="block text-lg font-medium text-gray-700 mb-2">رابط الاشتراك الأساسي</label>
+            <input type="url" id="subscriptionUrl" name="subscriptionUrl" value={localSettings.subscriptionUrl} onChange={handleLocalChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500" placeholder="https://www.youtube.com/channel/..."/>
+          </div>
           <div>
-            <label htmlFor="youtubeUrls" className="block text-lg font-medium text-gray-700 mb-2">روابط قنوات يوتيوب (رابط واحد في كل سطر)</label>
-            <textarea id="youtubeUrls" name="youtubeUrls" value={localSettings.youtubeUrls} onChange={handleLocalChange} rows={5} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500" />
+            <label htmlFor="youtubeUrls" className="block text-lg font-medium text-gray-700 mb-2">روابط قنوات يوتيوب احتياطية (رابط واحد في كل سطر)</label>
+            <textarea id="youtubeUrls" name="youtubeUrls" value={localSettings.youtubeUrls} onChange={handleLocalChange} rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500" />
+          </div>
+           <div>
+            <label htmlFor="contactEmail" className="block text-lg font-medium text-gray-700 mb-2">بريد التواصل الإلكتروني</label>
+            <input type="email" id="contactEmail" name="contactEmail" value={localSettings.contactEmail} onChange={handleLocalChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500" placeholder="contact@example.com"/>
+          </div>
+          <div>
+            <label htmlFor="feedbackEmail" className="block text-lg font-medium text-gray-700 mb-2">بريد تلقي آراء المستخدمين</label>
+            <input type="email" id="feedbackEmail" name="feedbackEmail" value={localSettings.feedbackEmail} onChange={handleLocalChange} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500" placeholder="feedback@example.com"/>
           </div>
           <div className="flex items-center justify-between">
             <button type="submit" className="bg-sky-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-sky-700 transition-colors">حفظ الإعدادات المحلية</button>

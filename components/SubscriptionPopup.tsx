@@ -9,8 +9,8 @@ interface SubscriptionPopupProps {
 
 const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ isOpen, onClose, onSubscribed }) => {
   const { settings } = useSettings();
-  const [step, setStep] = useState<'initial' | 'waiting' | 'ready'>('initial');
-  const [countdown, setCountdown] = useState(30);
+  const [step, setStep] = useState<'initial' | 'confirming' | 'waiting' | 'ready'>('initial');
+  const [countdown, setCountdown] = useState(22);
   const timerRef = useRef<number | null>(null);
 
   // Timer effect
@@ -35,17 +35,26 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ isOpen, onClose, 
       // Use a timeout to reset state after the closing animation
       setTimeout(() => {
         setStep('initial');
-        setCountdown(30);
+        setCountdown(22);
         if (timerRef.current) clearTimeout(timerRef.current);
       }, 300);
     }
   }, [isOpen]);
 
   const handleSubscribeClick = () => {
-    const urls = settings.youtubeUrls.split('\n').filter(url => url.trim() !== '');
-    if (urls.length > 0) {
-      const randomUrl = urls[Math.floor(Math.random() * urls.length)];
-      window.open(randomUrl, '_blank', 'noopener,noreferrer');
+    setStep('confirming');
+  };
+
+  const handleOpenYoutubeAndStartTimer = () => {
+    let urlToOpen = settings.subscriptionUrl?.trim();
+    if (!urlToOpen) {
+        const urls = settings.youtubeUrls.split('\n').filter(url => url.trim() !== '');
+        if (urls.length > 0) {
+            urlToOpen = urls[Math.floor(Math.random() * urls.length)];
+        }
+    }
+    if (urlToOpen) {
+      window.open(urlToOpen, '_blank', 'noopener,noreferrer');
     }
     setStep('waiting');
   };
@@ -63,13 +72,18 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ isOpen, onClose, 
   
   const renderContent = () => {
       switch (step) {
+          case 'confirming':
+            return {
+                title: "تنبيه قبل المتابعة",
+                description: "ستنتظر 22 ثانية بعد فتح يوتيوب لتتمكن من الدخول للعبة. نرجو منك مشاهدة الفيديو لدعمنا حتى انتهاء الوقت.",
+            };
           case 'waiting':
               return {
                   title: "شكراً لك!",
                   description: (
                     <>
                         <p>نرجو منك التفاعل معنا والاشتراك ليصلك كل جديد وممتع.</p>
-                        <p className="mt-2">يرجى مشاهدة الفيديو لمدة 30 ثانية على الأقل لدعمنا.</p>
+                        <p className="mt-2">يرجى مشاهدة الفيديو لمدة 22 ثانية على الأقل لدعمنا.</p>
                         <p className="font-bold text-lg mt-4 text-blue-600 animate-pulse">
                             انتظر من فضلك... تبقى {countdown} ثانية
                         </p>
@@ -98,15 +112,19 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({ isOpen, onClose, 
         <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
         <div className="text-gray-600 mb-6 min-h-[120px] flex flex-col justify-center">{description}</div>
         <div className="flex flex-col gap-3">
-          {step !== 'ready' && (
-             <button
-                onClick={handleSubscribeClick}
-                disabled={step === 'waiting'}
-                className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:bg-red-300 disabled:cursor-not-allowed"
-              >
-                {step === 'initial' ? 'الاشتراك في يوتيوب' : '...جاري الانتظار'}
+          
+          {step === 'initial' && (
+              <button onClick={handleSubscribeClick} className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                  الاشتراك في يوتيوب
               </button>
           )}
+
+          {step === 'confirming' && (
+              <button onClick={handleOpenYoutubeAndStartTimer} className="w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                  افتح يوتيوب وابدأ العد
+              </button>
+          )}
+
            <button
             onClick={handleProceedClick}
             disabled={step !== 'ready'}

@@ -27,6 +27,7 @@ const Header: React.FC = () => {
       <NavLink to="/" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>الألعاب</NavLink>
       <NavLink to="/settings" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>الإعدادات</NavLink>
       <NavLink to="/contact" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>اتصل بنا</NavLink>
+      <NavLink to="/feedback" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>شاركنا رأيك</NavLink>
     </>
   );
 

@@ -10,6 +10,7 @@ const Footer: React.FC = () => {
             <Link to="/privacy" className="hover:text-sky-600 transition-colors">سياسة الخصوصية</Link>
             <Link to="/terms" className="hover:text-sky-600 transition-colors">الشروط والأحكام</Link>
             <Link to="/contact" className="hover:text-sky-600 transition-colors">اتصل بنا</Link>
+            <Link to="/feedback" className="hover:text-sky-600 transition-colors">شاركنا رأيك</Link>
         </div>
         <p>Developer: M.K Studio — 2025</p>
       </div>

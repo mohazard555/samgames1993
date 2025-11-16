@@ -22,7 +22,10 @@ export interface AdSettings {
 export interface Settings {
   siteName: string;
   logoUrl: string;
+  subscriptionUrl: string;
   youtubeUrls: string;
   backgroundMusicUrl: string;
+  contactEmail: string;
+  feedbackEmail: string;
   adSettings: AdSettings;
 }

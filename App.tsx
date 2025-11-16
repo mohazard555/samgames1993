@@ -9,6 +9,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsPage from './pages/TermsPage';
 import PageLayout from './components/PageLayout';
 import GamePage from './pages/GamePage';
+import FeedbackPage from './pages/FeedbackPage';
 
 const App: React.FC = () => {
   return (
@@ -23,6 +24,7 @@ const App: React.FC = () => {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
             </Routes>
           </PageLayout>
         </HashRouter>
