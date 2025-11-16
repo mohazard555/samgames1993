@@ -14,7 +14,6 @@ const CarRace: React.FC<GameProps> = ({ gameName }) => {
   const [countdown, setCountdown] = useState(3);
   const [winner, setWinner] = useState<'player' | 'cpu' | null>(null);
   
-  // Fix: Replace NodeJS.Timeout with `number` for browser compatibility.
   const raceInterval = useRef<number | null>(null);
 
   useEffect(() => {
@@ -29,7 +28,7 @@ const CarRace: React.FC<GameProps> = ({ gameName }) => {
 
   useEffect(() => {
     if (gameState === 'racing') {
-      raceInterval.current = setInterval(() => {
+      raceInterval.current = window.setInterval(() => {
         setCpuPosition(p => Math.min(TRACK_LENGTH, p + Math.random() * 0.6));
       }, 100);
     } else {

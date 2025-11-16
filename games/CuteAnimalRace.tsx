@@ -11,7 +11,6 @@ const CuteAnimalRace: React.FC<GameProps> = ({ gameName }) => {
     const [gameState, setGameState] = useState<'idle' | 'racing' | 'finished'>('idle');
     const [winner, setWinner] = useState<number | null>(null);
 
-    // Fix: The useRef hook requires an initial value. Initialize with undefined to resolve the error.
     const raceInterval = useRef<number | undefined>(undefined);
 
     useEffect(() => {

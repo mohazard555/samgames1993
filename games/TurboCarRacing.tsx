@@ -12,7 +12,6 @@ const TurboCarRacing: React.FC<GameProps> = ({ gameName }) => {
     const [obstacles, setObstacles] = useState<{id: number, x: number, y: number}[]>([]);
     const [score, setScore] = useState(0);
     const [gameState, setGameState] = useState<'idle' | 'playing' | 'over'>('idle');
-    // Fix: Initialize useRef with null to fix "Expected 1 arguments, but got 0" error.
     const gameLoopRef = useRef<number | null>(null);
 
     const startGame = () => {

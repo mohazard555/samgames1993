@@ -17,7 +17,6 @@ const LittleHeroAdventure: React.FC<GameProps> = ({ gameName }) => {
     const [obstacles, setObstacles] = useState<{x: number, height: number}[]>([]);
     const [score, setScore] = useState(0);
     const [gameState, setGameState] = useState<'idle' | 'playing' | 'over'>('idle');
-    // Fix: Initialize useRef with null to fix "Expected 1 arguments, but got 0" error.
     const gameLoopRef = useRef<number | null>(null);
     const obstacleTimeoutRef = useRef<number | null>(null);
 
