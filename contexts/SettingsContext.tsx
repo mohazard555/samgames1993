@@ -7,6 +7,14 @@ const defaultSettings: Settings = {
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
   youtubeUrls: 'https://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A\nhttps://www.youtube.com/@mkstudio_963',
   backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  adSettings: {
+    enabled: false,
+    name: 'مفاجأة!',
+    description: 'اكتشف المزيد من الألعاب والمرح عند زيارة هذا الرابط.',
+    url: 'https://www.youtube.com/@mkstudio_963',
+    imageUrl: 'https://img.icons8.com/plasticine/100/rocket.png',
+    iconUrl: 'https://img.icons8.com/plasticine/100/gift.png',
+  },
 };
 
 interface SettingsContextType {
@@ -27,7 +35,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [settings, setSettings] = useState<Settings>(() => {
     try {
       const savedSettings = localStorage.getItem('toysGameSettings');
-      return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+      if (savedSettings) {
+        // Merge saved settings with defaults to include new properties
+        const parsed = JSON.parse(savedSettings);
+        return { ...defaultSettings, ...parsed, adSettings: { ...defaultSettings.adSettings, ...parsed.adSettings } };
+      }
+      return defaultSettings;
     } catch (error) {
       console.error('Error reading settings from localStorage', error);
       return defaultSettings;

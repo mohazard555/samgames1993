@@ -10,9 +10,19 @@ export interface Game {
   color: string;
 }
 
+export interface AdSettings {
+  enabled: boolean;
+  name: string;
+  description: string;
+  url: string;
+  imageUrl: string;
+  iconUrl: string;
+}
+
 export interface Settings {
   siteName: string;
   logoUrl: string;
   youtubeUrls: string;
   backgroundMusicUrl: string;
+  adSettings: AdSettings;
 }
