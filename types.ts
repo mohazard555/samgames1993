@@ -50,6 +50,17 @@ export interface ContactMessage {
   createdAt: string;
 }
 
+export interface SkillTestResult {
+  id: string;
+  name: string;
+  age: string;
+  country: string;
+  score: number;
+  total: number;
+  percentage: number;
+  createdAt: string;
+}
+
 export interface Settings {
   siteName: string;
   logoUrl: string;
@@ -65,4 +76,5 @@ export interface Settings {
   googleAdSettings: GoogleAdSettings;
   feedbacks?: FeedbackItem[];
   contactMessages?: ContactMessage[];
+  skillTestResults?: SkillTestResult[];
 }

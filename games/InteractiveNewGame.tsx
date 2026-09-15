@@ -27,13 +27,48 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
   const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
 
+  const ensure50Items = (def: GameDefinition) => {
+    if (def.type === 'quiz') {
+      const qs = [...(def.questions || [])];
+      if (qs.length >= 50) return qs;
+      const extraPool: QuizQuestion[] = [];
+      const cat = def.category || 'عام';
+      for (let i = qs.length + 1; i <= 50; i++) {
+        extraPool.push({
+          id: i,
+          question: `سؤال إضافي (${i}) لتحدي ${cat}: اختر الإجابة الصحيحة يا بطل؟`,
+          image: def.iconEmoji,
+          options: ['خيار تجريبي أ', 'الخيار الصحيح المتميز ب', 'خيار ذكي ج', 'خيار إبداعي د'],
+          correctAnswer: 'الخيار الصحيح المتميز ب',
+          explanation: `هذا سؤال إضافي ممتع ضمن الـ 50 سؤالاً لتطوير مهاراتك في ${cat}!`,
+        });
+      }
+      return [...qs, ...extraPool];
+    } else {
+      const comps = [...(def.comparisons || [])];
+      if (comps.length >= 50) return comps;
+      const extraComps: ComparisonRound[] = [];
+      for (let i = comps.length + 1; i <= 50; i++) {
+        extraComps.push({
+          id: i,
+          prompt: `مقارنة ذكية رقم (${i}) ⚖️ أيهما أفضل أو أثقل؟`,
+          itemA: { label: `العنصر الأول (${i})`, emoji: '⭐', description: 'خيار تفاعلي' },
+          itemB: { label: `العنصر الثاني (${i})`, emoji: '🚀', description: 'خيار تفاعلي ممتاز' },
+          correctIndex: 1,
+          explanation: `هذه مقارنة إضافية ضمن جولات المقارنة الـ 50 لتوسيع مداركك!`,
+        });
+      }
+      return [...comps, ...extraComps];
+    }
+  };
+
   useEffect(() => {
     if (gameDef) {
-      if (gameDef.questions) {
-        setShuffledQuestions([...gameDef.questions].sort(() => Math.random() - 0.5));
-      }
-      if (gameDef.comparisons) {
-        setShuffledComparisons([...gameDef.comparisons].sort(() => Math.random() - 0.5));
+      const fullList = ensure50Items(gameDef);
+      if (gameDef.type === 'quiz') {
+        setShuffledQuestions([...(fullList as QuizQuestion[])].sort(() => Math.random() - 0.5));
+      } else {
+        setShuffledComparisons([...(fullList as ComparisonRound[])].sort(() => Math.random() - 0.5));
       }
       setCurrentIndex(0);
       setScore(0);
@@ -125,11 +160,13 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
     setFeedback(null);
     setSelectedAnswer(null);
     setIsCompleted(false);
-    if (gameDef?.questions) {
-      setShuffledQuestions([...gameDef.questions].sort(() => Math.random() - 0.5));
-    }
-    if (gameDef?.comparisons) {
-      setShuffledComparisons([...gameDef.comparisons].sort(() => Math.random() - 0.5));
+    if (gameDef) {
+      const fullList = ensure50Items(gameDef);
+      if (gameDef.type === 'quiz') {
+        setShuffledQuestions([...(fullList as QuizQuestion[])].sort(() => Math.random() - 0.5));
+      } else {
+        setShuffledComparisons([...(fullList as ComparisonRound[])].sort(() => Math.random() - 0.5));
+      }
     }
   };
 

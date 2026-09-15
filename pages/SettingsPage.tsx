@@ -23,6 +23,7 @@ const SettingsPage: React.FC = () => {
     deleteFeedback,
     updateContactMessageStatus,
     deleteContactMessage,
+    deleteSkillTestResult,
   } = useSettings();
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
@@ -32,7 +33,7 @@ const SettingsPage: React.FC = () => {
     setLocalSettings(settings);
   }, [settings]);
 
-  const [activeTab, setActiveTab] = useState<'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'ads' | 'sync'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'ads' | 'sync' | 'skillResults'>('general');
   const [saveMessage, setSaveMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
   const [passwordInput, setPasswordInput] = useState('');
@@ -459,6 +460,19 @@ const SettingsPage: React.FC = () => {
         >
           <span>🌐</span>
           <span>مزامنة Gist والنسخ الاحتياطي</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('skillResults')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'skillResults'
+              ? 'bg-amber-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>🏆</span>
+          <span>نتائج تحدي المهارات ({localSettings.skillTestResults?.length || 0})</span>
         </button>
       </div>
 
@@ -1345,6 +1359,68 @@ const SettingsPage: React.FC = () => {
                 <input type="file" ref={importFileRef} onChange={importSettings} accept=".json" className="hidden" />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 8: SKILL TEST RESULTS MANAGEMENT */}
+        {activeTab === 'skillResults' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-amber-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">🏆</span>
+              <div>
+                <h2 className="text-xl font-black text-amber-950">إدارة نتائج تحدي المهارات لوحة الشرف</h2>
+                <p className="text-xs text-gray-500">مراجعة وحذف نتائج الأبطال المرسلة من تحدي 50 سؤالاً</p>
+              </div>
+            </div>
+
+            {(!localSettings.skillTestResults || localSettings.skillTestResults.length === 0) ? (
+              <div className="text-center p-12 bg-amber-50/50 rounded-2xl border border-amber-200">
+                <span className="text-5xl block mb-2">🏅</span>
+                <p className="text-gray-600 font-bold">لا توجد نتائج مسجلة لتحدي المهارات حالياً.</p>
+                <p className="text-xs text-gray-400 mt-1">عندما يخوض الأطفال تحدي 50 سؤالاً ويرسلون نتائجهم، ستظهر هنا للإدارة!</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+                {localSettings.skillTestResults.map((res) => (
+                  <div key={res.id} className="p-4 rounded-2xl border-2 border-amber-100 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-gray-800 text-base">{res.name}</span>
+                        {res.country && (
+                          <span className="text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold">
+                            {res.country}
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400 font-mono">العمر: {res.age}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">تاريخ التسجيل: {res.createdAt}</p>
+                    </div>
+
+                    <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0">
+                      <div className="text-left sm:text-right">
+                        <span className="text-lg font-black text-amber-700">{res.score} / {res.total}</span>
+                        <span className="text-xs font-bold text-emerald-600 block">({res.percentage}%)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`هل أنت متأكد من حذف نتيجة البطل ${res.name}؟`)) {
+                            deleteSkillTestResult(res.id);
+                            setLocalSettings((prev) => ({
+                              ...prev,
+                              skillTestResults: (prev.skillTestResults || []).filter((r) => r.id !== res.id),
+                            }));
+                          }
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 font-bold px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 cursor-pointer"
+                      >
+                        🗑️ حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

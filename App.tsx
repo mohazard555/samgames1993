@@ -10,6 +10,8 @@ import TermsPage from './pages/TermsPage';
 import PageLayout from './components/PageLayout';
 import GamePage from './pages/GamePage';
 import FeedbackPage from './pages/FeedbackPage';
+import SkillTestPage from './pages/SkillTestPage';
+import LeaderboardPage from './pages/LeaderboardPage';
 import ChildSplashScreen from './components/ChildSplashScreen';
 
 const MainRoutes: React.FC = () => {
@@ -25,6 +27,8 @@ const MainRoutes: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/game/:gameId" element={<GamePage />} />
+          <Route path="/skill-test" element={<SkillTestPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />

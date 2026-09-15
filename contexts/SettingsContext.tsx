@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
-import { Settings, FeedbackItem, ContactMessage } from '../types';
+import { Settings, FeedbackItem, ContactMessage, SkillTestResult } from '../types';
 
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
@@ -86,6 +86,8 @@ interface SettingsContextType {
   addContactMessage: (item: { name: string; email: string; subject: string; message: string }) => Promise<void>;
   updateContactMessageStatus: (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => void;
   deleteContactMessage: (id: string) => void;
+  addSkillTestResult: (item: { name: string; age: string; country: string; score: number; total: number }) => Promise<void>;
+  deleteSkillTestResult: (id: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -490,6 +492,40 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  // Skill Test Results Management Methods
+  const addSkillTestResult = async (item: { name: string; age: string; country: string; score: number; total: number }) => {
+    const newResult: SkillTestResult = {
+      id: `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: item.name.trim() || 'بطل مجهول',
+      age: item.age.trim() || 'غير محدد',
+      country: item.country.trim() || 'غير محدد',
+      score: item.score,
+      total: item.total,
+      percentage: Math.round((item.score / item.total) * 100),
+      createdAt: new Date().toLocaleString('ar-EG'),
+    };
+
+    const updatedResults = [newResult, ...(settings.skillTestResults || [])];
+    const newSettings: Settings = {
+      ...settings,
+      skillTestResults: updatedResults,
+    };
+    saveSettings(newSettings);
+
+    if (gistToken) {
+      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
+    }
+  };
+
+  const deleteSkillTestResult = (id: string) => {
+    const updatedResults = (settings.skillTestResults || []).filter((res) => res.id !== id);
+    const newSettings = { ...settings, skillTestResults: updatedResults };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
   // Automatically fetch the latest Gist settings for any visitor on app load!
   useEffect(() => {
     let isMounted = true;
@@ -538,6 +574,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         addContactMessage,
         updateContactMessageStatus,
         deleteContactMessage,
+        addSkillTestResult,
+        deleteSkillTestResult,
       }}
     >
       {children}

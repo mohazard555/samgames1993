@@ -81,6 +81,12 @@ const Header: React.FC = () => {
       <NavLink to="/" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>
         الألعاب
       </NavLink>
+      <NavLink to="/skill-test" className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} text-amber-700 bg-amber-50 hover:bg-amber-100`} onClick={() => setIsMenuOpen(false)}>
+        🧠 اختبر مهاراتك
+      </NavLink>
+      <NavLink to="/leaderboard" className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} text-emerald-700 bg-emerald-50 hover:bg-emerald-100`} onClick={() => setIsMenuOpen(false)}>
+        🏆 لوحة الشرف
+      </NavLink>
       <button
         onClick={() => {
           setIsMenuOpen(false);
