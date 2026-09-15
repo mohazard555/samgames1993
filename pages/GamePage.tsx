@@ -1,41 +1,31 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { GAMES } from '../constants';
+import { NEW_GAMES_REGISTRY } from '../games/newGamesData';
+import InteractiveNewGame from '../games/InteractiveNewGame';
 
-// Import existing game components
+// Import existing working game components
 import MagicColorPuzzle from '../games/MagicColorPuzzle';
 import WhackAMole from '../games/WhackAMole';
 import MemoryMatch from '../games/MemoryMatch';
 import PlaceholderGame from '../games/PlaceholderGame';
-import PizzaMaker from '../games/PizzaMaker';
 import AnimalMatching from '../games/AnimalMatching';
 import FishCatching from '../games/FishCatching';
-import AnimalPuzzle from '../games/AnimalPuzzle';
 import FunFootball from '../games/FunFootball';
 import SimpleNumbersChallenge from '../games/SimpleNumbersChallenge';
 import FastBubbles from '../games/FastBubbles';
 import DrawingCartoonCharacters from '../games/DrawingCartoonCharacters';
-import BigChocolateCake from '../games/BigChocolateCake';
-import MagicBasketballShots from '../games/MagicBasketballShots';
-import GeometricShapesPuzzle from '../games/GeometricShapesPuzzle';
-import CaringForLittleCat from '../games/CaringForLittleCat';
 import AlphabetLearning from '../games/AlphabetLearning';
 import MagicKidsPiano from '../games/MagicKidsPiano';
-import LittleCityBuilder from '../games/LittleCityBuilder';
 import DiscoverAnimalSounds from '../games/DiscoverAnimalSounds';
 import WordGuessGame from '../games/WordGuessGame';
 import ColorBalloonPop from '../games/ColorBalloonPop';
 import MindAdventures from '../games/MindAdventures';
-import SmartThinkingCubes from '../games/SmartThinkingCubes';
 import WonderBubbles from '../games/WonderBubbles';
 import ArrangeWonderBlocks from '../games/ArrangeWonderBlocks';
-import AdventurousRabbitJumps from '../games/AdventurousRabbitJumps';
 import MysteriousDesertTreasure from '../games/MysteriousDesertTreasure';
 import PressTheCorrectColor from '../games/PressTheCorrectColor';
-import MagicJuiceShop from '../games/MagicJuiceShop';
-import FunChefSandwich from '../games/FunChefSandwich';
 import TheRightPathPuzzle from '../games/TheRightPathPuzzle';
-import HappyAnimalFarm from '../games/HappyAnimalFarm';
 import CountTheItems from '../games/CountTheItems';
 import ShapeMatching from '../games/ShapeMatching';
 import CompleteThePattern from '../games/CompleteThePattern';
@@ -50,26 +40,19 @@ import PictureWordMatch from '../games/PictureWordMatch';
 import WordOpposites from '../games/WordOpposites';
 import FirstLetter from '../games/FirstLetter';
 import SingularPlural from '../games/SingularPlural';
-import ShapeComposition from '../games/ShapeComposition';
 import CountTheSides from '../games/CountTheSides';
-import ShapeSorting from '../games/ShapeSorting';
 import FindTheLetter from '../games/FindTheLetter';
 import FillMissingLetter from '../games/FillMissingLetter';
-import MatchingShadow from '../games/MatchingShadow';
 import ColorMixing from '../games/ColorMixing';
 import ConnectTheDots from '../games/ConnectTheDots';
 import ColorSorting from '../games/ColorSorting';
-import WhichIsDifferent from '../games/WhichIsDifferent';
 import WeightPuzzle from '../games/WeightPuzzle';
 import NumberMaze from '../games/NumberMaze';
 import ColorByNumber from '../games/ColorByNumber';
-import ShapeSudoku from '../games/ShapeSudoku';
 import CountTheDots from '../games/CountTheDots';
-import ClockPuzzle from '../games/ClockPuzzle';
 import LogicPatterns from '../games/LogicPatterns';
 import HiddenWord from '../games/HiddenWord';
 import FamousLandmarks from '../games/FamousLandmarks';
-import AnimalHabitats from '../games/AnimalHabitats';
 import GuessTheSound from '../games/GuessTheSound';
 import VegetableOrFruit from '../games/VegetableOrFruit';
 import JobsAndTools from '../games/JobsAndTools';
@@ -90,21 +73,12 @@ import FamousPaintings from '../games/FamousPaintings';
 import MusicalInstruments from '../games/MusicalInstruments';
 import DinosaurQuiz from '../games/DinosaurQuiz';
 import WorldFlags from '../games/WorldFlags';
-
-// Import 12 new games
 import FunnyMonsterMaker from '../games/FunnyMonsterMaker';
-import FastCarRacing from '../games/FastCarRacing';
 import PipePuzzle from '../games/PipePuzzle';
 import MathCandyShop from '../games/MathCandyShop';
 import HiddenObjectGame from '../games/HiddenObjectGame';
-import MagicBalloonJourney from '../games/MagicBalloonJourney';
-import IceCreamMaker from '../games/IceCreamMaker';
-import BearDressUp from '../games/BearDressUp';
 import TicTacToe from '../games/TicTacToe';
 import DailyRoutine from '../games/DailyRoutine';
-import BabyDinoCare from '../games/BabyDinoCare';
-import JungleMonkeyAdventure from '../games/JungleMonkeyAdventure';
-
 
 // Define a type for game components for better type safety
 interface GameComponentProps {
@@ -117,34 +91,22 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'لغز الألوان السحرية': MagicColorPuzzle,
   'اضرب الخلد بسرعة': WhackAMole,
   'ذاكرة الصور السريعة': MemoryMatch,
-  'صنع البيتزا اللذيذة': PizzaMaker,
   'مطابقة الحيوانات المرحِة': AnimalMatching,
   'صيد الأسماك الملوّنة': FishCatching,
-  'بازل الحيوانات': AnimalPuzzle,
   'كرة القدم الممتعة': FunFootball,
   'تحدي الأرقام السهلة': SimpleNumbersChallenge,
   'الفقاعات السريعة': FastBubbles,
   'رسم الشخصيات الكرتونية': DrawingCartoonCharacters,
-  'كعكة الشوكولاتة الكبيرة': BigChocolateCake,
-  'رميات السلة السحرية': MagicBasketballShots,
-  'لغز الأشكال الهندسية': GeometricShapesPuzzle,
-  'رعاية القط الصغير': CaringForLittleCat,
   'تعلم الحروف الهجائية': AlphabetLearning,
   'بيانو الأطفال السحري': MagicKidsPiano,
-  'بناء المدينة الصغيرة': LittleCityBuilder,
   'اكتشف أصوات الحيوانات': DiscoverAnimalSounds,
   'لعبة تخمين الكلمة': WordGuessGame,
   'فرقعة بالونات الألوان': ColorBalloonPop,
-  'مكعبات التفكير الذكي': SmartThinkingCubes,
   'ذكاء الفقاعات العجيبة': WonderBubbles,
   'ترتيب الكتل العجيبة': ArrangeWonderBlocks,
-  'قفزات الأرنب المغامر': AdventurousRabbitJumps,
   'كنز الصحراء الغامض': MysteriousDesertTreasure,
   'اضغط اللون الصحيح': PressTheCorrectColor,
-  'متجر العصائر السحرية': MagicJuiceShop,
-  'سندويتش الشيف المرح': FunChefSandwich,
   'لغز الطريق الصحيح': TheRightPathPuzzle,
-  'مزرعة الحيوانات السعيدة': HappyAnimalFarm,
   'عد الفواكه': CountTheItems,
   'مطابقة الأشكال': ShapeMatching,
   'أكمل النمط': CompleteThePattern,
@@ -162,26 +124,19 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'الكلمة وعكسها': WordOpposites,
   'الحرف الأول': FirstLetter,
   'المفرد والجمع': SingularPlural,
-  'تكوين الأشكال': ShapeComposition,
   'عد الأضلاع': CountTheSides,
-  'فرز الأشكال': ShapeSorting,
   'البحث عن الحرف': FindTheLetter,
   'إملأ الحرف الناقص': FillMissingLetter,
-  'البحث عن الظل المطابق': MatchingShadow,
   'مزج الألوان': ColorMixing,
   'توصيل النقاط': ConnectTheDots,
   'فرز الألوان': ColorSorting,
-  'ما هو المختلف؟': WhichIsDifferent,
   'لغز الوزن': WeightPuzzle,
   'متاهة الأرقام': NumberMaze,
   'تلوين حسب الرقم': ColorByNumber,
-  'سودوكو الأشكال للأطفال': ShapeSudoku,
   'عد النقاط': CountTheDots,
-  'لغز الساعة': ClockPuzzle,
   'الأنماط المنطقية': LogicPatterns,
   'الكلمة المخفية': HiddenWord,
   'معالم شهيرة': FamousLandmarks,
-  'موطن الحيوانات': AnimalHabitats,
   'خمن الصوت': GuessTheSound,
   'فاكهة أم خضار؟': VegetableOrFruit,
   'المهن وأدواتها': JobsAndTools,
@@ -202,20 +157,12 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'الآلات الموسيقية': MusicalInstruments,
   'مسابقة الديناصورات': DinosaurQuiz,
   'أعلام الدول': WorldFlags,
-
-  // === 12 New Games ===
   'صانع الوحوش المضحكة': FunnyMonsterMaker,
-  'سباق السيارات السريع': FastCarRacing,
   'لغز توصيل الأنابيب': PipePuzzle,
   'متجر الحلوى للرياضيات': MathCandyShop,
   'البحث عن الأشياء المفقودة': HiddenObjectGame,
-  'رحلة المنطاد السحرية': MagicBalloonJourney,
-  'صانع الآيس كريم': IceCreamMaker,
-  'تلبيس الدببة اللطيفة': BearDressUp,
   'لعبة إكس أو': TicTacToe,
   'ترتيب أحداث اليوم': DailyRoutine,
-  'رعاية طفل الديناصور': BabyDinoCare,
-  'مغامرة القرد في الغابة': JungleMonkeyAdventure,
 };
 
 import GoogleAdBanner from '../components/GoogleAdBanner';
@@ -236,7 +183,11 @@ const GamePage: React.FC = () => {
     );
   }
 
-  const GameComponent = gameComponents[game.name] || PlaceholderGame;
+  // If game is in the 40 new interactive games registry, use InteractiveNewGame
+  const isNewInteractiveGame = Boolean(NEW_GAMES_REGISTRY[game.name]);
+  const GameComponent = isNewInteractiveGame
+    ? InteractiveNewGame
+    : (gameComponents[game.name] || PlaceholderGame);
 
   return (
     <div className="space-y-4">

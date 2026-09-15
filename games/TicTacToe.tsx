@@ -87,19 +87,16 @@ const TicTacToe: React.FC<GameProps> = ({ gameName }) => {
 
   return (
     <div className="max-w-4xl mx-auto text-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-4 border-amber-400">
-      <div className="flex justify-between items-center mb-6">
-        <Link
-          to="/"
-          className="bg-orange-500 text-white font-bold py-2 px-4 rounded-xl hover:bg-orange-600 transition-colors shadow"
-        >
-          → العودة للألعاب
-        </Link>
-        <h1 className="text-xl sm:text-2xl font-black text-amber-900">{gameName}</h1>
+      <div className="flex justify-between items-center mb-6 pb-3 border-b border-amber-100">
+        <h1 className="text-xl sm:text-2xl font-black text-amber-900 flex items-center gap-2">
+          <span>⭕❌</span>
+          <span>{gameName}</span>
+        </h1>
         <button
           onClick={resetGame}
-          className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-xl shadow transition-transform active:scale-95"
+          className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-xl shadow transition-transform active:scale-95 cursor-pointer"
         >
-          إعادة 🔄
+          🔄 إعادة اللعب
         </button>
       </div>
 
