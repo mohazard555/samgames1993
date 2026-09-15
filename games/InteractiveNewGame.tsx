@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { NEW_GAMES_REGISTRY, GameDefinition } from './newGamesData';
+import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
 import {
   playSuccessSound,
   playErrorSound,
   playPopSound,
   playWinFanfare,
+  playObjectSound,
+  playPianoNote,
 } from '../utils/soundEffects';
 
 interface InteractiveNewGameProps {
@@ -22,6 +24,26 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   const [selectedAnswer, setSelectedAnswer] = useState<string | number | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
+  const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
+
+  useEffect(() => {
+    if (gameDef) {
+      if (gameDef.questions) {
+        setShuffledQuestions([...gameDef.questions].sort(() => Math.random() - 0.5));
+      }
+      if (gameDef.comparisons) {
+        setShuffledComparisons([...gameDef.comparisons].sort(() => Math.random() - 0.5));
+      }
+      setCurrentIndex(0);
+      setScore(0);
+      setStreak(0);
+      setFeedback(null);
+      setSelectedAnswer(null);
+      setIsCompleted(false);
+    }
+  }, [gameName]);
+
   if (!gameDef) {
     return (
       <div className="max-w-xl mx-auto p-6 bg-white rounded-3xl shadow-xl text-center">
@@ -35,8 +57,8 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   }
 
   const isQuiz = gameDef.type === 'quiz';
-  const questions = gameDef.questions || [];
-  const comparisons = gameDef.comparisons || [];
+  const questions = shuffledQuestions.length > 0 ? shuffledQuestions : (gameDef.questions || []);
+  const comparisons = shuffledComparisons.length > 0 ? shuffledComparisons : (gameDef.comparisons || []);
   const totalItems = isQuiz ? questions.length : comparisons.length;
 
   const handleQuizAnswer = (option: string, correctAnswer: string) => {
@@ -103,6 +125,12 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
     setFeedback(null);
     setSelectedAnswer(null);
     setIsCompleted(false);
+    if (gameDef?.questions) {
+      setShuffledQuestions([...gameDef.questions].sort(() => Math.random() - 0.5));
+    }
+    if (gameDef?.comparisons) {
+      setShuffledComparisons([...gameDef.comparisons].sort(() => Math.random() - 0.5));
+    }
   };
 
   if (isCompleted) {
@@ -197,9 +225,21 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
           </div>
 
           {/* Question Text */}
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-800 text-center mb-8 leading-relaxed">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-800 text-center mb-4 leading-relaxed">
             {currentQ.question}
           </h2>
+
+          {gameDef.category === 'موسيقى' && (
+            <div className="text-center mb-6">
+              <button
+                onClick={() => playObjectSound(currentQ.correctAnswer || currentQ.question)}
+                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black px-5 py-2.5 rounded-2xl shadow-lg transition-transform active:scale-95 cursor-pointer text-base animate-bounce"
+              >
+                <span>🔊</span>
+                <span>استمع لصوت الآلة والنغمة</span>
+              </button>
+            </div>
+          )}
 
           {/* Options Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
