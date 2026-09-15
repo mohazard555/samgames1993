@@ -1,22 +1,32 @@
-
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Settings } from '../types';
 
 const defaultSettings: Settings = {
   siteName: 'ToysGame World',
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
-  subscriptionUrl: 'https://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
-  youtubeUrls: 'https://www.youtube.com/@mkstudio_963',
+  subscriptionUrl: 'https://www.youtube.com/@mkstudio_963',
+  youtubeUrls: 'https://www.youtube.com/@mkstudio_963\nhttps://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
   backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
   contactEmail: 'contact@toysgameworld.com',
   feedbackEmail: 'feedback@toysgameworld.com',
+  videoWaitTime: 15, // مهلة انتظار فتح الفيديو بالثواني
+  videoRequiredGameIds: [1, 3, 7, 10, 22], // الألعاب المحددة التي تتطلب مشاهدة فيديو
   adSettings: {
     enabled: false,
-    name: 'مفاجأة!',
-    description: 'اكتشف المزيد من الألعاب والمرح عند زيارة هذا الرابط.',
+    name: 'مفاجأة للأبطال!',
+    description: 'اكتشف المزيد من الألعاب والمرح والفيديوهات الممتعة عند زيارة هذا الرابط.',
     url: 'https://www.youtube.com/@mkstudio_963',
     imageUrl: 'https://img.icons8.com/plasticine/100/rocket.png',
     iconUrl: 'https://img.icons8.com/plasticine/100/gift.png',
+  },
+  googleAdSettings: {
+    enabled: false,
+    adClient: '',
+    adSlot: '',
+    customHtml: '',
+    showTopBanner: true,
+    showBottomBanner: true,
+    showGameBanner: true,
   },
 };
 
@@ -24,6 +34,20 @@ interface SettingsContextType {
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
   saveSettings: (newSettings: Settings) => void;
+  // User subscription state
+  isSubscribed: boolean;
+  setIsSubscribed: (val: boolean) => void;
+  resetSubscriptionStatus: () => void;
+  // Video-unlocked games in session
+  unlockedVideoGames: number[];
+  unlockVideoGame: (gameId: number) => void;
+  isGameUnlocked: (gameId: number) => boolean;
+  // Admin authentication (Password 1993)
+  isAdminUnlocked: boolean;
+  setIsAdminUnlocked: (val: boolean) => void;
+  verifyAdminPassword: (password: string) => boolean;
+  lockAdmin: () => void;
+  // Gist sync
   gistUrl: string;
   setGistUrl: (url: string) => void;
   gistToken: string;
@@ -39,9 +63,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       const savedSettings = localStorage.getItem('toysGameSettings');
       if (savedSettings) {
-        // Merge saved settings with defaults to include new properties
         const parsed = JSON.parse(savedSettings);
-        return { ...defaultSettings, ...parsed, adSettings: { ...defaultSettings.adSettings, ...parsed.adSettings } };
+        return {
+          ...defaultSettings,
+          ...parsed,
+          videoWaitTime: typeof parsed.videoWaitTime === 'number' ? parsed.videoWaitTime : defaultSettings.videoWaitTime,
+          videoRequiredGameIds: Array.isArray(parsed.videoRequiredGameIds) ? parsed.videoRequiredGameIds : defaultSettings.videoRequiredGameIds,
+          adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
+          googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
+        };
       }
       return defaultSettings;
     } catch (error) {
@@ -50,19 +80,112 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   });
 
+  // User subscription state in localStorage
+  const [isSubscribed, setIsSubscribedState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('toysGameUserSubscribed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const setIsSubscribed = (val: boolean) => {
+    try {
+      localStorage.setItem('toysGameUserSubscribed', val ? 'true' : 'false');
+    } catch (e) {
+      console.error(e);
+    }
+    setIsSubscribedState(val);
+  };
+
+  const resetSubscriptionStatus = () => {
+    try {
+      localStorage.removeItem('toysGameUserSubscribed');
+    } catch (e) {
+      console.error(e);
+    }
+    setIsSubscribedState(false);
+  };
+
+  // Video-unlocked games in session
+  const [unlockedVideoGames, setUnlockedVideoGames] = useState<number[]>(() => {
+    try {
+      const saved = sessionStorage.getItem('toysGameUnlockedVideos');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const unlockVideoGame = (gameId: number) => {
+    setUnlockedVideoGames((prev) => {
+      if (prev.includes(gameId)) return prev;
+      const updated = [...prev, gameId];
+      try {
+        sessionStorage.setItem('toysGameUnlockedVideos', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  const isGameUnlocked = (gameId: number): boolean => {
+    // If game does not require video watch, it is unlocked if subscribed
+    const requiresVideo = settings.videoRequiredGameIds?.includes(gameId);
+    if (!requiresVideo) {
+      return isSubscribed;
+    }
+    // If it requires video, check if it was unlocked in this session
+    return unlockedVideoGames.includes(gameId);
+  };
+
+  // Admin lock state (Password 1993)
+  const [isAdminUnlocked, setIsAdminUnlockedState] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('toysGameAdminAuth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const setIsAdminUnlocked = (val: boolean) => {
+    try {
+      if (val) {
+        sessionStorage.setItem('toysGameAdminAuth', 'true');
+      } else {
+        sessionStorage.removeItem('toysGameAdminAuth');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsAdminUnlockedState(val);
+  };
+
+  const verifyAdminPassword = (password: string): boolean => {
+    if (password.trim() === '1993') {
+      setIsAdminUnlocked(true);
+      return true;
+    }
+    return false;
+  };
+
+  const lockAdmin = () => {
+    setIsAdminUnlocked(false);
+  };
+
   const [gistUrl, setGistUrlState] = useState<string>(() => localStorage.getItem('gistUrl') || '');
   const [gistToken, setGistTokenState] = useState<string>(() => localStorage.getItem('gistToken') || '');
 
-
   const saveSettings = (newSettings: Settings) => {
-     try {
+    try {
       localStorage.setItem('toysGameSettings', JSON.stringify(newSettings));
       setSettings(newSettings);
     } catch (error) {
       console.error('Error saving settings to localStorage', error);
     }
-  }
-  
+  };
+
   const setGistUrl = (url: string) => {
     localStorage.setItem('gistUrl', url);
     setGistUrlState(url);
@@ -104,8 +227,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const response = await fetch(`https://api.github.com/gists/${gistId}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `token ${gistToken}`,
-          'Accept': 'application/vnd.github.v3+json',
+          Authorization: `token ${gistToken}`,
+          Accept: 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -129,9 +252,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-
   return (
-    <SettingsContext.Provider value={{ settings, setSettings: saveSettings, saveSettings, gistUrl, setGistUrl, gistToken, setGistToken, loadFromGist, saveToGist }}>
+    <SettingsContext.Provider
+      value={{
+        settings,
+        setSettings,
+        saveSettings,
+        isSubscribed,
+        setIsSubscribed,
+        resetSubscriptionStatus,
+        unlockedVideoGames,
+        unlockVideoGame,
+        isGameUnlocked,
+        isAdminUnlocked,
+        setIsAdminUnlocked,
+        verifyAdminPassword,
+        lockAdmin,
+        gistUrl,
+        setGistUrl,
+        gistToken,
+        setGistToken,
+        loadFromGist,
+        saveToGist,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );

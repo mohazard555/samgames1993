@@ -1,8 +1,40 @@
 import React from 'react';
 import { Game } from './types';
-import { PuzzlePieceIcon, RocketLaunchIcon, FlagIcon, LightBulbIcon, MagnifyingGlassIcon, BeakerIcon, UserGroupIcon, MusicalNoteIcon, PaintBrushIcon, ClockIcon, HeartIcon, StarIcon } from './components/Icons';
+import {
+  PuzzlePieceIcon,
+  RocketLaunchIcon,
+  FlagIcon,
+  LightBulbIcon,
+  MagnifyingGlassIcon,
+  BeakerIcon,
+  UserGroupIcon,
+  MusicalNoteIcon,
+  PaintBrushIcon,
+  ClockIcon,
+  HeartIcon,
+  StarIcon,
+} from './components/Icons';
 
-const gameNamesByCategory = {
+export const ICON_COMPONENTS = [
+  PuzzlePieceIcon,
+  RocketLaunchIcon,
+  FlagIcon,
+  LightBulbIcon,
+  MagnifyingGlassIcon,
+  BeakerIcon,
+  UserGroupIcon,
+  MusicalNoteIcon,
+  PaintBrushIcon,
+  ClockIcon,
+  HeartIcon,
+  StarIcon,
+];
+
+export const getGameIconComponent = (iconIndex: number): React.FC => {
+  return ICON_COMPONENTS[iconIndex % ICON_COMPONENTS.length] || PuzzlePieceIcon;
+};
+
+const gameNamesByCategory: { [key: string]: string[] } = {
   'ذكاء': [
     'مغامرات العقل الصغير', 'لغز الألوان السحرية', 'مكعبات التفكير الذكي', 'مطابقة الحيوانات المرحِة',
     'ذكاء الفقاعات العجيبة', 'تحدي الأرقام السهلة',
@@ -18,7 +50,7 @@ const gameNamesByCategory = {
   'سرعة': [
     'اضرب الخلد بسرعة', 'اضغط اللون الصحيح', 'الفقاعات السريعة'
   ],
-   'سباق': [
+  'سباق': [
     'سباق السيارات السريع'
   ],
   'طبخ': [
@@ -53,39 +85,33 @@ const gameNamesByCategory = {
     'متجر الحلوى للرياضيات', 'ترتيب أحداث اليوم'
   ],
   'موسيقى': ['بيانو الأطفال السحري'],
-  'فضاء': [
-    // Removed 'مغامرة رائد الفضاء'
-  ],
   'بناء': ['بناء المدينة الصغيرة'],
-  'أبطال': [
-    // Removed 'صانع الأبطال الخارقين'
-  ],
   'كلمات': ['لعبة تخمين الكلمة'],
   'ألوان': ['فرقعة بالونات الألوان'],
 };
 
-const gameIcons = [<PuzzlePieceIcon />, <RocketLaunchIcon />, <FlagIcon />, <LightBulbIcon />, <MagnifyingGlassIcon />, <BeakerIcon />, <UserGroupIcon />, <MusicalNoteIcon />, <PaintBrushIcon />, <ClockIcon />, <HeartIcon />, <StarIcon />];
 const colors = [
-    'from-yellow-400 to-amber-500', 'from-blue-400 to-blue-600', 'from-green-400 to-emerald-500', 'from-orange-400 to-red-500',
-    'from-lime-400 to-green-500', 'from-purple-400 to-indigo-500', 'from-amber-400 to-orange-500', 'from-pink-400 to-rose-500',
-    'from-red-400 to-rose-500', 'from-cyan-400 to-teal-500', 'from-rose-400 to-fuchsia-500', 'from-slate-500 to-slate-700',
-    'from-yellow-400 to-lime-500', 'from-orange-400 to-amber-500', 'from-violet-400 to-purple-600', 'from-sky-400 to-blue-500'
+  'from-yellow-400 to-amber-500', 'from-blue-400 to-blue-600', 'from-green-400 to-emerald-500', 'from-orange-400 to-red-500',
+  'from-lime-400 to-green-500', 'from-purple-400 to-indigo-500', 'from-amber-400 to-orange-500', 'from-pink-400 to-rose-500',
+  'from-red-400 to-rose-500', 'from-cyan-400 to-teal-500', 'from-rose-400 to-fuchsia-500', 'from-slate-500 to-slate-700',
+  'from-yellow-400 to-lime-500', 'from-orange-400 to-amber-500', 'from-violet-400 to-purple-600', 'from-sky-400 to-blue-500'
 ];
 
-let gameId = 1;
-const gamesList: Game[] = [];
+let gameCounter = 1;
+const list: Game[] = [];
+
 Object.entries(gameNamesByCategory).forEach(([category, names]) => {
-    names.forEach((name) => {
-        gamesList.push({
-            id: gameId,
-            name: name,
-            description: `لعبة ${category} ممتعة`,
-            category: category,
-            icon: gameIcons[gameId % gameIcons.length],
-            color: colors[gameId % colors.length]
-        });
-        gameId++;
+  names.forEach((name) => {
+    const currentId = gameCounter;
+    list.push({
+      id: currentId,
+      name: name,
+      description: `لعبة ${category} ممتعة`,
+      category: category,
+      color: colors[currentId % colors.length]
     });
+    gameCounter++;
+  });
 });
 
-export const GAMES: Game[] = gamesList;
+export const GAMES: Game[] = list;

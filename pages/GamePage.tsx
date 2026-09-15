@@ -218,6 +218,8 @@ const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> }
   'مغامرة القرد في الغابة': JungleMonkeyAdventure,
 };
 
+import GoogleAdBanner from '../components/GoogleAdBanner';
+
 const GamePage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const game = GAMES.find(g => g.id.toString() === gameId);
@@ -236,7 +238,27 @@ const GamePage: React.FC = () => {
 
   const GameComponent = gameComponents[game.name] || PlaceholderGame;
 
-  return <GameComponent gameName={game.name} />;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 bg-white/90 hover:bg-white text-sky-700 font-bold px-4 py-2 rounded-xl shadow-sm border border-sky-200 transition-all active:scale-95"
+        >
+          <span>→</span>
+          <span>العودة لجميع الألعاب</span>
+        </Link>
+        <span className="text-sm font-bold bg-sky-100 text-sky-800 px-3 py-1 rounded-full">
+          {game.category}
+        </span>
+      </div>
+
+      <GameComponent gameName={game.name} />
+
+      {/* Google Ad Banner in game page */}
+      <GoogleAdBanner position="game" />
+    </div>
+  );
 };
 
 export default GamePage;
