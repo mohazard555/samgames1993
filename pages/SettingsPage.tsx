@@ -179,32 +179,38 @@ const SettingsPage: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     saveSettings(localSettings);
-    setSaveMessage('✓ تم حفظ جميع الإعدادات بنجاح!');
-    setTimeout(() => setSaveMessage(''), 3500);
+    setSaveMessage('⏳ جاري حفظ وتطبيق الإعدادات ومزامنتها مع السحابة (Gist)...');
+
+    const synced = await saveToGist(localSettings);
+    if (synced) {
+      setSaveMessage('✓ تم حفظ الإعدادات ونشرها على السحابة (Gist) بنجاح ليراها جميع الزوار من أي جهاز!');
+    } else {
+      setSaveMessage('✓ تم الحفظ محلياً بنجاح (تحقق من بيانات Gist للنشر السحابي العام)');
+    }
+    setTimeout(() => setSaveMessage(''), 4500);
   };
 
   const handleLoadFromGist = async () => {
-    setSyncMessage({ text: '...جاري التحميل من Gist', type: 'info' });
+    setSyncMessage({ text: '...جاري التحميل المباشر من Gist', type: 'info' });
     const success = await loadFromGist();
     if (success) {
-      setSyncMessage({ text: 'تم تحميل الإعدادات بنجاح!', type: 'success' });
+      setSyncMessage({ text: 'تم تحميل أحدث الإعدادات السحابية بنجاح!', type: 'success' });
       const savedSettings = localStorage.getItem('toysGameSettings');
       if (savedSettings) setLocalSettings(JSON.parse(savedSettings));
     } else {
-      setSyncMessage({ text: 'فشل التحميل. تحقق من الرابط.', type: 'error' });
+      setSyncMessage({ text: 'فشل التحميل. تحقق من الرابط وصلاحيات الوصول.', type: 'error' });
     }
     setTimeout(() => setSyncMessage({ text: '', type: '' }), 4000);
   };
 
   const handleSaveToGist = async () => {
-    saveSettings(localSettings);
     setSyncMessage({ text: '...جاري الحفظ والمزامنة مع Gist', type: 'info' });
-    const success = await saveToGist();
+    const success = await saveToGist(localSettings);
     if (success) {
-      setSyncMessage({ text: 'تم حفظ الإعدادات ومزامنتها بنجاح!', type: 'success' });
+      setSyncMessage({ text: 'تم حفظ الإعدادات ونشرها على Gist بنجاح!', type: 'success' });
     } else {
       setSyncMessage({ text: 'فشل الحفظ. تحقق من الرابط والتوكن.', type: 'error' });
     }

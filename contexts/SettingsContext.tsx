@@ -1,5 +1,8 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { Settings } from '../types';
+
+export const DEFAULT_GIST_URL =
+  'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
 
 const defaultSettings: Settings = {
   siteName: 'ToysGame World',
@@ -30,6 +33,25 @@ const defaultSettings: Settings = {
   },
 };
 
+// Helper to extract Gist ID and file name from any Gist URL format
+export function extractGistInfo(url: string) {
+  const cleanUrl = url.trim();
+  // Match 32-char hex gist id
+  const gistIdMatch = cleanUrl.match(/([a-f0-9]{32})/i);
+  const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
+  
+  // Extract filename or fallback to toysgame.json
+  const fileMatch = cleanUrl.match(/\/([^\/?#]+\.json)/i);
+  const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
+
+  // Make unpinned raw URL (strips specific commit hash to avoid stale caching)
+  const usernameMatch = cleanUrl.match(/gist\.github(?:usercontent)?\.com\/([^\/]+)/i);
+  const username = usernameMatch ? usernameMatch[1] : 'mohazard555';
+  const unpinnedRawUrl = `https://gist.githubusercontent.com/${username}/${gistId}/raw/${filename}`;
+
+  return { gistId, filename, unpinnedRawUrl };
+}
+
 interface SettingsContextType {
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
@@ -52,13 +74,24 @@ interface SettingsContextType {
   setGistUrl: (url: string) => void;
   gistToken: string;
   setGistToken: (token: string) => void;
-  loadFromGist: () => Promise<boolean>;
-  saveToGist: () => Promise<boolean>;
+  loadFromGist: (customUrl?: string) => Promise<boolean>;
+  saveToGist: (overrideSettings?: Settings) => Promise<boolean>;
+  isSyncing: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [gistUrl, setGistUrlState] = useState<string>(() => {
+    return localStorage.getItem('gistUrl') || DEFAULT_GIST_URL;
+  });
+
+  const [gistToken, setGistTokenState] = useState<string>(() => {
+    return localStorage.getItem('gistToken') || '';
+  });
+
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
   const [settings, setSettings] = useState<Settings>(() => {
     try {
       const savedSettings = localStorage.getItem('toysGameSettings');
@@ -131,12 +164,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const isGameUnlocked = (gameId: number): boolean => {
-    // If game does not require video watch, it is unlocked if subscribed
     const requiresVideo = settings.videoRequiredGameIds?.includes(gameId);
     if (!requiresVideo) {
       return isSubscribed;
     }
-    // If it requires video, check if it was unlocked in this session
     return unlockedVideoGames.includes(gameId);
   };
 
@@ -174,9 +205,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setIsAdminUnlocked(false);
   };
 
-  const [gistUrl, setGistUrlState] = useState<string>(() => localStorage.getItem('gistUrl') || '');
-  const [gistToken, setGistTokenState] = useState<string>(() => localStorage.getItem('gistToken') || '');
-
   const saveSettings = (newSettings: Settings) => {
     try {
       localStorage.setItem('toysGameSettings', JSON.stringify(newSettings));
@@ -187,54 +215,128 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const setGistUrl = (url: string) => {
-    localStorage.setItem('gistUrl', url);
-    setGistUrlState(url);
+    const clean = url.trim() || DEFAULT_GIST_URL;
+    localStorage.setItem('gistUrl', clean);
+    setGistUrlState(clean);
   };
 
   const setGistToken = (token: string) => {
-    localStorage.setItem('gistToken', token);
-    setGistTokenState(token);
+    const clean = token.trim();
+    localStorage.setItem('gistToken', clean);
+    setGistTokenState(clean);
   };
 
-  const loadFromGist = async (): Promise<boolean> => {
-    if (!gistUrl) return false;
+  // Load latest settings from Gist with multiple fallback methods (API first, then raw URL with timestamp)
+  const loadFromGist = useCallback(async (customUrl?: string): Promise<boolean> => {
+    const targetUrl = (customUrl || gistUrl || DEFAULT_GIST_URL).trim();
+    if (!targetUrl) return false;
+
+    setIsSyncing(true);
+    const { gistId, filename, unpinnedRawUrl } = extractGistInfo(targetUrl);
+
     try {
-      const response = await fetch(gistUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch Gist: ${response.statusText}`);
+      let fetchedSettings: Partial<Settings> | null = null;
+
+      // Method 1: Try direct raw content with cache buster (fastest & works for all public visitors)
+      try {
+        const rawRes = await fetch(`${unpinnedRawUrl}?_t=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        if (rawRes.ok) {
+          fetchedSettings = await rawRes.json();
+        }
+      } catch (rawErr) {
+        console.warn('Raw fetch attempt failed, trying API fallback:', rawErr);
       }
-      const data = await response.json();
-      saveSettings(data);
-      return true;
+
+      // Method 2: Try GitHub REST API (always non-cached)
+      if (!fetchedSettings) {
+        try {
+          const headers: Record<string, string> = {
+            Accept: 'application/vnd.github.v3+json',
+          };
+          if (gistToken) {
+            headers['Authorization'] = `token ${gistToken}`;
+          }
+
+          const apiRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+            headers,
+            cache: 'no-store',
+          });
+
+          if (apiRes.ok) {
+            const gistData = await apiRes.json();
+            const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0];
+            if (targetFile && (targetFile as any).content) {
+              fetchedSettings = JSON.parse((targetFile as any).content);
+            }
+          }
+        } catch (apiErr) {
+          console.warn('API fallback attempt failed:', apiErr);
+        }
+      }
+
+      if (fetchedSettings && typeof fetchedSettings === 'object') {
+        const merged: Settings = {
+          ...defaultSettings,
+          ...fetchedSettings,
+          videoWaitTime:
+            typeof fetchedSettings.videoWaitTime === 'number'
+              ? fetchedSettings.videoWaitTime
+              : defaultSettings.videoWaitTime,
+          videoRequiredGameIds: Array.isArray(fetchedSettings.videoRequiredGameIds)
+            ? fetchedSettings.videoRequiredGameIds
+            : defaultSettings.videoRequiredGameIds,
+          adSettings: {
+            ...defaultSettings.adSettings,
+            ...(fetchedSettings.adSettings || {}),
+          },
+          googleAdSettings: {
+            ...defaultSettings.googleAdSettings,
+            ...(fetchedSettings.googleAdSettings || {}),
+          },
+        };
+
+        saveSettings(merged);
+        setIsSyncing(false);
+        return true;
+      }
+      setIsSyncing(false);
+      return false;
     } catch (error) {
       console.error('Failed to load settings from Gist:', error);
-      alert('فشل تحميل الإعدادات من Gist. تحقق من الرابط وصلاحيات الوصول.');
+      setIsSyncing(false);
       return false;
     }
-  };
+  }, [gistUrl, gistToken]);
 
-  const saveToGist = async (): Promise<boolean> => {
-    if (!gistUrl || !gistToken) return false;
+  // Save settings directly to GitHub Gist
+  const saveToGist = async (overrideSettings?: Settings): Promise<boolean> => {
+    const targetUrl = (gistUrl || DEFAULT_GIST_URL).trim();
+    const targetToken = (gistToken || localStorage.getItem('gistToken') || '').trim();
+
+    if (!targetUrl) return false;
+    if (!targetToken) {
+      console.warn('Gist token not set. Skipping remote Gist push.');
+      return false;
+    }
+
+    setIsSyncing(true);
+    const dataToSave = overrideSettings || settings;
+    const { gistId, filename } = extractGistInfo(targetUrl);
+
     try {
-      const urlParts = new URL(gistUrl).pathname.split('/');
-      const gistId = urlParts[2];
-      const filename = urlParts[urlParts.length - 1];
-
-      if (!gistId || !filename) {
-        throw new Error('Invalid Gist URL structure');
-      }
-
       const response = await fetch(`https://api.github.com/gists/${gistId}`, {
         method: 'PATCH',
         headers: {
-          Authorization: `token ${gistToken}`,
+          Authorization: `token ${targetToken}`,
           Accept: 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           files: {
             [filename]: {
-              content: JSON.stringify(settings, null, 2),
+              content: JSON.stringify(dataToSave, null, 2),
             },
           },
         }),
@@ -244,13 +346,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const errorData = await response.json();
         throw new Error(`Failed to save to Gist: ${errorData.message}`);
       }
+
+      // Also persist locally
+      saveSettings(dataToSave);
+      setIsSyncing(false);
       return true;
     } catch (error) {
       console.error('Failed to save settings to Gist:', error);
-      alert(`فشل حفظ الإعدادات في Gist: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsSyncing(false);
       return false;
     }
   };
+
+  // Automatically fetch the latest Gist settings for any visitor on app load!
+  useEffect(() => {
+    loadFromGist();
+  }, [loadFromGist]);
 
   return (
     <SettingsContext.Provider
@@ -274,6 +385,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         setGistToken,
         loadFromGist,
         saveToGist,
+        isSyncing,
       }}
     >
       {children}

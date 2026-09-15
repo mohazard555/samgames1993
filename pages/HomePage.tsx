@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GAMES } from '../constants';
 import GameGrid from '../components/GameGrid';
@@ -8,12 +8,42 @@ import { Game } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 
 const HomePage: React.FC = () => {
-  const { settings, isSubscribed, isGameUnlocked } = useSettings();
+  const { settings, isSubscribed, isGameUnlocked, unlockVideoGame, setIsSubscribed } = useSettings();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
+  // Recovery for Android WebView if activity was recreated upon returning from YouTube
+  useEffect(() => {
+    try {
+      const pendingIdStr = sessionStorage.getItem('toysGamePendingGameId');
+      const pendingStartTimeStr = sessionStorage.getItem('toysGamePendingStartTime');
+      if (pendingIdStr && pendingStartTimeStr) {
+        const pendingId = parseInt(pendingIdStr, 10);
+        const startTime = parseInt(pendingStartTimeStr, 10);
+        const waitTimeSec = settings.videoWaitTime || 15;
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+        const targetGame = GAMES.find((g) => g.id === pendingId);
+        if (targetGame) {
+          if (elapsed >= waitTimeSec) {
+            unlockVideoGame(pendingId);
+            setIsSubscribed(true);
+            sessionStorage.removeItem('toysGamePendingGameId');
+            sessionStorage.removeItem('toysGamePendingStartTime');
+            navigate(`/game/${pendingId}`);
+          } else {
+            setSelectedGame(targetGame);
+            setIsPopupOpen(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [settings.videoWaitTime, navigate, unlockVideoGame, setIsSubscribed]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
