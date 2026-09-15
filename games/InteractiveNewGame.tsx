@@ -28,37 +28,77 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
 
   const ensure50Items = (def: GameDefinition) => {
+    const cat = def.category || 'عام';
+    const title = def.title || '';
     if (def.type === 'quiz') {
-      const qs = [...(def.questions || [])];
-      if (qs.length >= 50) return qs;
+      const baseQs = [...(def.questions || [])];
       const extraPool: QuizQuestion[] = [];
-      const cat = def.category || 'عام';
-      for (let i = qs.length + 1; i <= 50; i++) {
+      
+      for (let i = baseQs.length + 1; i <= 50; i++) {
+        let qText = `سؤال تفاعلي (${i}) حول ${title} ضمن فئة ${cat}: ما هو الخيار الصحيح علمياً؟`;
+        let opts = [
+          `خيار تقديري أول (${i})`,
+          `الإجابة العلمية المعتمدة رقم (${i})`,
+          `خيار بديل ثالث (${i})`,
+          `خيار إضافي رابع (${i})`
+        ];
+        let correct = `الإجابة العلمية المعتمدة رقم (${i})`;
+        let expl = `هذا سؤال تفاعلي ممتع ضمن الـ 50 سؤالاً لاختبار مهاراتك في ${title}!`;
+
+        if (cat.includes('رياضة')) {
+          const sportsList = ['كرة القدم', 'كرة السلة', 'السباحة', 'الجري السريع', 'الأولمبياد', 'اللياقة'];
+          const sp = sportsList[(i - 1) % sportsList.length];
+          qText = `سؤال رياضي ممتع (${i}) عن ${sp}: ما هي قاعدة الأداء الأفضل؟`;
+          opts = [`التركيز والسرعة الرياضية`, `الإرهاق البدني العام`, `التوقف السريع للمنافس`, `الابتعاد عن التدريب`];
+          correct = `التركيز والسرعة الرياضية`;
+          expl = `الرياضة تبني الجسم السليم وتنمي روح التعاون والمثابرة!`;
+        } else if (cat.includes('موسيقى')) {
+          qText = `سؤال موسيقي ونغمات (${i}): كيف تتألف النغمة الإيقاعية الصحيحة؟`;
+          opts = [`بتناغم الأوتار والسرعة`, `بالضوضاء العالية`, `بإيقاف الصوت تماماً`, `بالعزف العشوائي`];
+          correct = `بتناغم الأوتار والسرعة`;
+          expl = `الموسيقى ترتقي بالذوق العام وتنمي الحس الفني الراقي!`;
+        } else if (cat.includes('ألوان')) {
+          qText = `سؤال الألوان والفنون (${i}): ما هي النتيجة الفنية لتناسق الألوان؟`;
+          opts = [`لوحة فنية متناغمة وجميلة`, `إخفاء الألوان نهائياً`, `فوضى بصرية`, `غياب الرؤية`];
+          correct = `لوحة فنية متناغمة وجميلة`;
+          expl = `عالم الألوان يمنح الحياة بهجة وجمالاً مذهلاً!`;
+        } else if (cat.includes('ألغاز')) {
+          qText = `لغز ذكاء وتفكير (${i}): ما هو الحل الأذكى لهذا اللغز؟`;
+          opts = [`التفكير المنطقي والعميق`, `التسرع في القرار`, `تجاهل السؤال`, `الإجابة العشوائية`];
+          correct = `التفكير المنطقي والعميق`;
+          expl = `الألغاز تنشط الذاكرة وتزيد نسبة الذكاء والتركيز!`;
+        }
+
         extraPool.push({
           id: i,
-          question: `سؤال إضافي (${i}) لتحدي ${cat}: اختر الإجابة الصحيحة يا بطل؟`,
+          question: qText,
           image: def.iconEmoji,
-          options: ['خيار تجريبي أ', 'الخيار الصحيح المتميز ب', 'خيار ذكي ج', 'خيار إبداعي د'],
-          correctAnswer: 'الخيار الصحيح المتميز ب',
-          explanation: `هذا سؤال إضافي ممتع ضمن الـ 50 سؤالاً لتطوير مهاراتك في ${cat}!`,
+          options: [...opts].sort(() => Math.random() - 0.5),
+          correctAnswer: correct,
+          explanation: expl,
         });
       }
-      return [...qs, ...extraPool];
+
+      const processedBase = baseQs.map((q) => ({
+        ...q,
+        options: [...q.options].sort(() => Math.random() - 0.5),
+      }));
+
+      return [...processedBase, ...extraPool];
     } else {
-      const comps = [...(def.comparisons || [])];
-      if (comps.length >= 50) return comps;
+      const baseComps = [...(def.comparisons || [])];
       const extraComps: ComparisonRound[] = [];
-      for (let i = comps.length + 1; i <= 50; i++) {
+      for (let i = baseComps.length + 1; i <= 50; i++) {
         extraComps.push({
           id: i,
-          prompt: `مقارنة ذكية رقم (${i}) ⚖️ أيهما أفضل أو أثقل؟`,
-          itemA: { label: `العنصر الأول (${i})`, emoji: '⭐', description: 'خيار تفاعلي' },
-          itemB: { label: `العنصر الثاني (${i})`, emoji: '🚀', description: 'خيار تفاعلي ممتاز' },
-          correctIndex: 1,
-          explanation: `هذه مقارنة إضافية ضمن جولات المقارنة الـ 50 لتوسيع مداركك!`,
+          prompt: `مقارنة المهارات والذكاء رقم (${i}) ⚖️ أيهما أقوى أو أسرع أو أكثر قيمة؟`,
+          itemA: { label: `العنصر الأول (${i})`, emoji: '⭐', description: 'خيار تفاعلي أول' },
+          itemB: { label: `العنصر الثاني الفائز (${i})`, emoji: '🚀', description: 'خيار تفاعلي متقدم' },
+          correctIndex: i % 2 === 0 ? 1 : 0,
+          explanation: `هذه مقارنة تفاعلية ضمن الـ 50 جولة لتنمية سرعة البديهة والتمييز السليم!`,
         });
       }
-      return [...comps, ...extraComps];
+      return [...baseComps, ...extraComps];
     }
   };
 
