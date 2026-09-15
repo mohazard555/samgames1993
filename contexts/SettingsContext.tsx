@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
-import { Settings } from '../types';
+import { Settings, FeedbackItem, ContactMessage } from '../types';
 
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
@@ -10,6 +10,7 @@ const defaultSettings: Settings = {
   subscriptionUrl: 'https://www.youtube.com/@mkstudio_963',
   youtubeUrls: 'https://www.youtube.com/@mkstudio_963\nhttps://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
   backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  backgroundMusicEnabled: true,
   contactEmail: 'contact@toysgameworld.com',
   feedbackEmail: 'feedback@toysgameworld.com',
   videoWaitTime: 15, // مهلة انتظار فتح الفيديو بالثواني
@@ -31,20 +32,19 @@ const defaultSettings: Settings = {
     showBottomBanner: true,
     showGameBanner: true,
   },
+  feedbacks: [],
+  contactMessages: [],
 };
 
 // Helper to extract Gist ID and file name from any Gist URL format
 export function extractGistInfo(url: string) {
   const cleanUrl = (url || DEFAULT_GIST_URL).trim();
-  // Match 32-char hex gist id
   const gistIdMatch = cleanUrl.match(/([a-f0-9]{32})/i);
   const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
-  
-  // Extract filename or fallback to toysgame.json
+
   const fileMatch = cleanUrl.match(/\/([^\/?#]+\.json)/i);
   const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
 
-  // Make unpinned raw URL (strips specific commit hash to avoid stale caching)
   const usernameMatch = cleanUrl.match(/gist\.github(?:usercontent)?\.com\/([^\/]+)/i);
   const username = usernameMatch ? usernameMatch[1] : 'mohazard555';
   const unpinnedRawUrl = `https://gist.githubusercontent.com/${username}/${gistId}/raw/${filename}`;
@@ -79,6 +79,13 @@ interface SettingsContextType {
   isSyncing: boolean;
   isInitialLoading: boolean;
   lastSyncTime: string | null;
+  // Feedback & Contact Management
+  addFeedback: (item: { name: string; email: string; rating: number; category?: string; message: string }) => Promise<void>;
+  updateFeedbackStatus: (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => void;
+  deleteFeedback: (id: string) => void;
+  addContactMessage: (item: { name: string; email: string; subject: string; message: string }) => Promise<void>;
+  updateContactMessageStatus: (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => void;
+  deleteContactMessage: (id: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -115,6 +122,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             : defaultSettings.videoRequiredGameIds,
           adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
+          feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
+          contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
         };
       }
       return defaultSettings;
@@ -294,6 +303,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ? fetchedSettings.videoWaitTime
             : Number(fetchedSettings.videoWaitTime) || defaultSettings.videoWaitTime;
 
+        // Preserve local feedbacks and messages if remote doesn't have them yet or merge them
+        const localSettingsRaw = localStorage.getItem('toysGameSettings');
+        const localParsed = localSettingsRaw ? JSON.parse(localSettingsRaw) : {};
+
+        const mergedFeedbacks: FeedbackItem[] = [
+          ...(Array.isArray(fetchedSettings.feedbacks) ? fetchedSettings.feedbacks : []),
+          ...(Array.isArray(localParsed.feedbacks) ? localParsed.feedbacks : []),
+        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+        const mergedMessages: ContactMessage[] = [
+          ...(Array.isArray(fetchedSettings.contactMessages) ? fetchedSettings.contactMessages : []),
+          ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
+        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
         const merged: Settings = {
           ...defaultSettings,
           ...fetchedSettings,
@@ -309,6 +332,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ...defaultSettings.googleAdSettings,
             ...(fetchedSettings.googleAdSettings || {}),
           },
+          feedbacks: mergedFeedbacks,
+          contactMessages: mergedMessages,
         };
 
         saveSettings(merged);
@@ -378,6 +403,93 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  // Feedback Management Methods
+  const addFeedback = async (item: { name: string; email: string; rating: number; category?: string; message: string }) => {
+    const newFeedback: FeedbackItem = {
+      id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: item.name.trim() || 'فاعل خير مجهول',
+      email: item.email.trim(),
+      rating: item.rating || 5,
+      category: item.category || 'اقتراح عام',
+      message: item.message.trim(),
+      status: 'قيد الاطلاع',
+      createdAt: new Date().toLocaleString('ar-EG'),
+    };
+
+    const updatedFeedbacks = [newFeedback, ...(settings.feedbacks || [])];
+    const newSettings: Settings = {
+      ...settings,
+      feedbacks: updatedFeedbacks,
+    };
+    saveSettings(newSettings);
+
+    // If Gist token is present, auto-sync to Gist
+    if (gistToken) {
+      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
+    }
+  };
+
+  const updateFeedbackStatus = (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => {
+    const updatedFeedbacks = (settings.feedbacks || []).map((fb) => (fb.id === id ? { ...fb, status } : fb));
+    const newSettings = { ...settings, feedbacks: updatedFeedbacks };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  const deleteFeedback = (id: string) => {
+    const updatedFeedbacks = (settings.feedbacks || []).filter((fb) => fb.id !== id);
+    const newSettings = { ...settings, feedbacks: updatedFeedbacks };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  // Contact Messages Management Methods
+  const addContactMessage = async (item: { name: string; email: string; subject: string; message: string }) => {
+    const newMsg: ContactMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: item.name.trim() || 'صديق مجهول',
+      email: item.email.trim(),
+      subject: item.subject.trim() || 'استفسار عام',
+      message: item.message.trim(),
+      status: 'جديدة',
+      createdAt: new Date().toLocaleString('ar-EG'),
+    };
+
+    const updatedMessages = [newMsg, ...(settings.contactMessages || [])];
+    const newSettings: Settings = {
+      ...settings,
+      contactMessages: updatedMessages,
+    };
+    saveSettings(newSettings);
+
+    // If Gist token is present, auto-sync to Gist
+    if (gistToken) {
+      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
+    }
+  };
+
+  const updateContactMessageStatus = (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => {
+    const updatedMessages = (settings.contactMessages || []).map((msg) => (msg.id === id ? { ...msg, status } : msg));
+    const newSettings = { ...settings, contactMessages: updatedMessages };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  const deleteContactMessage = (id: string) => {
+    const updatedMessages = (settings.contactMessages || []).filter((msg) => msg.id !== id);
+    const newSettings = { ...settings, contactMessages: updatedMessages };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
   // Automatically fetch the latest Gist settings for any visitor on app load!
   useEffect(() => {
     let isMounted = true;
@@ -420,6 +532,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         isSyncing,
         isInitialLoading,
         lastSyncTime,
+        addFeedback,
+        updateFeedbackStatus,
+        deleteFeedback,
+        addContactMessage,
+        updateContactMessageStatus,
+        deleteContactMessage,
       }}
     >
       {children}

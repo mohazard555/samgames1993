@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import { Settings, GoogleAdSettings } from '../types';
+import { Settings, FeedbackItem, ContactMessage } from '../types';
 import { GAMES } from '../constants';
 import { LockClosedIcon, VideoCameraIcon, CheckCircleIcon, KeyIcon } from '../components/Icons';
 
@@ -11,8 +11,6 @@ const SettingsPage: React.FC = () => {
     isAdminUnlocked,
     verifyAdminPassword,
     lockAdmin,
-    resetSubscriptionStatus,
-    isSubscribed,
     gistUrl,
     setGistUrl,
     gistToken,
@@ -21,6 +19,10 @@ const SettingsPage: React.FC = () => {
     saveToGist,
     isSyncing,
     lastSyncTime,
+    updateFeedbackStatus,
+    deleteFeedback,
+    updateContactMessageStatus,
+    deleteContactMessage,
   } = useSettings();
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
@@ -29,13 +31,23 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
+
+  const [activeTab, setActiveTab] = useState<'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'ads' | 'sync'>('general');
   const [saveMessage, setSaveMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [gameSearch, setGameSearch] = useState('');
   const [gameCategoryFilter, setGameCategoryFilter] = useState('الكل');
+
+  // Filters for Feedback & Messages
+  const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل'>('all');
+  const [messageFilter, setMessageFilter] = useState<'all' | 'جديدة' | 'قيد الاطلاع' | 'تم الرد'>('all');
+
   const importFileRef = useRef<HTMLInputElement>(null);
+  const musicFileRef = useRef<HTMLInputElement>(null);
+  const audioPreviewRef = useRef<HTMLAudioElement>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -55,7 +67,29 @@ const SettingsPage: React.FC = () => {
     });
   }, [gameSearch, gameCategoryFilter]);
 
-  // Handle password entry if directly visiting /settings
+  // Feedbacks count calculations
+  const totalFeedbacks = localSettings.feedbacks?.length || 0;
+  const pendingFeedbacks = localSettings.feedbacks?.filter((f) => f.status === 'قيد الاطلاع').length || 0;
+
+  // Contact messages count calculations
+  const totalMessages = localSettings.contactMessages?.length || 0;
+  const newMessages = localSettings.contactMessages?.filter((m) => m.status === 'جديدة').length || 0;
+
+  // Filtered feedbacks
+  const filteredFeedbacks = useMemo(() => {
+    const list = localSettings.feedbacks || [];
+    if (feedbackFilter === 'all') return list;
+    return list.filter((f) => f.status === feedbackFilter);
+  }, [localSettings.feedbacks, feedbackFilter]);
+
+  // Filtered messages
+  const filteredMessages = useMemo(() => {
+    const list = localSettings.contactMessages || [];
+    if (messageFilter === 'all') return list;
+    return list.filter((m) => m.status === messageFilter);
+  }, [localSettings.contactMessages, messageFilter]);
+
+  // Handle password entry
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (verifyAdminPassword(passwordInput)) {
@@ -67,7 +101,6 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  // If not authenticated, show PIN password lock screen (Password 1993)
   if (!isAdminUnlocked) {
     return (
       <div className="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl shadow-xl border-4 border-amber-300 text-center animate-fade-in">
@@ -75,7 +108,7 @@ const SettingsPage: React.FC = () => {
           <LockClosedIcon />
         </div>
         <h1 className="text-2xl font-black text-gray-800 mb-2">منطقة الإدارة محمية</h1>
-        <p className="text-gray-500 text-sm mb-6">أدخل كلمة المرور الخاصة بالإدارة للمتابعة</p>
+        <p className="text-gray-500 text-sm mb-6">أدخل كلمة المرور الخاصة بالإدارة للمتابعة (1993)</p>
 
         <form onSubmit={handleAuthSubmit} className="space-y-4">
           <input
@@ -95,7 +128,7 @@ const SettingsPage: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-95"
+            className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-transform active:scale-95 cursor-pointer"
           >
             فتح لوحة الإعدادات
           </button>
@@ -108,7 +141,11 @@ const SettingsPage: React.FC = () => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
       const { checked } = e.target as HTMLInputElement;
-      setLocalSettings((prev) => ({ ...prev, adSettings: { ...prev.adSettings, [name]: checked } }));
+      if (name in localSettings.adSettings) {
+        setLocalSettings((prev) => ({ ...prev, adSettings: { ...prev.adSettings, [name]: checked } }));
+      } else {
+        setLocalSettings((prev) => ({ ...prev, [name]: checked }));
+      }
     } else if (name === 'videoWaitTime') {
       setLocalSettings((prev) => ({ ...prev, videoWaitTime: Number(value) || 0 }));
     } else {
@@ -159,7 +196,43 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  // Toggle game video requirement
+  // Music File Upload Handler
+  const handleMusicFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('audio/')) {
+        alert('الرجاء اختيار ملف صوتي صالح (MP3, WAV, OGG, M4A).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const audioDataUrl = event.target?.result as string;
+        setLocalSettings((prev) => ({
+          ...prev,
+          backgroundMusicUrl: audioDataUrl,
+          backgroundMusicEnabled: true,
+        }));
+        if (audioPreviewRef.current) {
+          audioPreviewRef.current.src = audioDataUrl;
+          audioPreviewRef.current.play().then(() => setIsPreviewPlaying(true)).catch(() => {});
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const togglePreviewAudio = () => {
+    if (audioPreviewRef.current) {
+      if (isPreviewPlaying) {
+        audioPreviewRef.current.pause();
+        setIsPreviewPlaying(false);
+      } else {
+        audioPreviewRef.current.play().then(() => setIsPreviewPlaying(true)).catch(() => {});
+      }
+    }
+  };
+
+  // Video requirements toggling
   const toggleGameVideoRequirement = (gameId: number) => {
     setLocalSettings((prev) => {
       const current = prev.videoRequiredGameIds || [];
@@ -193,7 +266,7 @@ const SettingsPage: React.FC = () => {
 
     const synced = await saveToGist(localSettings);
     if (synced) {
-      setSaveMessage('✓ تم حفظ الإعدادات ونشرها على السحابة (Gist) بنجاح ليراها جميع الزوار من أي جهاز!');
+      setSaveMessage('✓ تم حفظ الإعدادات ونشرها على السحابة (Gist) بنجاح ليراها جميع الزوار!');
     } else {
       setSaveMessage('✓ تم الحفظ محلياً بنجاح (تحقق من بيانات Gist للنشر السحابي العام)');
     }
@@ -255,277 +328,852 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      {/* Admin Header Bar */}
-      <div className="bg-gradient-to-r from-sky-600 to-indigo-700 p-6 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div className="max-w-5xl mx-auto space-y-6 pb-16">
+      {/* Admin Top Banner */}
+      <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-700 p-6 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black">⚙️ لوحة تحكم وإعدادات الموقع</h1>
-          <p className="text-sky-100 text-sm mt-1">تخصيص الفيديو، مهل الانتظار، إعلانات Google والألعاب</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="bg-amber-400 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full">
+              لوحة الإدارة 1993
+            </span>
+            {lastSyncTime && (
+              <span className="bg-white/20 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                آخر مزامنة: {lastSyncTime}
+              </span>
+            )}
+          </div>
+          <h1 className="text-2xl md:text-3xl font-black">⚙️ لوحة تحكم وإدارة التطبيق</h1>
+          <p className="text-sky-100 text-xs sm:text-sm mt-0.5">
+            إدارة الموسيقى، الآراء، الرسائل، الألعاب والإعدادات السحابية
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={lockAdmin}
-            className="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors border border-white/30"
+            className="bg-white/10 hover:bg-white/25 text-white font-bold py-2 px-4 rounded-xl text-xs sm:text-sm transition-colors border border-white/30 cursor-pointer"
           >
-            🔒 قفل المشرف (تسجيل الخروج)
+            🔒 قفل المشرف
           </button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* 1. Video Wait Duration & YouTube Settings */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-sky-100">
-          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
-            <span className="text-2xl">⏳</span>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">مهلة انتظار الفيديو وإعدادات يوتيوب</h2>
-              <p className="text-xs text-gray-500">تحديد المدة الزمنية للعداد قبل فتح اللعبة</p>
-            </div>
-          </div>
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap gap-2 p-1.5 bg-white rounded-2xl shadow-md border border-gray-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab('general')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'general'
+              ? 'bg-sky-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>🎨</span>
+          <span>الهوية والبيانات</span>
+        </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Video Wait Time (Seconds) */}
-            <div className="bg-sky-50/50 p-4 rounded-2xl border border-sky-200">
-              <label htmlFor="videoWaitTime" className="block text-base font-bold text-gray-800 mb-1">
-                ⏱️ مهلة انتظار الفيديو (بالثواني)
-              </label>
-              <p className="text-xs text-gray-500 mb-3">
-                المدة التي ينتظرها الطفل عند فتح الفيديو قبل أن يتاح له الدخول للعبة
-              </p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  id="videoWaitTime"
-                  name="videoWaitTime"
-                  min={3}
-                  max={120}
-                  value={localSettings.videoWaitTime}
-                  onChange={handleLocalChange}
-                  className="w-28 px-4 py-2.5 text-center text-xl font-bold border-2 border-sky-300 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-                <span className="font-bold text-gray-700">ثانية</span>
-              </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('music')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'music'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>🎵</span>
+          <span>رفع الموسيقى والصوتيات</span>
+        </button>
 
-              {/* Quick Presets */}
-              <div className="flex items-center gap-2 mt-3">
-                <span className="text-xs text-gray-400">خيارات سريعة:</span>
-                {[5, 10, 15, 20, 30].map((sec) => (
-                  <button
-                    key={sec}
-                    type="button"
-                    onClick={() => setLocalSettings((prev) => ({ ...prev, videoWaitTime: sec }))}
-                    className={`text-xs px-2.5 py-1 rounded-lg font-bold transition-colors ${
-                      localSettings.videoWaitTime === sec
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-white text-sky-700 border border-sky-200 hover:bg-sky-100'
-                    }`}
-                  >
-                    {sec} ثانية
-                  </button>
-                ))}
-              </div>
-            </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('feedbacks')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'feedbacks'
+              ? 'bg-amber-500 text-amber-950 shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>🌟</span>
+          <span>مركز الآراء والتقييمات</span>
+          {pendingFeedbacks > 0 && (
+            <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+              {pendingFeedbacks}
+            </span>
+          )}
+        </button>
 
-            {/* Main Channel Subscription URL */}
-            <div>
-              <label htmlFor="subscriptionUrl" className="block text-sm font-bold text-gray-700 mb-1">
-                رابط قناة يوتيوب الأساسية للزر
-              </label>
-              <input
-                type="url"
-                id="subscriptionUrl"
-                name="subscriptionUrl"
-                value={localSettings.subscriptionUrl}
-                onChange={handleLocalChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 text-sm"
-                placeholder="https://www.youtube.com/@channel"
-              />
-              <p className="text-xs text-gray-400 mt-1">يفتح عند الضغط على زر الاشتراك بالقناة</p>
-            </div>
-          </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('messages')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'messages'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>📬</span>
+          <span>رسائل اتصل بنا</span>
+          {newMessages > 0 && (
+            <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+              {newMessages}
+            </span>
+          )}
+        </button>
 
-          {/* Backup Video URLs */}
-          <div className="mt-4">
-            <label htmlFor="youtubeUrls" className="block text-sm font-bold text-gray-700 mb-1">
-              روابط فيديوهات وقنوات يوتيوب للمشاهدة (رابط واحد في كل سطر)
-            </label>
-            <textarea
-              id="youtubeUrls"
-              name="youtubeUrls"
-              value={localSettings.youtubeUrls}
-              onChange={handleLocalChange}
-              rows={3}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 text-sm font-mono"
-              placeholder="https://www.youtube.com/watch?v=..."
-            />
-            <p className="text-xs text-gray-400 mt-1">يتم اختيار رابط عشوائي منها عند فتح نافذة المشاهدة</p>
-          </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('videos')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'videos'
+              ? 'bg-rose-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>⏳</span>
+          <span>مهلة الفيديو وقنوات يوتيوب</span>
+        </button>
 
-          {/* Subscription Reset Test Button */}
-          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-xs text-gray-500">
-              حالة اشتراك المتصفح الحالي:{' '}
-              <span className={`font-bold ${isSubscribed ? 'text-green-600' : 'text-amber-600'}`}>
-                {isSubscribed ? 'مشترك (لا تظهر له رسالة الاشتراك بالألعاب العادية)' : 'غير مشترك'}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                resetSubscriptionStatus();
-                alert('تمت إعادة تعيين حالة الاشتراك في هذا المتصفح لتجربة رسائل الاشتراك من جديد.');
-              }}
-              className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded-lg border"
-            >
-              🔄 إعادة تعيين حالة الاشتراك للاختبار
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('ads')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'ads'
+              ? 'bg-blue-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>📢</span>
+          <span>الإعلانات والهدية</span>
+        </button>
 
-        {/* 2. Video-Required Games Selection */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-sky-100">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎬</span>
+        <button
+          type="button"
+          onClick={() => setActiveTab('sync')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'sync'
+              ? 'bg-teal-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>🌐</span>
+          <span>مزامنة Gist والنسخ الاحتياطي</span>
+        </button>
+      </div>
+
+      {/* Main Settings Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* TAB 1: GENERAL & BRANDING */}
+        {activeTab === 'general' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">🎨</span>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">تحديد الألعاب التي تتطلب مشاهدة فيديو لفتحها</h2>
+                <h2 className="text-xl font-black text-gray-800">بيانات وهوية الموقع الأساسية</h2>
+                <p className="text-xs text-gray-500">اسم التطبيق والشعار والبريد الإلكتروني</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="siteName" className="block text-sm font-black text-gray-700 mb-1">
+                  اسم التطبيق / الموقع
+                </label>
+                <input
+                  type="text"
+                  id="siteName"
+                  name="siteName"
+                  value={localSettings.siteName}
+                  onChange={handleLocalChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 font-bold text-gray-800 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-gray-700 mb-1">شعار التطبيق (الأيقونة)</label>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={localSettings.logoUrl}
+                    alt="Logo Preview"
+                    className="h-12 w-12 object-contain border p-1 rounded-xl bg-gray-50 shadow-sm"
+                  />
+                  <input
+                    type="file"
+                    id="logoUrl"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'logoUrl')}
+                    className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="contactEmail" className="block text-sm font-black text-gray-700 mb-1">
+                  البريد الإلكتروني للتواصل
+                </label>
+                <input
+                  type="email"
+                  id="contactEmail"
+                  name="contactEmail"
+                  value={localSettings.contactEmail}
+                  onChange={handleLocalChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 font-bold text-gray-800 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="feedbackEmail" className="block text-sm font-black text-gray-700 mb-1">
+                  البريد الإلكتروني للآراء والمقترحات
+                </label>
+                <input
+                  type="email"
+                  id="feedbackEmail"
+                  name="feedbackEmail"
+                  value={localSettings.feedbackEmail}
+                  onChange={handleLocalChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 font-bold text-gray-800 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: BACKGROUND MUSIC UPLOAD & CONTROLS */}
+        {activeTab === 'music' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-purple-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">🎵</span>
+              <div>
+                <h2 className="text-xl font-black text-purple-950">رفع ملف الموسيقى والموسيقى الخلفية</h2>
                 <p className="text-xs text-gray-500">
-                  اختر الألعاب المحددة التي تريد قفلها بفيديو، بينما تفتح باقي الألعاب مباشرة بعد اشتراك القناة
+                  رفع ملف صوتي يظهر ويعمل عند فتح التطبيق مع خيارات التحكم
                 </p>
               </div>
             </div>
-            <div className="bg-red-50 text-red-700 text-xs font-bold px-3 py-1.5 rounded-full border border-red-200 self-start sm:self-auto">
-              تم تحديد {localSettings.videoRequiredGameIds?.length || 0} من {GAMES.length} لعبة
-            </div>
-          </div>
 
-          {/* Controls & Quick Selectors */}
-          <div className="space-y-3 mb-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={selectAllVideoGames}
-                className="text-xs bg-sky-500 hover:bg-sky-600 text-white font-bold py-1.5 px-3 rounded-lg transition-colors"
-              >
-                تحديد جميع الألعاب ({GAMES.length})
-              </button>
-              <button
-                type="button"
-                onClick={clearAllVideoGames}
-                className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1.5 px-3 rounded-lg transition-colors"
-              >
-                إلغاء تحديد الكل (0)
-              </button>
-              <button
-                type="button"
-                onClick={() => selectCategoryVideoGames('ذكاء')}
-                className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold py-1.5 px-3 rounded-lg transition-colors"
-              >
-                + ألعاب الذكاء
-              </button>
-              <button
-                type="button"
-                onClick={() => selectCategoryVideoGames('تعليمية')}
-                className="text-xs bg-green-100 hover:bg-green-200 text-green-700 font-bold py-1.5 px-3 rounded-lg transition-colors"
-              >
-                + الألعاب التعليمية
-              </button>
-            </div>
-
-            {/* Filter & Search inside selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <input
-                type="text"
-                value={gameSearch}
-                onChange={(e) => setGameSearch(e.target.value)}
-                placeholder="بحث سريع في قائمة الألعاب..."
-                className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
-              />
-              <select
-                value={gameCategoryFilter}
-                onChange={(e) => setGameCategoryFilter(e.target.value)}
-                className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
-              >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    تصنيف: {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Games Checkbox Grid */}
-          <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-2xl p-3 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {filteredGames.map((game) => {
-              const isChecked = localSettings.videoRequiredGameIds?.includes(game.id);
-              return (
-                <div
-                  key={game.id}
-                  onClick={() => toggleGameVideoRequirement(game.id)}
-                  className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer border transition-all select-none ${
-                    isChecked
-                      ? 'bg-red-50 border-red-300 text-red-900 font-bold shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-700 hover:bg-sky-50/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="text-xs text-gray-400 font-mono">#{game.id}</span>
-                    <span className="text-xs truncate">{game.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-normal">
-                      {game.category}
-                    </span>
-                    <div
-                      className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] ${
-                        isChecked ? 'bg-red-500 border-red-600 text-white' : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      {isChecked && '✓'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3. Google AdSense & AdMob Settings */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-sky-100">
-          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
-            <span className="text-2xl">📢</span>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">إعلانات Google AdMob / AdSense (اختيارية)</h2>
-              <p className="text-xs text-gray-500">عرض مساحات إعلانية متجاوبة في مختلف أقسام الموقع</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Enable toggle */}
-            <div className="flex items-center justify-between bg-sky-50/70 p-4 rounded-2xl border border-sky-200">
+            {/* Enable switch */}
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border border-purple-200">
               <div>
-                <label htmlFor="googleAdsEnabled" className="block text-base font-bold text-gray-800 cursor-pointer">
-                  تفعيل إعلانات Google
+                <label htmlFor="backgroundMusicEnabled" className="block text-base font-black text-purple-950 cursor-pointer">
+                  تفعيل الموسيقى الخلفية عند فتح الموقع
                 </label>
-                <p className="text-xs text-gray-500">إظهار البانرات الإعلانية في الموقع</p>
+                <p className="text-xs text-purple-700 font-bold">
+                  تشغيل نغمة لطيفة للأطفال عند الدخول إلى التطبيق
+                </p>
               </div>
               <input
                 type="checkbox"
-                id="googleAdsEnabled"
-                name="enabled"
-                checked={localSettings.googleAdSettings.enabled}
-                onChange={handleGoogleAdChange}
-                className="h-6 w-6 rounded border-gray-300 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                id="backgroundMusicEnabled"
+                name="backgroundMusicEnabled"
+                checked={localSettings.backgroundMusicEnabled !== false}
+                onChange={(e) =>
+                  setLocalSettings((prev) => ({ ...prev, backgroundMusicEnabled: e.target.checked }))
+                }
+                className="h-6 w-6 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
               />
             </div>
 
-            {localSettings.googleAdSettings.enabled && (
-              <div className="space-y-4 pt-2 animate-fade-in">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* File Upload Box */}
+            <div className="bg-gradient-to-b from-purple-50/50 to-white p-6 rounded-2xl border-2 border-dashed border-purple-300 text-center space-y-4">
+              <span className="text-5xl block">🎼</span>
+              <h3 className="text-lg font-black text-purple-900">اختر أو ارفع ملف موسيقى من جهازك</h3>
+              <p className="text-xs text-gray-500">
+                يدعم صيغ الصوت الشائعة: MP3, WAV, OGG, M4A
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => musicFileRef.current?.click()}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-black py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95 cursor-pointer flex items-center gap-2 text-sm"
+                >
+                  <span>📁</span>
+                  <span>رفع ملف صوتي من الجهاز</span>
+                </button>
+                <input
+                  type="file"
+                  ref={musicFileRef}
+                  accept="audio/*"
+                  onChange={handleMusicFileUpload}
+                  className="hidden"
+                />
+
+                {localSettings.backgroundMusicUrl && (
+                  <button
+                    type="button"
+                    onClick={togglePreviewAudio}
+                    className="bg-amber-500 hover:bg-amber-600 text-white font-black py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95 cursor-pointer flex items-center gap-2 text-sm"
+                  >
+                    <span>{isPreviewPlaying ? '⏸️ إيقاف المعاينة' : '▶️ تجربة وتشغيل الموسيقى'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Hidden audio element for preview */}
+              <audio
+                ref={audioPreviewRef}
+                src={localSettings.backgroundMusicUrl}
+                onEnded={() => setIsPreviewPlaying(false)}
+              />
+            </div>
+
+            {/* Direct Music URL input */}
+            <div>
+              <label htmlFor="backgroundMusicUrl" className="block text-sm font-black text-gray-700 mb-1">
+                أو أدخل رابط الموسيقى المباشر (URL):
+              </label>
+              <input
+                type="text"
+                id="backgroundMusicUrl"
+                name="backgroundMusicUrl"
+                value={localSettings.backgroundMusicUrl}
+                onChange={handleLocalChange}
+                placeholder="https://example.com/song.mp3 أو data:audio/mp3;base64,..."
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 font-mono text-xs text-gray-800"
+              />
+            </div>
+
+            {/* Presets */}
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+              <span className="block text-xs font-black text-gray-700 mb-2">نغمات مقترحة سريعة:</span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLocalSettings((prev) => ({
+                      ...prev,
+                      backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                      backgroundMusicEnabled: true,
+                    }))
+                  }
+                  className="bg-white hover:bg-purple-50 text-purple-700 text-xs font-bold py-1.5 px-3 rounded-lg border border-purple-200 cursor-pointer shadow-sm"
+                >
+                  🎶 نغمة أطفال كلاسيكية 1
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLocalSettings((prev) => ({
+                      ...prev,
+                      backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+                      backgroundMusicEnabled: true,
+                    }))
+                  }
+                  className="bg-white hover:bg-purple-50 text-purple-700 text-xs font-bold py-1.5 px-3 rounded-lg border border-purple-200 cursor-pointer shadow-sm"
+                >
+                  🎶 نغمة مرحة 2
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLocalSettings((prev) => ({
+                      ...prev,
+                      backgroundMusicUrl: '',
+                      backgroundMusicEnabled: false,
+                    }))
+                  }
+                  className="bg-white hover:bg-red-50 text-red-600 text-xs font-bold py-1.5 px-3 rounded-lg border border-red-200 cursor-pointer shadow-sm"
+                >
+                  🔇 إيقاف وحذف الموسيقى
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: USER FEEDBACKS INBOX (مركز آراء ومقترحات الزوار) */}
+        {activeTab === 'feedbacks' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-amber-200 space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🌟</span>
+                <div>
+                  <h2 className="text-xl font-black text-amber-950">مركز آراء وتقييمات المستخدمين</h2>
+                  <p className="text-xs text-gray-500">
+                    متابعة وتحديث حالة المشاركات الواردة من صفحة "شاركنا رأيك"
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex flex-wrap gap-1.5 bg-amber-50 p-1 rounded-xl border border-amber-200">
+                <button
+                  type="button"
+                  onClick={() => setFeedbackFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    feedbackFilter === 'all' ? 'bg-amber-500 text-white shadow' : 'text-amber-950 hover:bg-amber-100'
+                  }`}
+                >
+                  الكل ({totalFeedbacks})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackFilter('قيد الاطلاع')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    feedbackFilter === 'قيد الاطلاع'
+                      ? 'bg-amber-500 text-white shadow'
+                      : 'text-amber-950 hover:bg-amber-100'
+                  }`}
+                >
+                  قيد الاطلاع ({pendingFeedbacks})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackFilter('تمت المراجعة')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    feedbackFilter === 'تمت المراجعة'
+                      ? 'bg-blue-500 text-white shadow'
+                      : 'text-blue-950 hover:bg-blue-100'
+                  }`}
+                >
+                  تمت المراجعة
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackFilter('مكتمل')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    feedbackFilter === 'مكتمل'
+                      ? 'bg-emerald-500 text-white shadow'
+                      : 'text-emerald-950 hover:bg-emerald-100'
+                  }`}
+                >
+                  مكتمل
+                </button>
+              </div>
+            </div>
+
+            {/* Feedbacks List */}
+            {filteredFeedbacks.length === 0 ? (
+              <div className="text-center p-12 bg-amber-50/50 rounded-2xl border border-amber-200">
+                <span className="text-5xl block mb-2">📭</span>
+                <p className="text-gray-600 font-bold">لا توجد آراء أو تقييمات في هذا التصنيف حالياً.</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  عند قيام الزوار بإرسال آرائهم من صفحة "شاركنا رأيك"، ستظهر هنا مباشرة!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[550px] overflow-y-auto pr-1">
+                {filteredFeedbacks.map((fb) => (
+                  <div
+                    key={fb.id}
+                    className="p-5 rounded-2xl border-2 transition-all bg-white hover:shadow-md border-amber-100 space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-gray-800 text-sm">{fb.name}</span>
+                        {fb.email && (
+                          <a
+                            href={`mailto:${fb.email}`}
+                            className="text-xs text-sky-600 hover:underline font-mono"
+                          >
+                            ({fb.email})
+                          </a>
+                        )}
+                        <span className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md font-bold">
+                          {fb.category}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="text-amber-400 text-sm">
+                          {'★'.repeat(fb.rating || 5)}
+                          {'☆'.repeat(5 - (fb.rating || 5))}
+                        </div>
+                        <span className="text-[11px] text-gray-400 font-mono">{fb.createdAt}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-800 text-sm font-semibold whitespace-pre-wrap leading-relaxed">
+                      {fb.message}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 bg-gray-50 p-3 rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-600">الحالة الحالية:</span>
+                        <div className="flex gap-1.5">
+                          {(['قيد الاطلاع', 'تمت المراجعة', 'مكتمل'] as const).map((st) => (
+                            <button
+                              type="button"
+                              key={st}
+                              onClick={() => updateFeedbackStatus(fb.id, st)}
+                              className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                                fb.status === st
+                                  ? st === 'قيد الاطلاع'
+                                    ? 'bg-amber-500 text-white shadow-sm'
+                                    : st === 'تمت المراجعة'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'bg-emerald-600 text-white shadow-sm'
+                                  : 'bg-white text-gray-600 border hover:bg-gray-100'
+                              }`}
+                            >
+                              {st}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('هل أنت متأكد من حذف هذه المشاركة؟')) {
+                            deleteFeedback(fb.id);
+                          }
+                        }}
+                        className="text-xs text-red-600 hover:text-red-800 font-bold hover:bg-red-50 px-2.5 py-1 rounded-lg border border-red-200 cursor-pointer"
+                      >
+                        🗑️ حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 4: CONTACT MESSAGES INBOX (صندوق رسائل اتصل بنا) */}
+        {activeTab === 'messages' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-emerald-200 space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">📬</span>
+                <div>
+                  <h2 className="text-xl font-black text-emerald-950">صندوق رسائل اتصل بنا</h2>
+                  <p className="text-xs text-gray-500">
+                    متابعة الرسائل والاستفسارات الواردة من صفحة "اتصل بنا"
+                  </p>
+                </div>
+              </div>
+
+              {/* Message Filters */}
+              <div className="flex flex-wrap gap-1.5 bg-emerald-50 p-1 rounded-xl border border-emerald-200">
+                <button
+                  type="button"
+                  onClick={() => setMessageFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    messageFilter === 'all'
+                      ? 'bg-emerald-600 text-white shadow'
+                      : 'text-emerald-950 hover:bg-emerald-100'
+                  }`}
+                >
+                  الكل ({totalMessages})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMessageFilter('جديدة')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    messageFilter === 'جديدة'
+                      ? 'bg-red-500 text-white shadow'
+                      : 'text-emerald-950 hover:bg-emerald-100'
+                  }`}
+                >
+                  جديدة ({newMessages})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMessageFilter('قيد الاطلاع')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    messageFilter === 'قيد الاطلاع'
+                      ? 'bg-amber-500 text-white shadow'
+                      : 'text-amber-950 hover:bg-amber-100'
+                  }`}
+                >
+                  قيد الاطلاع
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMessageFilter('تم الرد')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                    messageFilter === 'تم الرد'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-blue-950 hover:bg-blue-100'
+                  }`}
+                >
+                  تم الرد
+                </button>
+              </div>
+            </div>
+
+            {/* Messages List */}
+            {filteredMessages.length === 0 ? (
+              <div className="text-center p-12 bg-emerald-50/50 rounded-2xl border border-emerald-200">
+                <span className="text-5xl block mb-2">📭</span>
+                <p className="text-gray-600 font-bold">لا توجد رسائل في هذا التصنيف حالياً.</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  الرسائل المرسلة من صفحة "اتصل بنا" تصل إلى هذا الصندوق فوراً.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[550px] overflow-y-auto pr-1">
+                {filteredMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className="p-5 rounded-2xl border-2 transition-all bg-white hover:shadow-md border-emerald-100 space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-gray-800 text-sm">{msg.name}</span>
+                          <span className="text-xs text-sky-700 font-mono font-bold">({msg.email})</span>
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-600">الموضوع: {msg.subject}</h4>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-gray-400 font-mono">{msg.createdAt}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-800 text-sm font-semibold whitespace-pre-wrap leading-relaxed bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                      {msg.message}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-600">تغيير الحالة:</span>
+                        <div className="flex gap-1.5">
+                          {(['جديدة', 'قيد الاطلاع', 'تم الرد'] as const).map((st) => (
+                            <button
+                              type="button"
+                              key={st}
+                              onClick={() => updateContactMessageStatus(msg.id, st)}
+                              className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                                msg.status === st
+                                  ? st === 'جديدة'
+                                    ? 'bg-red-500 text-white shadow-sm'
+                                    : st === 'قيد الاطلاع'
+                                    ? 'bg-amber-500 text-white shadow-sm'
+                                    : 'bg-blue-600 text-white shadow-sm'
+                                  : 'bg-white text-gray-600 border hover:bg-gray-100'
+                              }`}
+                            >
+                              {st}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`mailto:${msg.email}?subject=${encodeURIComponent(
+                            `رد على: ${msg.subject}`
+                          )}`}
+                          className="text-xs bg-sky-500 hover:bg-sky-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1"
+                        >
+                          <span>📧</span>
+                          <span>رد عبر الإيميل</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+                              deleteContactMessage(msg.id);
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800 font-bold hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 cursor-pointer"
+                        >
+                          🗑️ حذف
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 5: VIDEO COUNTDOWN & YOUTUBE CHANNELS */}
+        {activeTab === 'videos' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">⏳</span>
+              <div>
+                <h2 className="text-xl font-black text-gray-800">مهلة انتظار الفيديو وإعدادات يوتيوب</h2>
+                <p className="text-xs text-gray-500">
+                  تحديد مدة العداد التنازلي وتخصيص الألعاب التي تتطلب مشاهدة الفيديو
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Video Wait Time */}
+              <div className="bg-sky-50 p-5 rounded-2xl border border-sky-200">
+                <label htmlFor="videoWaitTime" className="block text-base font-black text-gray-800 mb-1">
+                  ⏱️ مهلة انتظار الفيديو (بالثواني)
+                </label>
+                <p className="text-xs text-gray-500 mb-3">
+                  المدة التي ينتظرها الطفل عند فتح الفيديو قبل أن يتاح له الدخول للعبة
+                </p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    id="videoWaitTime"
+                    name="videoWaitTime"
+                    min={0}
+                    max={120}
+                    value={localSettings.videoWaitTime}
+                    onChange={handleLocalChange}
+                    className="w-32 px-4 py-2 text-xl font-black text-center border-2 border-sky-300 rounded-xl bg-white"
+                  />
+                  <span className="font-bold text-gray-600 text-sm">ثانية (0 = دخول فوري)</span>
+                </div>
+              </div>
+
+              {/* Main Subscription URL */}
+              <div>
+                <label htmlFor="subscriptionUrl" className="block text-sm font-black text-gray-700 mb-1">
+                  رابط القناة الرئيسية للاشتراك
+                </label>
+                <input
+                  type="url"
+                  id="subscriptionUrl"
+                  name="subscriptionUrl"
+                  value={localSettings.subscriptionUrl}
+                  onChange={handleLocalChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 font-mono text-xs"
+                />
+              </div>
+
+              {/* Multi YouTube URLs */}
+              <div className="md:col-span-2">
+                <label htmlFor="youtubeUrls" className="block text-sm font-black text-gray-700 mb-1">
+                  روابط قنوات يوتيوب المدعومة (رابط في كل سطر)
+                </label>
+                <textarea
+                  id="youtubeUrls"
+                  name="youtubeUrls"
+                  rows={3}
+                  value={localSettings.youtubeUrls}
+                  onChange={handleLocalChange}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 font-mono text-xs"
+                  placeholder="https://www.youtube.com/@channel1&#10;https://www.youtube.com/@channel2"
+                />
+              </div>
+            </div>
+
+            {/* Game Selector for Video Requirements */}
+            <div className="border-t pt-6 space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <h3 className="text-base font-black text-gray-800">
+                    الألعاب التي تتطلب مشاهدة الفيديو ({localSettings.videoRequiredGameIds?.length || 0} لعبة محددة)
+                  </h3>
+                  <p className="text-xs text-gray-500">اختر الألعاب التي تطلب من الطفل مشاهدة الفيديو قبل اللعب</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAllVideoGames}
+                    className="text-xs bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold py-1.5 px-3 rounded-lg cursor-pointer"
+                  >
+                    تحديد الكل
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearAllVideoGames}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded-lg cursor-pointer"
+                  >
+                    إلغاء التحديد
+                  </button>
+                </div>
+              </div>
+
+              {/* Search & Category Filter */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="🔍 بحث عن لعبة بالاسم..."
+                  value={gameSearch}
+                  onChange={(e) => setGameSearch(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-xl text-xs"
+                />
+                <select
+                  value={gameCategoryFilter}
+                  onChange={(e) => setGameCategoryFilter(e.target.value)}
+                  className="px-3 py-2 border rounded-xl text-xs bg-white"
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      تصنيف: {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Games Grid */}
+              <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-2xl p-3 bg-gray-50/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {filteredGames.map((game) => {
+                  const isChecked = localSettings.videoRequiredGameIds?.includes(game.id);
+                  return (
+                    <div
+                      key={game.id}
+                      onClick={() => toggleGameVideoRequirement(game.id)}
+                      className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer border transition-all select-none ${
+                        isChecked
+                          ? 'bg-rose-50 border-rose-300 text-rose-950 font-bold shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-sky-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="text-xs text-gray-400 font-mono">#{game.id}</span>
+                        <span className="text-xs truncate">{game.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-normal">
+                          {game.category}
+                        </span>
+                        <div
+                          className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] ${
+                            isChecked ? 'bg-rose-600 border-rose-700 text-white' : 'border-gray-300 bg-white'
+                          }`}
+                        >
+                          {isChecked && '✓'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: ADS & GIFT POPUP */}
+        {activeTab === 'ads' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">📢</span>
+              <div>
+                <h2 className="text-xl font-black text-gray-800">إعلانات Google والهدية المنبثقة</h2>
+                <p className="text-xs text-gray-500">إعلانات Google AdMob / AdSense والهدية الداخلية</p>
+              </div>
+            </div>
+
+            {/* Google Ads section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-sky-50/70 p-4 rounded-2xl border border-sky-200">
+                <div>
+                  <label htmlFor="googleAdsEnabled" className="block text-base font-bold text-gray-800 cursor-pointer">
+                    تفعيل إعلانات Google
+                  </label>
+                  <p className="text-xs text-gray-500">إظهار البانرات الإعلانية في الموقع</p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="googleAdsEnabled"
+                  name="enabled"
+                  checked={localSettings.googleAdSettings.enabled}
+                  onChange={handleGoogleAdChange}
+                  className="h-6 w-6 rounded border-gray-300 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                />
+              </div>
+
+              {localSettings.googleAdSettings.enabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div>
-                    <label htmlFor="adClient" className="block text-sm font-bold text-gray-700 mb-1">
+                    <label htmlFor="adClient" className="block text-xs font-bold text-gray-700 mb-1">
                       معرف الناشر (Ad Client)
                     </label>
                     <input
@@ -535,12 +1183,11 @@ const SettingsPage: React.FC = () => {
                       value={localSettings.googleAdSettings.adClient}
                       onChange={handleGoogleAdChange}
                       placeholder="ca-pub-xxxxxxxxxxxxxxxx"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 text-sm font-mono"
+                      className="w-full px-4 py-2 border rounded-xl font-mono text-xs"
                     />
                   </div>
-
                   <div>
-                    <label htmlFor="adSlot" className="block text-sm font-bold text-gray-700 mb-1">
+                    <label htmlFor="adSlot" className="block text-xs font-bold text-gray-700 mb-1">
                       معرف الوحدة الإعلانية (Ad Slot ID)
                     </label>
                     <input
@@ -550,304 +1197,172 @@ const SettingsPage: React.FC = () => {
                       value={localSettings.googleAdSettings.adSlot}
                       onChange={handleGoogleAdChange}
                       placeholder="1234567890"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 text-sm font-mono"
+                      className="w-full px-4 py-2 border rounded-xl font-mono text-xs"
                     />
                   </div>
                 </div>
+              )}
+            </div>
 
-                {/* Custom HTML Code */}
+            {/* In-app Gift Popup */}
+            <div className="border-t pt-4 space-y-4">
+              <div className="flex items-center justify-between bg-amber-50/70 p-4 rounded-2xl border border-amber-200">
                 <div>
-                  <label htmlFor="customHtml" className="block text-sm font-bold text-gray-700 mb-1">
-                    أو كود إعلاني مخصص / Custom Banner HTML (اختياري)
-                  </label>
-                  <textarea
-                    id="customHtml"
-                    name="customHtml"
-                    value={localSettings.googleAdSettings.customHtml}
-                    onChange={handleGoogleAdChange}
-                    rows={2}
-                    placeholder="<script>...</script> أو كود إعلاني جاهز"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500 text-xs font-mono"
+                  <h3 className="text-base font-bold text-gray-800">إشعار الهدية / الإعلان الداخلي</h3>
+                  <p className="text-xs text-gray-500">أيقونة متحركة في رأس الموقع تفتح نافذة للزوار</p>
+                </div>
+                <input
+                  type="checkbox"
+                  id="adEnabled"
+                  name="enabled"
+                  checked={localSettings.adSettings.enabled}
+                  onChange={handleLocalChange}
+                  className="h-6 w-6 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                />
+              </div>
+
+              {localSettings.adSettings.enabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">عنوان الهدية</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={localSettings.adSettings.name}
+                      onChange={handleAdChange}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">رابط الهدية</label>
+                    <input
+                      type="url"
+                      name="url"
+                      value={localSettings.adSettings.url}
+                      onChange={handleAdChange}
+                      className="w-full px-3 py-2 border rounded-xl text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: GIST CLOUD SYNC & BACKUP */}
+        {activeTab === 'sync' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+            {/* Gist Sync */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-teal-200 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b">
+                <h3 className="font-black text-teal-950 flex items-center gap-2 text-lg">
+                  <span>🌐</span>
+                  <span>مزامنة سحابية عامة (GitHub Gist)</span>
+                </h3>
+              </div>
+
+              <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                المزامنة السحابية تنشر التعديلات (الموسيقى، الألعاب، العداد، الإعلانات) فوراً لجميع الزوار من أي هاتف أو متصفح.
+              </p>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-black text-gray-700 mb-1">رابط Gist المستهدف:</label>
+                  <input
+                    type="url"
+                    value={gistUrl}
+                    onChange={(e) => setGistUrl(e.target.value)}
+                    placeholder="رابط Gist Raw"
+                    className="w-full px-3 py-2 border rounded-xl font-mono text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-black text-gray-700 mb-1">رمز التحقق (GitHub Token):</label>
+                  <input
+                    type="password"
+                    value={gistToken}
+                    onChange={(e) => setGistToken(e.target.value)}
+                    placeholder="GitHub Token"
+                    className="w-full px-3 py-2 border rounded-xl font-mono text-xs"
                   />
                 </div>
 
-                {/* Positions */}
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                  <span className="block text-sm font-bold text-gray-700 mb-2">أماكن ظهور الإعلان:</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
-                      <input
-                        type="checkbox"
-                        name="showTopBanner"
-                        checked={localSettings.googleAdSettings.showTopBanner}
-                        onChange={handleGoogleAdChange}
-                        className="h-4 w-4 rounded text-sky-600"
-                      />
-                      <span>أعلى الصفحة الرئيسية</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
-                      <input
-                        type="checkbox"
-                        name="showBottomBanner"
-                        checked={localSettings.googleAdSettings.showBottomBanner}
-                        onChange={handleGoogleAdChange}
-                        className="h-4 w-4 rounded text-sky-600"
-                      />
-                      <span>أسفل الصفحة الرئيسية</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
-                      <input
-                        type="checkbox"
-                        name="showGameBanner"
-                        checked={localSettings.googleAdSettings.showGameBanner}
-                        onChange={handleGoogleAdChange}
-                        className="h-4 w-4 rounded text-sky-600"
-                      />
-                      <span>داخل صفحات الألعاب</span>
-                    </label>
-                  </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleLoadFromGist}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer"
+                  >
+                    <span>📥</span>
+                    <span>سحب من Gist الآن</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveToGist}
+                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer"
+                  >
+                    <span>🚀</span>
+                    <span>نشر فوري إلى Gist</span>
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* 4. Site Identity & Branding */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-sky-100">
-          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
-            <span className="text-2xl">🎨</span>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">بيانات وهوية الموقع</h2>
-              <p className="text-xs text-gray-500">اسم الموقع، الشعار وموسيقى الخلفية</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="siteName" className="block text-sm font-bold text-gray-700 mb-1">
-                اسم الموقع
-              </label>
-              <input
-                type="text"
-                id="siteName"
-                name="siteName"
-                value={localSettings.siteName}
-                onChange={handleLocalChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-sky-500 focus:border-sky-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">شعار الموقع (الأيقونة)</label>
-              <div className="flex items-center gap-3">
-                <img
-                  src={localSettings.logoUrl}
-                  alt="Logo Preview"
-                  className="h-12 w-12 object-contain border p-1 rounded-xl bg-gray-50"
-                />
-                <input
-                  type="file"
-                  id="logoUrl"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'logoUrl')}
-                  className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
-                />
+                {syncMessage.text && (
+                  <p
+                    className={`text-xs font-bold p-2.5 rounded-xl ${
+                      syncMessage.type === 'success'
+                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}
+                  >
+                    {syncMessage.text}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div>
-              <label htmlFor="contactEmail" className="block text-sm font-bold text-gray-700 mb-1">
-                بريد التواصل
-              </label>
-              <input
-                type="email"
-                id="contactEmail"
-                name="contactEmail"
-                value={localSettings.contactEmail}
-                onChange={handleLocalChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="feedbackEmail" className="block text-sm font-bold text-gray-700 mb-1">
-                بريد الآراء والملاحظات
-              </label>
-              <input
-                type="email"
-                id="feedbackEmail"
-                name="feedbackEmail"
-                value={localSettings.feedbackEmail}
-                onChange={handleLocalChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl"
-              />
+            {/* Backup / Restore JSON */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-4">
+              <h3 className="font-black text-gray-800 flex items-center gap-2 text-lg pb-2 border-b">
+                <span>📦</span>
+                <span>النسخ الاحتياطي والاستعادة</span>
+              </h3>
+              <p className="text-xs text-gray-500">حفظ إعداداتك في ملف JSON أو استرجاعها بضغطة زر</p>
+              <div className="flex flex-col gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={exportSettings}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors shadow cursor-pointer"
+                >
+                  📥 تصدير وحفظ ملف الإعدادات (JSON)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => importFileRef.current?.click()}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors shadow cursor-pointer"
+                >
+                  📤 استيراد إعدادات من ملف
+                </button>
+                <input type="file" ref={importFileRef} onChange={importSettings} accept=".json" className="hidden" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 5. Custom Ad / Gift Popup */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-sky-100">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎁</span>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">إشعار الهدية / الإعلان الداخلي المنبثق</h2>
-                <p className="text-xs text-gray-500">أيقونة متحركة في رأس الصفحة تفتح نافذة مخصصة</p>
-              </div>
-            </div>
-            <input
-              type="checkbox"
-              id="adEnabled"
-              name="enabled"
-              checked={localSettings.adSettings.enabled}
-              onChange={handleLocalChange}
-              className="h-6 w-6 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-            />
-          </div>
-
-          {localSettings.adSettings.enabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">عنوان الإعلان</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={localSettings.adSettings.name}
-                  onChange={handleAdChange}
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">رابط الإعلان</label>
-                <input
-                  type="url"
-                  name="url"
-                  value={localSettings.adSettings.url}
-                  onChange={handleAdChange}
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-700 mb-1">نص ووصف الإعلان</label>
-                <textarea
-                  name="description"
-                  value={localSettings.adSettings.description}
-                  onChange={handleAdChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border rounded-xl text-sm"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Save Bar */}
-        <div className="sticky bottom-4 z-40 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-sky-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Global Floating Save Bar */}
+        <div className="sticky bottom-4 z-40 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border-2 border-sky-400 flex flex-col sm:flex-row items-center justify-between gap-3">
           <button
             type="submit"
-            className="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-black py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95 text-base"
+            className="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-black py-3.5 px-8 rounded-xl shadow-lg transition-transform active:scale-95 text-base cursor-pointer"
           >
             💾 حفظ وتطبيق جميع الإعدادات
           </button>
-          {saveMessage && <p className="text-green-600 font-bold text-sm animate-pulse">{saveMessage}</p>}
+          {saveMessage && (
+            <p className="text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 font-black text-xs sm:text-sm animate-pulse">
+              {saveMessage}
+            </p>
+          )}
         </div>
       </form>
-
-      {/* 6. Import/Export & Gist Sync */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Backup / Restore */}
-        <div className="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <span>📦</span>
-            <span>النسخ الاحتياطي والاستعادة</span>
-          </h3>
-          <p className="text-xs text-gray-500 mb-4">حفظ إعداداتك في ملف JSON أو استرجاعها بضغطة زر</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={exportSettings}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-xl text-xs transition-colors"
-            >
-              تصدير الإعدادات
-            </button>
-            <button
-              type="button"
-              onClick={() => importFileRef.current?.click()}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition-colors"
-            >
-              استيراد ملف
-            </button>
-            <input type="file" ref={importFileRef} onChange={importSettings} accept=".json" className="hidden" />
-          </div>
-        </div>
-
-        {/* Gist Sync */}
-        <div className="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <span>🌐</span>
-              <span>مزامنة سحابية عامة (GitHub Gist)</span>
-            </h3>
-            {lastSyncTime && (
-              <span className="text-[10px] bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded-full border border-green-200">
-                آخر تحديث: {lastSyncTime}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-gray-500 mb-3">
-            المزامنة السحابية تنشر التعديلات (الألعاب المختارة، العداد، القنوات) فوراً لجميع الزوار من أي هاتف أو كمبيوتر.
-          </p>
-          <div className="space-y-2 text-xs">
-            <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">رابط Gist المستهدف:</label>
-              <input
-                type="url"
-                value={gistUrl}
-                onChange={(e) => setGistUrl(e.target.value)}
-                placeholder="رابط Gist Raw"
-                className="w-full px-3 py-1.5 border rounded-lg font-mono text-[11px]"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold text-gray-600 mb-1">رمز التحقق (GitHub Token):</label>
-              <input
-                type="password"
-                value={gistToken}
-                onChange={(e) => setGistToken(e.target.value)}
-                placeholder="GitHub Token"
-                className="w-full px-3 py-1.5 border rounded-lg font-mono text-[11px]"
-              />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                onClick={handleLoadFromGist}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
-              >
-                <span>📥</span>
-                <span>سحب من Gist الآن</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveToGist}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
-              >
-                <span>🚀</span>
-                <span>نشر فوري إلى Gist</span>
-              </button>
-            </div>
-            {syncMessage.text && (
-              <p className={`text-[11px] font-bold p-2 rounded-lg ${syncMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                {syncMessage.text}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

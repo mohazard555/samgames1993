@@ -29,16 +29,40 @@ export interface GoogleAdSettings {
   showGameBanner: boolean;
 }
 
+export interface FeedbackItem {
+  id: string;
+  name: string;
+  email: string;
+  rating: number; // 1 to 5
+  category: string;
+  message: string;
+  status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل';
+  createdAt: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد';
+  createdAt: string;
+}
+
 export interface Settings {
   siteName: string;
   logoUrl: string;
   subscriptionUrl: string;
   youtubeUrls: string;
   backgroundMusicUrl: string;
+  backgroundMusicEnabled?: boolean;
   contactEmail: string;
   feedbackEmail: string;
   videoWaitTime: number; // Waiting duration in seconds for video watch countdown
   videoRequiredGameIds: number[]; // IDs of games that require watching a video
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;
+  feedbacks?: FeedbackItem[];
+  contactMessages?: ContactMessage[];
 }
