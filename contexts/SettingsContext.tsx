@@ -35,7 +35,7 @@ const defaultSettings: Settings = {
 
 // Helper to extract Gist ID and file name from any Gist URL format
 export function extractGistInfo(url: string) {
-  const cleanUrl = url.trim();
+  const cleanUrl = (url || DEFAULT_GIST_URL).trim();
   // Match 32-char hex gist id
   const gistIdMatch = cleanUrl.match(/([a-f0-9]{32})/i);
   const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
@@ -77,6 +77,7 @@ interface SettingsContextType {
   loadFromGist: (customUrl?: string) => Promise<boolean>;
   saveToGist: (overrideSettings?: Settings) => Promise<boolean>;
   isSyncing: boolean;
+  lastSyncTime: string | null;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -91,6 +92,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
+    return localStorage.getItem('toysGameLastGistSync') || null;
+  });
 
   const [settings, setSettings] = useState<Settings>(() => {
     try {
@@ -100,8 +104,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         return {
           ...defaultSettings,
           ...parsed,
-          videoWaitTime: typeof parsed.videoWaitTime === 'number' ? parsed.videoWaitTime : defaultSettings.videoWaitTime,
-          videoRequiredGameIds: Array.isArray(parsed.videoRequiredGameIds) ? parsed.videoRequiredGameIds : defaultSettings.videoRequiredGameIds,
+          videoWaitTime:
+            typeof parsed.videoWaitTime === 'number'
+              ? parsed.videoWaitTime
+              : Number(parsed.videoWaitTime) || defaultSettings.videoWaitTime,
+          videoRequiredGameIds: Array.isArray(parsed.videoRequiredGameIds)
+            ? parsed.videoRequiredGameIds
+            : defaultSettings.videoRequiredGameIds,
           adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
         };
@@ -226,64 +235,67 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setGistTokenState(clean);
   };
 
-  // Load latest settings from Gist with multiple fallback methods (API first, then raw URL with timestamp)
+  // Load latest settings from Gist with real-time GitHub API and cache-busting fallback
   const loadFromGist = useCallback(async (customUrl?: string): Promise<boolean> => {
     const targetUrl = (customUrl || gistUrl || DEFAULT_GIST_URL).trim();
     if (!targetUrl) return false;
 
     setIsSyncing(true);
     const { gistId, filename, unpinnedRawUrl } = extractGistInfo(targetUrl);
+    const activeToken = gistToken || localStorage.getItem('gistToken') || '';
 
     try {
       let fetchedSettings: Partial<Settings> | null = null;
 
-      // Method 1: Try direct raw content with cache buster (fastest & works for all public visitors)
+      // Method 1: Try GitHub REST API directly (100% real-time, no CDN delay)
       try {
-        const rawRes = await fetch(`${unpinnedRawUrl}?_t=${Date.now()}`, {
+        const headers: Record<string, string> = {
+          Accept: 'application/vnd.github.v3+json',
+        };
+        if (activeToken) {
+          headers['Authorization'] = `token ${activeToken}`;
+        }
+
+        const apiRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
+          headers,
           cache: 'no-store',
         });
-        if (rawRes.ok) {
-          fetchedSettings = await rawRes.json();
+
+        if (apiRes.ok) {
+          const gistData = await apiRes.json();
+          const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0];
+          if (targetFile && (targetFile as any).content) {
+            fetchedSettings = JSON.parse((targetFile as any).content);
+          }
         }
-      } catch (rawErr) {
-        console.warn('Raw fetch attempt failed, trying API fallback:', rawErr);
+      } catch (apiErr) {
+        console.warn('API fetch attempt failed, trying raw fallback:', apiErr);
       }
 
-      // Method 2: Try GitHub REST API (always non-cached)
+      // Method 2: Fallback to direct raw content with timestamp cache-buster
       if (!fetchedSettings) {
         try {
-          const headers: Record<string, string> = {
-            Accept: 'application/vnd.github.v3+json',
-          };
-          if (gistToken) {
-            headers['Authorization'] = `token ${gistToken}`;
-          }
-
-          const apiRes = await fetch(`https://api.github.com/gists/${gistId}`, {
-            headers,
+          const rawRes = await fetch(`${unpinnedRawUrl}?_t=${Date.now()}`, {
             cache: 'no-store',
           });
-
-          if (apiRes.ok) {
-            const gistData = await apiRes.json();
-            const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0];
-            if (targetFile && (targetFile as any).content) {
-              fetchedSettings = JSON.parse((targetFile as any).content);
-            }
+          if (rawRes.ok) {
+            fetchedSettings = await rawRes.json();
           }
-        } catch (apiErr) {
-          console.warn('API fallback attempt failed:', apiErr);
+        } catch (rawErr) {
+          console.warn('Raw fetch attempt failed:', rawErr);
         }
       }
 
       if (fetchedSettings && typeof fetchedSettings === 'object') {
+        const parsedWaitTime =
+          typeof fetchedSettings.videoWaitTime === 'number'
+            ? fetchedSettings.videoWaitTime
+            : Number(fetchedSettings.videoWaitTime) || defaultSettings.videoWaitTime;
+
         const merged: Settings = {
           ...defaultSettings,
           ...fetchedSettings,
-          videoWaitTime:
-            typeof fetchedSettings.videoWaitTime === 'number'
-              ? fetchedSettings.videoWaitTime
-              : defaultSettings.videoWaitTime,
+          videoWaitTime: parsedWaitTime,
           videoRequiredGameIds: Array.isArray(fetchedSettings.videoRequiredGameIds)
             ? fetchedSettings.videoRequiredGameIds
             : defaultSettings.videoRequiredGameIds,
@@ -298,6 +310,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         };
 
         saveSettings(merged);
+        const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
+        setLastSyncTime(syncTimeStr);
+        localStorage.setItem('toysGameLastGistSync', syncTimeStr);
         setIsSyncing(false);
         return true;
       }
@@ -349,6 +364,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       // Also persist locally
       saveSettings(dataToSave);
+      const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
+      setLastSyncTime(syncTimeStr);
+      localStorage.setItem('toysGameLastGistSync', syncTimeStr);
       setIsSyncing(false);
       return true;
     } catch (error) {
@@ -386,6 +404,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadFromGist,
         saveToGist,
         isSyncing,
+        lastSyncTime,
       }}
     >
       {children}

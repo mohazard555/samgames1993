@@ -780,43 +780,61 @@ const SettingsPage: React.FC = () => {
 
         {/* Gist Sync */}
         <div className="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
-          <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-            <span>🌐</span>
-            <span>مزامنة سحابية عبر GitHub Gist</span>
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <span>🌐</span>
+              <span>مزامنة سحابية عامة (GitHub Gist)</span>
+            </h3>
+            {lastSyncTime && (
+              <span className="text-[10px] bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded-full border border-green-200">
+                آخر تحديث: {lastSyncTime}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            المزامنة السحابية تنشر التعديلات (الألعاب المختارة، العداد، القنوات) فوراً لجميع الزوار من أي هاتف أو كمبيوتر.
+          </p>
           <div className="space-y-2 text-xs">
-            <input
-              type="url"
-              value={gistUrl}
-              onChange={(e) => setGistUrl(e.target.value)}
-              placeholder="رابط Gist Raw"
-              className="w-full px-3 py-1.5 border rounded-lg"
-            />
-            <input
-              type="password"
-              value={gistToken}
-              onChange={(e) => setGistToken(e.target.value)}
-              placeholder="GitHub Token"
-              className="w-full px-3 py-1.5 border rounded-lg"
-            />
+            <div>
+              <label className="block text-[11px] font-bold text-gray-600 mb-1">رابط Gist المستهدف:</label>
+              <input
+                type="url"
+                value={gistUrl}
+                onChange={(e) => setGistUrl(e.target.value)}
+                placeholder="رابط Gist Raw"
+                className="w-full px-3 py-1.5 border rounded-lg font-mono text-[11px]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-600 mb-1">رمز التحقق (GitHub Token):</label>
+              <input
+                type="password"
+                value={gistToken}
+                onChange={(e) => setGistToken(e.target.value)}
+                placeholder="GitHub Token"
+                className="w-full px-3 py-1.5 border rounded-lg font-mono text-[11px]"
+              />
+            </div>
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleLoadFromGist}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
               >
-                تحميل من Gist
+                <span>📥</span>
+                <span>سحب من Gist الآن</span>
               </button>
               <button
                 type="button"
                 onClick={handleSaveToGist}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 px-2 rounded-lg text-xs"
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-2 rounded-lg text-xs flex items-center justify-center gap-1"
               >
-                حفظ في Gist
+                <span>🚀</span>
+                <span>نشر فوري إلى Gist</span>
               </button>
             </div>
             {syncMessage.text && (
-              <p className={`text-[11px] font-bold ${syncMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-[11px] font-bold p-2 rounded-lg ${syncMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                 {syncMessage.text}
               </p>
             )}

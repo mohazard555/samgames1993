@@ -11,17 +11,6 @@ interface SubscriptionPopupProps {
   isVideoRequiredGame?: boolean;
 }
 
-// Helper to extract YouTube embed URL if a video ID is present
-function getYouTubeEmbedUrl(url: string): string | null {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    return `https://www.youtube-nocookie.com/embed/${match[2]}?autoplay=1&rel=0&playsinline=1`;
-  }
-  return null;
-}
-
 const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
   isOpen,
   onClose,
@@ -35,7 +24,6 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
   const [step, setStep] = useState<'initial' | 'waiting' | 'ready'>('initial');
   const [countdown, setCountdown] = useState<number>(waitDuration);
   const [activeUrl, setActiveUrl] = useState<string>('');
-  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
 
@@ -58,7 +46,6 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
     if (isOpen) {
       const url = pickTargetUrl();
       setActiveUrl(url);
-      setEmbedUrl(getYouTubeEmbedUrl(url));
       setCountdown(waitDuration);
       setStep('initial');
       startTimeRef.current = null;
@@ -123,8 +110,6 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
   // Safe external window open without replacing current WebView page
   const openExternalLink = (url: string) => {
     try {
-      // In Android WebView, window.open might be blocked or navigate current frame.
-      // Creating an anchor with target="_blank" and rel="noopener noreferrer" is the safest standard.
       const anchor = document.createElement('a');
       anchor.href = url;
       anchor.target = '_blank';
@@ -137,12 +122,13 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
     }
   };
 
-  const handleStartWatchOrSubscribe = (openExternal: boolean = false) => {
+  // User clicks to open YouTube in external window and begin countdown
+  const handleStartAction = () => {
     startTimeRef.current = Date.now();
     setCountdown(waitDuration);
     setStep('waiting');
 
-    // Save state to sessionStorage in case Android destroys/recreates the activity
+    // Save pending state to sessionStorage in case Android recreates activity
     if (game) {
       try {
         sessionStorage.setItem('toysGamePendingGameId', game.id.toString());
@@ -152,7 +138,7 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
       }
     }
 
-    if (openExternal && activeUrl) {
+    if (activeUrl) {
       openExternalLink(activeUrl);
     }
   };
@@ -195,10 +181,10 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
               {isVideoRequiredGame ? (
                 <>
                   <p className="font-semibold text-gray-700">
-                    هذه اللعبة مميزة وتتطلب مشاهدة فيديو قصير لمدة <span className="font-bold text-sky-600">{waitDuration} ثانية</span>.
+                    هذه اللعبة مميزة وتتطلب فتح ومشاهدة فيديو قصير لمدة <span className="font-bold text-sky-600">{waitDuration} ثانية</span>.
                   </p>
                   <p className="text-xs text-gray-500">
-                    يمكنك المشاهدة هنا مباشرة دون مغادرة اللعبة أو فتحها في تطبيق خارجي.
+                    عند النقر على الزر أدناه سيتم فتح الفيديو في نافذة/تطبيق يوتيوب الخارجي مع بقاء اللعبة مفتوحة وبدء العداد التنازلي.
                   </p>
                 </>
               ) : (
@@ -216,29 +202,19 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
 
           {step === 'waiting' && (
             <div className="w-full space-y-3">
-              {/* If YouTube video embed is available, show in-app player */}
-              {embedUrl && (
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-black">
-                  <iframe
-                    src={embedUrl}
-                    title="YouTube Player"
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              )}
-
-              <div>
-                <p className="font-bold text-sky-700 text-sm sm:text-base mb-1">
-                  {isVideoRequiredGame ? 'جاري المشاهدة ودعم القناة... 🌟' : 'جاري تأكيد الاشتراك... 🌟'}
+              <div className="p-4 bg-sky-50 rounded-2xl border border-sky-200">
+                <p className="font-bold text-sky-800 text-sm sm:text-base mb-2 flex items-center justify-center gap-2">
+                  <span className="animate-spin">⏳</span>
+                  <span>{isVideoRequiredGame ? 'جاري فتح الفيديو والانتظار... 🌟' : 'جاري فتح القناة وتأكيد الاشتراك... 🌟'}</span>
                 </p>
+                
                 <div className="w-full bg-gray-200 rounded-full h-3.5 sm:h-4 mb-2 overflow-hidden border border-gray-300">
                   <div
                     className="bg-gradient-to-r from-red-500 to-sky-500 h-full transition-all duration-1000 ease-linear rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   ></div>
                 </div>
+
                 <div className="flex items-center justify-between text-xs sm:text-sm font-bold px-1">
                   <span className="text-gray-500">المدة الكلية: {waitDuration} ثانية</span>
                   <span className="text-red-600 font-mono text-base font-black animate-pulse">
@@ -261,45 +237,32 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
         {/* Action Buttons */}
         <div className="flex flex-col gap-2.5">
           {step === 'initial' && (
-            <>
-              {/* Main action: Start inside or open external */}
-              <button
-                type="button"
-                onClick={() => handleStartWatchOrSubscribe(true)}
-                className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 text-base sm:text-lg"
-              >
-                <span>{isVideoRequiredGame ? 'مشاهدة الفيديو في نافذة / تطبيق خارجي' : 'الاشتراك في يوتيوب وبدء العداد'}</span>
-                <span>↗</span>
-              </button>
-
-              {/* Option to watch inside the app without leaving */}
-              <button
-                type="button"
-                onClick={() => handleStartWatchOrSubscribe(false)}
-                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-bold py-2.5 px-4 rounded-xl transition-colors text-xs sm:text-sm"
-              >
-                ▶ المشاهدة وبدء العداد هنا داخل التطبيق
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={handleStartAction}
+              className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 text-base sm:text-lg"
+            >
+              <span>{isVideoRequiredGame ? 'فتح الفيديو في نافذة جديدة وبدء العداد' : 'الاشتراك في يوتيوب وبدء العداد'}</span>
+              <span>↗</span>
+            </button>
           )}
 
           {step === 'waiting' && (
             <>
-              {/* Option to open in external tab if user wants */}
+              {/* Option to re-open external link if needed */}
               <button
                 type="button"
                 onClick={() => openExternalLink(activeUrl)}
                 className="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold py-2 px-3 rounded-xl transition-colors text-xs flex items-center justify-center gap-1.5"
               >
-                <span>فتح الرابط في تطبيق YouTube الخارجي</span>
-                <span>↗</span>
+                <span>إعادة فتح رابط YouTube في نافذة خارجية ↗</span>
               </button>
 
               <button
                 disabled
-                className="w-full bg-gray-200 text-gray-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed text-xs sm:text-sm"
+                className="w-full bg-gray-200 text-gray-500 font-bold py-2.5 px-4 rounded-xl cursor-not-allowed text-xs sm:text-sm font-mono"
               >
-                يرجى الانتظار حتى انتهاء العداد... ({countdown})
+                يرجى الانتظار حتى انتهاء العداد... ({countdown} ث)
               </button>
             </>
           )}
@@ -310,7 +273,7 @@ const SubscriptionPopup: React.FC<SubscriptionPopupProps> = ({
               onClick={handleComplete}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black py-3.5 px-4 rounded-xl shadow-lg transition-transform active:scale-95 text-base sm:text-lg animate-pulse"
             >
-              الدخول واللعب الآن! 🚀
+              🎮 الدخول واللعب الآن! 🚀
             </button>
           )}
 
