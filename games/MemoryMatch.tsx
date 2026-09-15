@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { playFlipSound, playSuccessSound, playErrorSound, playWinFanfare } from '../utils/soundEffects';
 
 interface GameProps {
   gameName: string;
@@ -40,34 +41,40 @@ const MemoryMatch: React.FC<GameProps> = ({ gameName }) => {
 
     if (firstCard.emoji === secondCard.emoji) {
       // Match
-      setCards(prevCards => prevCards.map(card => 
-        card.emoji === firstCard.emoji ? { ...card, isMatched: true } : card
-      ));
+      playSuccessSound();
+      setCards((prevCards) =>
+        prevCards.map((card) => (card.emoji === firstCard.emoji ? { ...card, isMatched: true } : card))
+      );
       setFlippedIndices([]);
     } else {
       // No match
       setTimeout(() => {
-        setCards(prevCards => prevCards.map((card, index) => 
-          index === firstIndex || index === secondIndex ? { ...card, isFlipped: false } : card
-        ));
+        playErrorSound();
+        setCards((prevCards) =>
+          prevCards.map((card, index) =>
+            index === firstIndex || index === secondIndex ? { ...card, isFlipped: false } : card
+          )
+        );
         setFlippedIndices([]);
-      }, 1000);
+      }, 800);
     }
   }, [flippedIndices, cards]);
-  
+
   useEffect(() => {
-    if (cards.length > 0 && cards.every(card => card.isMatched)) {
-        setIsGameWon(true);
+    if (cards.length > 0 && cards.every((card) => card.isMatched)) {
+      setIsGameWon(true);
+      playWinFanfare();
     }
   }, [cards]);
 
   const handleCardClick = (index: number) => {
     if (flippedIndices.length === 2 || cards[index].isFlipped || cards[index].isMatched) return;
 
-    setCards(prevCards => prevCards.map((card, i) => i === index ? { ...card, isFlipped: true } : card));
-    setFlippedIndices(prev => [...prev, index]);
-    if(flippedIndices.length === 0) {
-        setMoves(m => m + 1);
+    playFlipSound();
+    setCards((prevCards) => prevCards.map((card, i) => (i === index ? { ...card, isFlipped: true } : card)));
+    setFlippedIndices((prev) => [...prev, index]);
+    if (flippedIndices.length === 0) {
+      setMoves((m) => m + 1);
     }
   };
 
@@ -76,42 +83,50 @@ const MemoryMatch: React.FC<GameProps> = ({ gameName }) => {
     setFlippedIndices([]);
     setMoves(0);
     setIsGameWon(false);
-  }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto text-center bg-white p-6 rounded-2xl shadow-2xl border-4 border-purple-300">
+    <div className="max-w-4xl mx-auto text-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-4 border-purple-300">
       <div className="flex justify-between items-center mb-6">
-        <Link to="/" className="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors">→ العودة</Link>
-        <h1 className="text-2xl md:text-3xl font-bold text-purple-800">{gameName}</h1>
-        <div className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">الحركات: {moves}</div>
+        <Link
+          to="/"
+          className="bg-orange-500 text-white font-bold py-2 px-4 rounded-xl hover:bg-orange-600 transition-colors shadow"
+        >
+          → العودة للألعاب
+        </Link>
+        <h1 className="text-xl sm:text-2xl font-black text-purple-800">{gameName}</h1>
+        <div className="bg-blue-500 text-white font-bold py-2 px-4 rounded-xl shadow">الحركات: {moves}</div>
       </div>
-      
+
       {isGameWon ? (
-        <div className="flex flex-col items-center justify-center h-96">
-            <h2 className="text-4xl font-bold text-green-600 mb-4">🎉 رائع! لقد فزت! 🎉</h2>
-            <p className="text-xl text-gray-700 mb-6">لقد أكملت اللعبة في {moves} حركة.</p>
-            <button onClick={restartGame} className="bg-purple-600 text-white font-bold py-4 px-8 rounded-full text-2xl hover:bg-purple-700 transition-transform transform hover:scale-105">
-                العب مرة أخرى
-            </button>
+        <div className="flex flex-col items-center justify-center p-8 bg-purple-50 rounded-3xl border-2 border-purple-200 animate-fade-in">
+          <span className="text-6xl mb-2 animate-bounce">🏆</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-purple-800 mb-2">🎉 رائع جداً! لقد فزت يا ذكي! 🎉</h2>
+          <p className="text-xl text-gray-700 mb-6 font-bold">أكملت مطابقة جميع البطاقات في {moves} حركة!</p>
+          <button
+            onClick={restartGame}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black py-4 px-10 rounded-2xl text-xl hover:scale-105 transition-transform shadow-xl"
+          >
+            العب مرة أخرى 🔄
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
-            {cards.map((card, index) => (
-            <div key={card.id} className="perspective w-full h-24 md:h-32 cursor-pointer" onClick={() => handleCardClick(index)}>
-                <div className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${card.isFlipped || card.isMatched ? 'rotate-y-180' : ''}`}>
-                    <div className="absolute w-full h-full backface-hidden bg-purple-500 rounded-lg flex items-center justify-center text-4xl text-white font-bold">?</div>
-                    <div className="absolute w-full h-full backface-hidden bg-purple-200 rounded-lg flex items-center justify-center text-5xl rotate-y-180">{card.emoji}</div>
-                </div>
-            </div>
-            ))}
+        <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-xl mx-auto">
+          {cards.map((card, index) => (
+            <button
+              key={card.id}
+              onClick={() => handleCardClick(index)}
+              className={`h-24 sm:h-28 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl font-black transition-all transform active:scale-95 shadow-md border-2 ${
+                card.isFlipped || card.isMatched
+                  ? 'bg-gradient-to-tr from-amber-100 to-yellow-200 border-amber-300 rotate-0'
+                  : 'bg-gradient-to-tr from-purple-500 to-indigo-600 border-purple-300 text-white hover:scale-105'
+              }`}
+            >
+              {card.isFlipped || card.isMatched ? card.emoji : '❓'}
+            </button>
+          ))}
         </div>
       )}
-      <style>{`
-        .perspective { perspective: 1000px; }
-        .transform-style-preserve-3d { transform-style: preserve-3d; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-      `}</style>
     </div>
   );
 };

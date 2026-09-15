@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { Settings, GoogleAdSettings } from '../types';
 import { GAMES } from '../constants';
