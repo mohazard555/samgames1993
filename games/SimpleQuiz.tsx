@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { playSuccessSound, playErrorSound } from '../utils/soundEffects';
 
 interface GameProps { gameName: string; }
 
@@ -22,8 +23,10 @@ const SimpleQuiz: React.FC<GameProps> = ({ gameName }) => {
         if (option === currentQuestion.answer) {
             setScore(s => s + 10);
             setFeedback('correct');
+            playSuccessSound();
         } else {
             setFeedback('incorrect');
+            playErrorSound();
         }
         setTimeout(() => {
             setFeedback(null);

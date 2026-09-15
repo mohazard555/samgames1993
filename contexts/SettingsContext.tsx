@@ -77,6 +77,7 @@ interface SettingsContextType {
   loadFromGist: (customUrl?: string) => Promise<boolean>;
   saveToGist: (overrideSettings?: Settings) => Promise<boolean>;
   isSyncing: boolean;
+  isInitialLoading: boolean;
   lastSyncTime: string | null;
 }
 
@@ -92,6 +93,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
     return localStorage.getItem('toysGameLastGistSync') || null;
   });
@@ -378,7 +380,19 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // Automatically fetch the latest Gist settings for any visitor on app load!
   useEffect(() => {
-    loadFromGist();
+    let isMounted = true;
+    (async () => {
+      try {
+        await loadFromGist();
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
   }, [loadFromGist]);
 
   return (
@@ -404,6 +418,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadFromGist,
         saveToGist,
         isSyncing,
+        isInitialLoading,
         lastSyncTime,
       }}
     >

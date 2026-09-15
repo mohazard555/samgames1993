@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { SettingsProvider } from './contexts/SettingsContext';
+import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AudioProvider } from './contexts/AudioContext';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
@@ -10,23 +10,38 @@ import TermsPage from './pages/TermsPage';
 import PageLayout from './components/PageLayout';
 import GamePage from './pages/GamePage';
 import FeedbackPage from './pages/FeedbackPage';
+import ChildSplashScreen from './components/ChildSplashScreen';
+
+const MainRoutes: React.FC = () => {
+  const { isInitialLoading } = useSettings();
+  const [forceDismissSplash, setForceDismissSplash] = useState(false);
+
+  return (
+    <>
+      {isInitialLoading && !forceDismissSplash && (
+        <ChildSplashScreen onDismiss={() => setForceDismissSplash(true)} />
+      )}
+      <PageLayout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/game/:gameId" element={<GamePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
+        </Routes>
+      </PageLayout>
+    </>
+  );
+};
 
 const App: React.FC = () => {
   return (
     <SettingsProvider>
       <AudioProvider>
         <HashRouter>
-          <PageLayout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/game/:gameId" element={<GamePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/privacy" element={<PrivacyPolicyPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
-            </Routes>
-          </PageLayout>
+          <MainRoutes />
         </HashRouter>
       </AudioProvider>
     </SettingsProvider>

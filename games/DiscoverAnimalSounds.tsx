@@ -1,56 +1,79 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { playAnimalSound } from '../utils/soundEffects';
 
 interface GameProps { gameName: string; }
 
 const ANIMALS = [
-    { name: 'بقرة', emoji: '🐮', sound: 'موو' },
-    { name: 'كلب', emoji: '🐶', sound: 'نباح' },
-    { name: 'قطة', emoji: '🐱', sound: 'مواء' },
-    { name: 'خروف', emoji: '🐑', sound: 'ثغاء' },
-    { name: 'أسد', emoji: '🦁', sound: 'زئير' },
-    { name: 'ديك', emoji: '🐔', sound: 'صياح' },
+  { name: 'بقرة', emoji: '🐮', soundText: 'موو موو', key: 'بقرة', color: 'from-amber-100 to-amber-200' },
+  { name: 'كلب', emoji: '🐶', soundText: 'هوهو (نباح)', key: 'كلب', color: 'from-blue-100 to-blue-200' },
+  { name: 'قطة', emoji: '🐱', soundText: 'مياو (مواء)', key: 'قطة', color: 'from-pink-100 to-pink-200' },
+  { name: 'خروف', emoji: '🐑', soundText: 'باع باع (ثغاء)', key: 'خروف', color: 'from-green-100 to-green-200' },
+  { name: 'أسد', emoji: '🦁', soundText: 'غراار (زئير)', key: 'أسد', color: 'from-orange-100 to-orange-200' },
+  { name: 'ديك', emoji: '🐔', soundText: 'كوكو كوكو (صياح)', key: 'ديك', color: 'from-red-100 to-red-200' },
+  { name: 'عصفور', emoji: '🐦', soundText: 'تغريد جميل (سوسو)', key: 'عصفور', color: 'from-sky-100 to-sky-200' },
+  { name: 'بطة', emoji: '🦆', soundText: 'واك واك', key: 'بطة', color: 'from-teal-100 to-teal-200' },
 ];
 
 const DiscoverAnimalSounds: React.FC<GameProps> = ({ gameName }) => {
-    const [currentSound, setCurrentSound] = useState<string | null>(null);
+  const [activeAnimal, setActiveAnimal] = useState<string | null>(null);
 
-    const playSound = (sound: string) => {
-        setCurrentSound(sound);
-        // We'll just display the text, as we can't play actual audio easily.
-        setTimeout(() => setCurrentSound(null), 1500);
-    };
+  const handleAnimalClick = (animal: (typeof ANIMALS)[0]) => {
+    setActiveAnimal(animal.name);
+    playAnimalSound(animal.key);
+    setTimeout(() => {
+      setActiveAnimal(null);
+    }, 1200);
+  };
 
-    return (
-        <div className="max-w-4xl mx-auto text-center bg-white p-6 rounded-2xl shadow-2xl border-4 border-yellow-200">
-            <div className="flex justify-between items-center mb-6">
-                <Link to="/" className="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600">→ العودة</Link>
-                <h1 className="text-2xl font-bold text-yellow-800">{gameName}</h1>
-                <div className="w-24"></div>
-            </div>
-
-            <p className="text-xl text-gray-600 mb-6">انقر على الحيوان لسماع صوته!</p>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {ANIMALS.map(animal => (
-                    <button 
-                        key={animal.name} 
-                        onClick={() => playSound(animal.sound)}
-                        className="bg-yellow-100 p-6 rounded-2xl flex flex-col items-center justify-center transform hover:scale-105 transition-transform"
-                    >
-                        <span className="text-8xl">{animal.emoji}</span>
-                        <span className="text-2xl font-bold mt-2">{animal.name}</span>
-                    </button>
-                ))}
-            </div>
-            
-            {currentSound && (
-                <div className="mt-8 p-4 bg-green-200 rounded-lg">
-                    <p className="text-5xl font-bold text-green-800 animate-pulse">{currentSound}!</p>
-                </div>
-            )}
+  return (
+    <div className="max-w-4xl mx-auto text-center bg-white p-4 sm:p-6 rounded-3xl shadow-xl border-4 border-yellow-300">
+      <div className="flex justify-between items-center mb-6">
+        <Link to="/" className="bg-orange-500 text-white font-bold py-2 px-4 rounded-xl hover:bg-orange-600 transition-colors shadow">
+          → العودة للألعاب
+        </Link>
+        <h1 className="text-xl sm:text-2xl font-black text-yellow-800">{gameName}</h1>
+        <div className="text-xs bg-yellow-100 text-yellow-800 font-bold px-3 py-1.5 rounded-xl border border-yellow-300">
+          🔊 اضغط واسمع
         </div>
-    );
+      </div>
+
+      <p className="text-lg sm:text-xl font-bold text-gray-700 mb-6">
+        انقر على أي حيوان لسماع صوته الحقيقي فوراً! 🐾
+      </p>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        {ANIMALS.map((animal) => {
+          const isActive = activeAnimal === animal.name;
+          return (
+            <button
+              key={animal.name}
+              onClick={() => handleAnimalClick(animal)}
+              className={`bg-gradient-to-b ${animal.color} p-5 sm:p-6 rounded-3xl flex flex-col items-center justify-center border-2 border-yellow-200 shadow-md hover:shadow-xl transform transition-all active:scale-95 ${
+                isActive ? 'scale-105 ring-4 ring-yellow-400' : 'hover:-translate-y-1'
+              }`}
+            >
+              <span className={`text-6xl sm:text-7xl mb-2 select-none ${isActive ? 'animate-bounce' : ''}`}>
+                {animal.emoji}
+              </span>
+              <span className="text-xl sm:text-2xl font-black text-gray-800">{animal.name}</span>
+              <span className="text-xs text-gray-600 font-bold mt-1 bg-white/70 px-2 py-0.5 rounded-full">
+                {animal.soundText}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {activeAnimal && (
+        <div className="mt-6 p-4 bg-yellow-100 rounded-2xl border-2 border-yellow-300 animate-fade-in">
+          <p className="text-2xl sm:text-3xl font-black text-yellow-900">
+            🔊 جاري تشغيل صوت {activeAnimal}!
+          </p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DiscoverAnimalSounds;

@@ -1,10 +1,13 @@
-import React, { useState, useRef } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAudio } from '../contexts/AudioContext';
 import { SpeakerWaveIcon, PlayIcon, LockClosedIcon } from './Icons';
 import AdPopup from './AdPopup';
 import AdminAuthModal from './AdminAuthModal';
+import WhatsNewModal from './WhatsNewModal';
+import { GAMES } from '../constants';
+import { Game } from '../types';
 
 const Header: React.FC = () => {
   const { settings, isAdminUnlocked, lockAdmin } = useSettings();
@@ -12,6 +15,35 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdPopupOpen, setIsAdPopupOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
+  const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Highlight the newest games added to the platform
+  const newGames: Game[] = useMemo(() => {
+    // Select the last 10 games as newly added
+    return GAMES.slice(-10).reverse();
+  }, []);
+
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('toysGameNotificationsCleared') !== 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  const handleClearNotifications = () => {
+    try {
+      localStorage.setItem('toysGameNotificationsCleared', 'true');
+    } catch (e) {
+      console.error(e);
+    }
+    setHasUnreadNotifications(false);
+  };
+
+  const handleSelectNewGame = (game: Game) => {
+    navigate(`/game/${game.id}`);
+  };
 
   // 5-click detection state
   const clickCountRef = useRef(0);
@@ -49,6 +81,20 @@ const Header: React.FC = () => {
       <NavLink to="/" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>
         الألعاب
       </NavLink>
+      <button
+        onClick={() => {
+          setIsMenuOpen(false);
+          setIsWhatsNewOpen(true);
+        }}
+        className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} flex items-center gap-1.5 text-amber-700 hover:bg-amber-50`}
+      >
+        <span>🔔 ما الجديد؟</span>
+        {hasUnreadNotifications && (
+          <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+            {newGames.length}
+          </span>
+        )}
+      </button>
       <NavLink to="/contact" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>
         اتصل بنا
       </NavLink>
@@ -98,10 +144,28 @@ const Header: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <nav className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <nav className="hidden md:flex items-center gap-1">
               <NavigationLinks />
             </nav>
+
+            {/* Notifications / What's New Bell Icon */}
+            <button
+              onClick={() => setIsWhatsNewOpen(true)}
+              className="relative p-2 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800 transition-colors shadow-sm flex items-center justify-center active:scale-95"
+              title="ما الجديد؟ الألعاب المضافة حديثاً"
+              aria-label="ما الجديد"
+            >
+              <span className="text-xl">🔔</span>
+              {hasUnreadNotifications && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-red-500 text-white text-[9px] font-black">
+                    {newGames.length}
+                  </span>
+                </span>
+              )}
+            </button>
 
             {settings.adSettings.enabled && (
               <button
@@ -154,6 +218,16 @@ const Header: React.FC = () => {
 
       {/* Admin 5-click auth popup */}
       <AdminAuthModal isOpen={isAdminAuthOpen} onClose={() => setIsAdminAuthOpen(false)} />
+
+      {/* What's New Notifications Modal */}
+      <WhatsNewModal
+        isOpen={isWhatsNewOpen}
+        onClose={() => setIsWhatsNewOpen(false)}
+        onSelectGame={handleSelectNewGame}
+        onClearNotifications={handleClearNotifications}
+        newGames={newGames}
+        hasUnread={hasUnreadNotifications}
+      />
 
       <style>{`
         @keyframes wiggle {

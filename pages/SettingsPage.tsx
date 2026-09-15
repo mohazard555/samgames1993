@@ -19,9 +19,16 @@ const SettingsPage: React.FC = () => {
     setGistToken,
     loadFromGist,
     saveToGist,
+    isSyncing,
+    lastSyncTime,
   } = useSettings();
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
+
+  // Keep localSettings in sync if settings update remotely
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
   const [saveMessage, setSaveMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
   const [passwordInput, setPasswordInput] = useState('');
