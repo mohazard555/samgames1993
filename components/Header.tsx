@@ -128,7 +128,8 @@ const Header: React.FC = () => {
           <span>{isVipActive ? 'عضوية VIP مفعّلة' : 'النسخة الكاملة VIP'}</span>
           {!isVipActive && (
             <span className="bg-amber-950 text-amber-300 text-[10px] font-black px-1.5 py-0.2 rounded-full">
-              {settings.paidSettings?.price || 3} {settings.paidSettings?.currencySymbol || '$'}
+              {typeof settings.paidSettings?.shamCash?.price === 'number' ? settings.paidSettings.shamCash.price : settings.paidSettings?.price || 3}{' '}
+              {settings.paidSettings?.shamCash?.currencySymbol?.trim() || settings.paidSettings?.currencySymbol || 'ل.س'}
             </span>
           )}
         </button>

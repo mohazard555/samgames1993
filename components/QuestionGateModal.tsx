@@ -38,8 +38,9 @@ export const QuestionGateModal: React.FC<QuestionGateModalProps> = ({
     }
   };
 
-  const price = settings.paidSettings?.price ?? 3;
-  const currency = settings.paidSettings?.currency ?? 'دولار';
+  const sc = settings.paidSettings?.shamCash;
+  const price = typeof sc?.price === 'number' ? sc.price : settings.paidSettings?.price ?? 3;
+  const currency = sc?.currency?.trim() || settings.paidSettings?.currency || 'ليرة سورية';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">

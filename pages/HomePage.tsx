@@ -157,38 +157,44 @@ const HomePage: React.FC = () => {
         )}
 
         {/* VIP Promotion Banner */}
-        {settings.paidSettings?.enabled && !isVipActive && (
-          <div className="mt-4 max-w-2xl mx-auto bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-2xl shadow-lg animate-pulse-slow">
-            <div className="bg-gray-950 px-4 py-3 sm:px-6 sm:py-3.5 rounded-[14px] flex flex-col sm:flex-row items-center justify-between gap-3 text-right">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-900 rounded-xl border border-amber-400/40 shrink-0">
-                  <ShamCashLogoSvg className="w-7 h-7" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm sm:text-base font-black text-amber-300">
-                      👑 النسخة الكاملة (VIP) متوفرة الآن!
-                    </span>
-                    <span className="bg-amber-500 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded-full">
-                      {settings.paidSettings.price} {settings.paidSettings.currency} فقط
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-300">
-                    افتح جميع الألعاب المدفوعة وتخلص من قيود المشاهدة عبر الدفع السريع بـ Sham Cash.
-                  </p>
-                </div>
-              </div>
+        {settings.paidSettings?.enabled && !isVipActive && (() => {
+          const sc = settings.paidSettings?.shamCash;
+          const bannerPrice = typeof sc?.price === 'number' ? sc.price : settings.paidSettings?.price ?? 3;
+          const bannerCurrency = sc?.currency?.trim() || settings.paidSettings?.currency || 'ليرة سورية';
 
-              <button
-                type="button"
-                onClick={() => setIsVipModalOpen(true)}
-                className="w-full sm:w-auto shrink-0 px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-gray-950 text-xs font-black rounded-xl shadow active:scale-95 transition-all"
-              >
-                شراء وتفعيل النسخة 🚀
-              </button>
+          return (
+            <div className="mt-4 max-w-2xl mx-auto bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-2xl shadow-lg animate-pulse-slow">
+              <div className="bg-gray-950 px-4 py-3 sm:px-6 sm:py-3.5 rounded-[14px] flex flex-col sm:flex-row items-center justify-between gap-3 text-right">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-900 rounded-xl border border-amber-400/40 shrink-0">
+                    <ShamCashLogoSvg className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm sm:text-base font-black text-amber-300">
+                        👑 النسخة الكاملة (VIP) متوفرة الآن!
+                      </span>
+                      <span className="bg-amber-500 text-gray-950 text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                        {bannerPrice} {bannerCurrency} فقط
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-300 mt-0.5 leading-relaxed">
+                      افتح جميع الألعاب المدفوعة وتخلص من أي قيود عبر الدفع السريع بـ شام كاش أو طرق الدفع المتاحة.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsVipModalOpen(true)}
+                  className="w-full sm:w-auto shrink-0 px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-gray-950 text-xs font-black rounded-xl shadow active:scale-95 transition-all whitespace-nowrap"
+                >
+                  شراء وتفعيل النسخة 🚀
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
 
