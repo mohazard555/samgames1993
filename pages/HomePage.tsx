@@ -124,9 +124,9 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* Search & Category Filter */}
-      <div className="mb-5 sm:mb-6 max-w-2xl mx-auto space-y-3 sm:space-y-4">
+      <div className="mb-6 max-w-4xl mx-auto space-y-3 sm:space-y-4">
         {/* Search box */}
-        <div className="relative">
+        <div className="relative max-w-2xl mx-auto">
           <span className="absolute inset-y-0 right-0 flex items-center pr-3.5 sm:pr-4 pointer-events-none">
             <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
               <path
@@ -147,16 +147,16 @@ const HomePage: React.FC = () => {
           />
         </div>
 
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 scrollbar-none px-1">
+        {/* Category Pills - Wrapped and clearly visible with no cut-off */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-2 py-1">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 sm:px-3.5 py-1.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all active:scale-95 touch-manipulation ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm whitespace-nowrap transition-all active:scale-95 touch-manipulation cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-sky-500 text-white shadow-md shadow-sky-200 scale-105'
-                  : 'bg-white/90 hover:bg-white text-gray-600 border border-gray-200'
+                  ? 'bg-sky-500 text-white shadow-md shadow-sky-200 ring-2 ring-sky-300'
+                  : 'bg-white hover:bg-sky-50 text-gray-700 border border-sky-100 shadow-xs'
               }`}
             >
               {cat}

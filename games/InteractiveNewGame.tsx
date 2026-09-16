@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
 import { getAuthentic50Items } from './banks/allBanks';
+import { getQuestionVisual } from '../src/utils/questionVisuals';
 import {
   playSuccessSound,
   playErrorSound,
@@ -10,6 +11,24 @@ import {
   playObjectSound,
   playPianoNote,
 } from '../utils/soundEffects';
+
+const EMOJI_REGEX = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}]/u;
+
+function resolveItemEmoji(item?: { label: string; emoji?: string; description?: string }): string {
+  if (!item) return '✨';
+  if (item.emoji && item.emoji !== '⭐' && item.emoji !== '🎯' && EMOJI_REGEX.test(item.emoji)) {
+    return item.emoji;
+  }
+  if (item.description) {
+    const found = item.description.match(EMOJI_REGEX);
+    if (found && found.length > 0) return found[0];
+  }
+  if (item.label) {
+    const found = item.label.match(EMOJI_REGEX);
+    if (found && found.length > 0) return found[0];
+  }
+  return '✨';
+}
 
 interface InteractiveNewGameProps {
   gameName: string;
@@ -224,183 +243,207 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
       </div>
 
       {/* MAIN GAME CONTENT */}
-      {isQuiz && currentQ && (
-        <div className="bg-gradient-to-b from-sky-50 to-blue-50/50 p-6 sm:p-8 rounded-3xl border border-sky-100 shadow-inner">
-          {/* Neutral Question Indicator (No hints or spoilers) */}
-          <div className="flex flex-col items-center justify-center mb-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-sky-100/90 border-2 border-sky-300 text-sky-700 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-sm">
-              ❓
+      {isQuiz && currentQ && (() => {
+        const qVisual = getQuestionVisual(
+          currentQ.question,
+          currentQ.badge,
+          currentQ.image,
+          currentQ.correctAnswer
+        );
+
+        return (
+          <div className="bg-gradient-to-b from-sky-50 to-blue-50/50 p-6 sm:p-8 rounded-3xl border border-sky-100 shadow-inner">
+            {/* Dynamic Question Thematic Visual (Directly linked to question content) */}
+            <div className="flex flex-col items-center justify-center mb-4">
+              {qVisual.type === 'image' ? (
+                <img
+                  src={qVisual.value}
+                  alt={currentQ.question}
+                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-2xl shadow-sm border border-sky-200 bg-white p-2"
+                />
+              ) : (
+                <div
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl ${qVisual.badgeBg} border-2 ${qVisual.badgeBorder} flex items-center justify-center text-3xl sm:text-4xl shadow-sm transition-transform hover:scale-110`}
+                >
+                  {qVisual.value}
+                </div>
+              )}
+              {currentQ.badge && (
+                <span className="mt-2.5 inline-block bg-sky-100 text-sky-800 text-xs font-black px-3 py-1 rounded-full border border-sky-200">
+                  {currentQ.badge}
+                </span>
+              )}
             </div>
-            {currentQ.badge && (
-              <span className="mt-2.5 inline-block bg-sky-100 text-sky-800 text-xs font-black px-3 py-1 rounded-full border border-sky-200">
-                {currentQ.badge}
-              </span>
+
+            {/* Question Text */}
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-800 text-center mb-4 leading-relaxed">
+              {currentQ.question}
+            </h2>
+
+            {gameDef.category === 'موسيقى' && (
+              <div className="text-center mb-6">
+                <button
+                  onClick={() => playObjectSound(currentQ.correctAnswer || currentQ.question)}
+                  className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black px-5 py-2.5 rounded-2xl shadow-lg transition-transform active:scale-95 cursor-pointer text-base animate-bounce"
+                >
+                  <span>🔊</span>
+                  <span>استمع لصوت الآلة والنغمة</span>
+                </button>
+              </div>
+            )}
+
+            {/* Options Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              {currentQ.options.map((option, idx) => {
+                const isChosen = selectedAnswer === option;
+                const isCorrectOpt = option === currentQ.correctAnswer;
+
+                let btnStyle =
+                  'bg-white text-gray-800 border-2 border-sky-200 hover:border-sky-400 hover:bg-sky-50 shadow-md';
+
+                if (feedback !== null) {
+                  if (isCorrectOpt) {
+                    btnStyle = 'bg-emerald-500 text-white border-2 border-emerald-600 shadow-lg scale-102';
+                  } else if (isChosen && !isCorrectOpt) {
+                    btnStyle = 'bg-rose-500 text-white border-2 border-rose-600 shadow-lg opacity-80';
+                  } else {
+                    btnStyle = 'bg-gray-100 text-gray-400 border-gray-200 opacity-50';
+                  }
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleQuizAnswer(option, currentQ.correctAnswer)}
+                    disabled={feedback !== null}
+                    className={`p-4 sm:p-5 rounded-2xl text-lg sm:text-xl font-black transition-all transform active:scale-95 flex items-center justify-between text-right cursor-pointer ${btnStyle}`}
+                  >
+                    <span>{option}</span>
+                    {feedback !== null && isCorrectOpt && <span className="text-2xl">✅</span>}
+                    {feedback !== null && isChosen && !isCorrectOpt && (
+                      <span className="text-2xl">❌</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Feedback message and explanation */}
+            {feedback && (
+              <div className="mt-6 text-center animate-fade-in">
+                <p
+                  className={`text-2xl sm:text-3xl font-black mb-2 ${
+                    feedback === 'correct' ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
+                >
+                  {feedback === 'correct' ? '🎉 إجابة صحيحة! أحسنت يا بطل! 🎉' : '💡 إجابة غير صحيحة، حاول مجدداً!'}
+                </p>
+                {currentQ.explanation && (
+                  <div className="bg-white/80 p-3 rounded-xl border border-sky-200 max-w-lg mx-auto text-gray-700 text-sm sm:text-base font-bold">
+                    {currentQ.explanation}
+                  </div>
+                )}
+              </div>
             )}
           </div>
-
-          {/* Question Text */}
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-800 text-center mb-4 leading-relaxed">
-            {currentQ.question}
-          </h2>
-
-          {gameDef.category === 'موسيقى' && (
-            <div className="text-center mb-6">
-              <button
-                onClick={() => playObjectSound(currentQ.correctAnswer || currentQ.question)}
-                className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black px-5 py-2.5 rounded-2xl shadow-lg transition-transform active:scale-95 cursor-pointer text-base animate-bounce"
-              >
-                <span>🔊</span>
-                <span>استمع لصوت الآلة والنغمة</span>
-              </button>
-            </div>
-          )}
-
-          {/* Options Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-            {currentQ.options.map((option, idx) => {
-              const isChosen = selectedAnswer === option;
-              const isCorrectOpt = option === currentQ.correctAnswer;
-
-              let btnStyle =
-                'bg-white text-gray-800 border-2 border-sky-200 hover:border-sky-400 hover:bg-sky-50 shadow-md';
-
-              if (feedback !== null) {
-                if (isCorrectOpt) {
-                  btnStyle = 'bg-emerald-500 text-white border-2 border-emerald-600 shadow-lg scale-102';
-                } else if (isChosen && !isCorrectOpt) {
-                  btnStyle = 'bg-rose-500 text-white border-2 border-rose-600 shadow-lg opacity-80';
-                } else {
-                  btnStyle = 'bg-gray-100 text-gray-400 border-gray-200 opacity-50';
-                }
-              }
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleQuizAnswer(option, currentQ.correctAnswer)}
-                  disabled={feedback !== null}
-                  className={`p-4 sm:p-5 rounded-2xl text-lg sm:text-xl font-black transition-all transform active:scale-95 flex items-center justify-between text-right cursor-pointer ${btnStyle}`}
-                >
-                  <span>{option}</span>
-                  {feedback !== null && isCorrectOpt && <span className="text-2xl">✅</span>}
-                  {feedback !== null && isChosen && !isCorrectOpt && (
-                    <span className="text-2xl">❌</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Feedback message and explanation */}
-          {feedback && (
-            <div className="mt-6 text-center animate-fade-in">
-              <p
-                className={`text-2xl sm:text-3xl font-black mb-2 ${
-                  feedback === 'correct' ? 'text-emerald-600' : 'text-rose-600'
-                }`}
-              >
-                {feedback === 'correct' ? '🎉 إجابة صحيحة! أحسنت يا بطل! 🎉' : '💡 إجابة غير صحيحة، حاول مجدداً!'}
-              </p>
-              {currentQ.explanation && (
-                <div className="bg-white/80 p-3 rounded-xl border border-sky-200 max-w-lg mx-auto text-gray-700 text-sm sm:text-base font-bold">
-                  {currentQ.explanation}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+        );
+      })()}
 
       {/* COMPARISON MODE */}
-      {!isQuiz && currentComp && (
-        <div className="bg-gradient-to-b from-amber-50 to-orange-50/50 p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-amber-200 shadow-inner">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 text-center mb-4 sm:mb-8">
-            {currentComp.prompt}
-          </h2>
+      {!isQuiz && currentComp && (() => {
+        const emojiA = resolveItemEmoji(currentComp.itemA);
+        const emojiB = resolveItemEmoji(currentComp.itemB);
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto mb-4 sm:mb-6">
-            {/* Item A */}
-            <button
-              onClick={() => handleComparisonSelect(0, currentComp.correctIndex)}
-              disabled={feedback !== null}
-              className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 text-center transition-all transform hover:scale-102 active:scale-95 cursor-pointer shadow-md ${
-                feedback === null
-                  ? 'bg-white border-amber-300 hover:border-amber-400 hover:bg-amber-50/50'
-                  : currentComp.correctIndex === 0
-                  ? 'bg-emerald-100 border-emerald-500 scale-102'
-                  : selectedAnswer === 0
-                  ? 'bg-rose-100 border-rose-500 opacity-80'
-                  : 'bg-gray-100 border-gray-200 opacity-50'
-              }`}
-            >
-              <div className="text-5xl sm:text-7xl md:text-8xl mb-2 sm:mb-3 filter drop-shadow">
-                {currentComp.itemA.emoji}
-              </div>
-              <h3 className="text-lg sm:text-2xl font-black text-gray-800 mb-1">
-                {currentComp.itemA.label}
-              </h3>
-              {currentComp.itemA.description && (
-                <p className="text-[11px] sm:text-xs text-gray-500 font-bold">{currentComp.itemA.description}</p>
-              )}
-              {feedback !== null && currentComp.correctIndex === 0 && (
-                <div className="mt-2 text-emerald-600 font-black text-sm sm:text-lg">✅ الإجابة الصحيحة</div>
-              )}
-              {feedback !== null && selectedAnswer === 0 && currentComp.correctIndex !== 0 && (
-                <div className="mt-2 text-rose-600 font-black text-sm sm:text-lg">❌ غير صحيح</div>
-              )}
-            </button>
+        return (
+          <div className="bg-gradient-to-b from-amber-50 to-orange-50/50 p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-amber-200 shadow-inner">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 text-center mb-4 sm:mb-8">
+              {currentComp.prompt}
+            </h2>
 
-            {/* Item B */}
-            <button
-              onClick={() => handleComparisonSelect(1, currentComp.correctIndex)}
-              disabled={feedback !== null}
-              className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 text-center transition-all transform hover:scale-102 active:scale-95 cursor-pointer shadow-md ${
-                feedback === null
-                  ? 'bg-white border-amber-300 hover:border-amber-400 hover:bg-amber-50/50'
-                  : currentComp.correctIndex === 1
-                  ? 'bg-emerald-100 border-emerald-500 scale-102'
-                  : selectedAnswer === 1
-                  ? 'bg-rose-100 border-rose-500 opacity-80'
-                  : 'bg-gray-100 border-gray-200 opacity-50'
-              }`}
-            >
-              <div className="text-5xl sm:text-7xl md:text-8xl mb-2 sm:mb-3 filter drop-shadow">
-                {currentComp.itemB.emoji}
-              </div>
-              <h3 className="text-lg sm:text-2xl font-black text-gray-800 mb-1">
-                {currentComp.itemB.label}
-              </h3>
-              {currentComp.itemB.description && (
-                <p className="text-[11px] sm:text-xs text-gray-500 font-bold">{currentComp.itemB.description}</p>
-              )}
-              {feedback !== null && currentComp.correctIndex === 1 && (
-                <div className="mt-2 text-emerald-600 font-black text-sm sm:text-lg">✅ الإجابة الصحيحة</div>
-              )}
-              {feedback !== null && selectedAnswer === 1 && currentComp.correctIndex !== 1 && (
-                <div className="mt-2 text-rose-600 font-black text-sm sm:text-lg">❌ غير صحيح</div>
-              )}
-            </button>
-          </div>
-
-          {/* Feedback & Explanation */}
-          {feedback && (
-            <div className="text-center animate-fade-in">
-              <p
-                className={`text-2xl sm:text-3xl font-black mb-2 ${
-                  feedback === 'correct' ? 'text-emerald-600' : 'text-rose-600'
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 max-w-2xl mx-auto mb-4 sm:mb-6">
+              {/* Item A */}
+              <button
+                onClick={() => handleComparisonSelect(0, currentComp.correctIndex)}
+                disabled={feedback !== null}
+                className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 text-center transition-all transform hover:scale-102 active:scale-95 cursor-pointer shadow-md ${
+                  feedback === null
+                    ? 'bg-white border-amber-300 hover:border-amber-400 hover:bg-amber-50/50'
+                    : currentComp.correctIndex === 0
+                    ? 'bg-emerald-100 border-emerald-500 scale-102'
+                    : selectedAnswer === 0
+                    ? 'bg-rose-100 border-rose-500 opacity-80'
+                    : 'bg-gray-100 border-gray-200 opacity-50'
                 }`}
               >
-                {feedback === 'correct' ? '🌟 أحسنت المقارنة يا بطل! 🌟' : '💡 حاول في الجولة القادمة!'}
-              </p>
-              {currentComp.explanation && (
-                <div className="bg-white/80 p-3 rounded-xl border border-amber-200 max-w-lg mx-auto text-gray-700 text-sm sm:text-base font-bold">
-                  {currentComp.explanation}
+                <div className="text-5xl sm:text-7xl md:text-8xl mb-2 sm:mb-3 filter drop-shadow">
+                  {emojiA}
                 </div>
-              )}
+                <h3 className="text-lg sm:text-2xl font-black text-gray-800 mb-1">
+                  {currentComp.itemA.label}
+                </h3>
+                {currentComp.itemA.description && (
+                  <p className="text-[11px] sm:text-xs text-gray-500 font-bold">{currentComp.itemA.description}</p>
+                )}
+                {feedback !== null && currentComp.correctIndex === 0 && (
+                  <div className="mt-2 text-emerald-600 font-black text-sm sm:text-lg">✅ الإجابة الصحيحة</div>
+                )}
+                {feedback !== null && selectedAnswer === 0 && currentComp.correctIndex !== 0 && (
+                  <div className="mt-2 text-rose-600 font-black text-sm sm:text-lg">❌ غير صحيح</div>
+                )}
+              </button>
+
+              {/* Item B */}
+              <button
+                onClick={() => handleComparisonSelect(1, currentComp.correctIndex)}
+                disabled={feedback !== null}
+                className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 text-center transition-all transform hover:scale-102 active:scale-95 cursor-pointer shadow-md ${
+                  feedback === null
+                    ? 'bg-white border-amber-300 hover:border-amber-400 hover:bg-amber-50/50'
+                    : currentComp.correctIndex === 1
+                    ? 'bg-emerald-100 border-emerald-500 scale-102'
+                    : selectedAnswer === 1
+                    ? 'bg-rose-100 border-rose-500 opacity-80'
+                    : 'bg-gray-100 border-gray-200 opacity-50'
+                }`}
+              >
+                <div className="text-5xl sm:text-7xl md:text-8xl mb-2 sm:mb-3 filter drop-shadow">
+                  {emojiB}
+                </div>
+                <h3 className="text-lg sm:text-2xl font-black text-gray-800 mb-1">
+                  {currentComp.itemB.label}
+                </h3>
+                {currentComp.itemB.description && (
+                  <p className="text-[11px] sm:text-xs text-gray-500 font-bold">{currentComp.itemB.description}</p>
+                )}
+                {feedback !== null && currentComp.correctIndex === 1 && (
+                  <div className="mt-2 text-emerald-600 font-black text-sm sm:text-lg">✅ الإجابة الصحيحة</div>
+                )}
+                {feedback !== null && selectedAnswer === 1 && currentComp.correctIndex !== 1 && (
+                  <div className="mt-2 text-rose-600 font-black text-sm sm:text-lg">❌ غير صحيح</div>
+                )}
+              </button>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Feedback & Explanation */}
+            {feedback && (
+              <div className="text-center animate-fade-in">
+                <p
+                  className={`text-2xl sm:text-3xl font-black mb-2 ${
+                    feedback === 'correct' ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
+                >
+                  {feedback === 'correct' ? '🌟 أحسنت المقارنة يا بطل! 🌟' : '💡 حاول في الجولة القادمة!'}
+                </p>
+                {currentComp.explanation && (
+                  <div className="bg-white/80 p-3 rounded-xl border border-amber-200 max-w-lg mx-auto text-gray-700 text-sm sm:text-base font-bold">
+                    {currentComp.explanation}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

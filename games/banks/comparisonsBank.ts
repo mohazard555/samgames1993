@@ -7,12 +7,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 1]",
       "itemA": {
         "label": "الفيل الإفريقي",
-        "emoji": "⭐",
+        "emoji": "🐘",
         "description": "الفيل الإفريقي 🐘 (6000 كغ)"
       },
       "itemB": {
         "label": "العصفور المغرد",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور المغرد 🐦 (30 غرام)"
       },
       "correctIndex": 0,
@@ -23,12 +23,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 2]",
       "itemA": {
         "label": "الشمس المشرقة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس المشرقة ☀️ (نجم عملاق)"
       },
       "itemB": {
         "label": "كوكب الأرض",
-        "emoji": "🎯",
+        "emoji": "🌍",
         "description": "كوكب الأرض 🌍 (كوكبنا)"
       },
       "correctIndex": 0,
@@ -39,12 +39,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 3]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (150 طناً)"
       },
       "itemB": {
         "label": "سمكة القرش",
-        "emoji": "🎯",
+        "emoji": "🦈",
         "description": "سمكة القرش 🦈 (طن واحد)"
       },
       "correctIndex": 0,
@@ -55,12 +55,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 4]",
       "itemA": {
         "label": "البطيخة الكبيرة",
-        "emoji": "⭐",
+        "emoji": "🍉",
         "description": "البطيخة الكبيرة 🍉 (8 كغ)"
       },
       "itemB": {
         "label": "حبة الفراولة",
-        "emoji": "🎯",
+        "emoji": "🍓",
         "description": "حبة الفراولة 🍓 (15 غرام)"
       },
       "correctIndex": 0,
@@ -71,12 +71,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 5]",
       "itemA": {
         "label": "الشاحنة العملاقة",
-        "emoji": "⭐",
+        "emoji": "🚚",
         "description": "الشاحنة العملاقة 🚚 (20 طناً)"
       },
       "itemB": {
         "label": "الدراجة الهوائية",
-        "emoji": "🎯",
+        "emoji": "🚲",
         "description": "الدراجة الهوائية 🚲 (12 كغ)"
       },
       "correctIndex": 0,
@@ -87,12 +87,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 6]",
       "itemA": {
         "label": "ناطحة السحاب",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "ناطحة السحاب 🏙️ (عشرات الطوابق)"
       },
       "itemB": {
         "label": "الخيمة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "⛺",
         "description": "الخيمة الصغيرة ⛺ (قماش خفيف)"
       },
       "correctIndex": 0,
@@ -103,12 +103,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 7]",
       "itemA": {
         "label": "الدب القطبي",
-        "emoji": "⭐",
+        "emoji": "🐻",
         "description": "الدب القطبي 🐻‍❄️ (600 كغ)"
       },
       "itemB": {
         "label": "الثعلب 🦊",
-        "emoji": "🎯",
+        "emoji": "🦊",
         "description": "الثعلب 🦊 (8 كغ)"
       },
       "correctIndex": 0,
@@ -119,12 +119,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 8]",
       "itemA": {
         "label": "الجبل الجليدي",
-        "emoji": "⭐",
+        "emoji": "🏔",
         "description": "الجبل الجليدي 🏔️ (كتلة صخرية جليدية)"
       },
       "itemB": {
         "label": "تلة الرمل",
-        "emoji": "🎯",
+        "emoji": "⛰",
         "description": "تلة الرمل ⛰️ (صغيرة)"
       },
       "correctIndex": 0,
@@ -135,12 +135,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 9]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (80 طناً)"
       },
       "itemB": {
         "label": "السيارة العائلية",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة العائلية 🚗 (طن ونصف)"
       },
       "correctIndex": 0,
@@ -151,12 +151,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 10]",
       "itemA": {
         "label": "وحيد القرن",
-        "emoji": "⭐",
+        "emoji": "🦏",
         "description": "وحيد القرن 🦏 (طنان)"
       },
       "itemB": {
         "label": "الأرنب البري",
-        "emoji": "🎯",
+        "emoji": "🐇",
         "description": "الأرنب البري 🐇 (3 كغ)"
       },
       "correctIndex": 0,
@@ -167,12 +167,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 11]",
       "itemA": {
         "label": "الفيل الإفريقي",
-        "emoji": "⭐",
+        "emoji": "🐘",
         "description": "الفيل الإفريقي 🐘 (6000 كغ)"
       },
       "itemB": {
         "label": "العصفور المغرد",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور المغرد 🐦 (30 غرام)"
       },
       "correctIndex": 0,
@@ -183,12 +183,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 12]",
       "itemA": {
         "label": "الشمس المشرقة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس المشرقة ☀️ (نجم عملاق)"
       },
       "itemB": {
         "label": "كوكب الأرض",
-        "emoji": "🎯",
+        "emoji": "🌍",
         "description": "كوكب الأرض 🌍 (كوكبنا)"
       },
       "correctIndex": 0,
@@ -199,12 +199,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 13]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (150 طناً)"
       },
       "itemB": {
         "label": "سمكة القرش",
-        "emoji": "🎯",
+        "emoji": "🦈",
         "description": "سمكة القرش 🦈 (طن واحد)"
       },
       "correctIndex": 0,
@@ -215,12 +215,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 14]",
       "itemA": {
         "label": "البطيخة الكبيرة",
-        "emoji": "⭐",
+        "emoji": "🍉",
         "description": "البطيخة الكبيرة 🍉 (8 كغ)"
       },
       "itemB": {
         "label": "حبة الفراولة",
-        "emoji": "🎯",
+        "emoji": "🍓",
         "description": "حبة الفراولة 🍓 (15 غرام)"
       },
       "correctIndex": 0,
@@ -231,12 +231,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 15]",
       "itemA": {
         "label": "الشاحنة العملاقة",
-        "emoji": "⭐",
+        "emoji": "🚚",
         "description": "الشاحنة العملاقة 🚚 (20 طناً)"
       },
       "itemB": {
         "label": "الدراجة الهوائية",
-        "emoji": "🎯",
+        "emoji": "🚲",
         "description": "الدراجة الهوائية 🚲 (12 كغ)"
       },
       "correctIndex": 0,
@@ -247,12 +247,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 16]",
       "itemA": {
         "label": "ناطحة السحاب",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "ناطحة السحاب 🏙️ (عشرات الطوابق)"
       },
       "itemB": {
         "label": "الخيمة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "⛺",
         "description": "الخيمة الصغيرة ⛺ (قماش خفيف)"
       },
       "correctIndex": 0,
@@ -263,12 +263,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 17]",
       "itemA": {
         "label": "الدب القطبي",
-        "emoji": "⭐",
+        "emoji": "🐻",
         "description": "الدب القطبي 🐻‍❄️ (600 كغ)"
       },
       "itemB": {
         "label": "الثعلب 🦊",
-        "emoji": "🎯",
+        "emoji": "🦊",
         "description": "الثعلب 🦊 (8 كغ)"
       },
       "correctIndex": 0,
@@ -279,12 +279,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 18]",
       "itemA": {
         "label": "الجبل الجليدي",
-        "emoji": "⭐",
+        "emoji": "🏔",
         "description": "الجبل الجليدي 🏔️ (كتلة صخرية جليدية)"
       },
       "itemB": {
         "label": "تلة الرمل",
-        "emoji": "🎯",
+        "emoji": "⛰",
         "description": "تلة الرمل ⛰️ (صغيرة)"
       },
       "correctIndex": 0,
@@ -295,12 +295,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 19]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (80 طناً)"
       },
       "itemB": {
         "label": "السيارة العائلية",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة العائلية 🚗 (طن ونصف)"
       },
       "correctIndex": 0,
@@ -311,12 +311,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 20]",
       "itemA": {
         "label": "وحيد القرن",
-        "emoji": "⭐",
+        "emoji": "🦏",
         "description": "وحيد القرن 🦏 (طنان)"
       },
       "itemB": {
         "label": "الأرنب البري",
-        "emoji": "🎯",
+        "emoji": "🐇",
         "description": "الأرنب البري 🐇 (3 كغ)"
       },
       "correctIndex": 0,
@@ -327,12 +327,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 21]",
       "itemA": {
         "label": "الفيل الإفريقي",
-        "emoji": "⭐",
+        "emoji": "🐘",
         "description": "الفيل الإفريقي 🐘 (6000 كغ)"
       },
       "itemB": {
         "label": "العصفور المغرد",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور المغرد 🐦 (30 غرام)"
       },
       "correctIndex": 0,
@@ -343,12 +343,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 22]",
       "itemA": {
         "label": "الشمس المشرقة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس المشرقة ☀️ (نجم عملاق)"
       },
       "itemB": {
         "label": "كوكب الأرض",
-        "emoji": "🎯",
+        "emoji": "🌍",
         "description": "كوكب الأرض 🌍 (كوكبنا)"
       },
       "correctIndex": 0,
@@ -359,12 +359,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 23]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (150 طناً)"
       },
       "itemB": {
         "label": "سمكة القرش",
-        "emoji": "🎯",
+        "emoji": "🦈",
         "description": "سمكة القرش 🦈 (طن واحد)"
       },
       "correctIndex": 0,
@@ -375,12 +375,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 24]",
       "itemA": {
         "label": "البطيخة الكبيرة",
-        "emoji": "⭐",
+        "emoji": "🍉",
         "description": "البطيخة الكبيرة 🍉 (8 كغ)"
       },
       "itemB": {
         "label": "حبة الفراولة",
-        "emoji": "🎯",
+        "emoji": "🍓",
         "description": "حبة الفراولة 🍓 (15 غرام)"
       },
       "correctIndex": 0,
@@ -391,12 +391,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 25]",
       "itemA": {
         "label": "الشاحنة العملاقة",
-        "emoji": "⭐",
+        "emoji": "🚚",
         "description": "الشاحنة العملاقة 🚚 (20 طناً)"
       },
       "itemB": {
         "label": "الدراجة الهوائية",
-        "emoji": "🎯",
+        "emoji": "🚲",
         "description": "الدراجة الهوائية 🚲 (12 كغ)"
       },
       "correctIndex": 0,
@@ -407,12 +407,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 26]",
       "itemA": {
         "label": "ناطحة السحاب",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "ناطحة السحاب 🏙️ (عشرات الطوابق)"
       },
       "itemB": {
         "label": "الخيمة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "⛺",
         "description": "الخيمة الصغيرة ⛺ (قماش خفيف)"
       },
       "correctIndex": 0,
@@ -423,12 +423,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 27]",
       "itemA": {
         "label": "الدب القطبي",
-        "emoji": "⭐",
+        "emoji": "🐻",
         "description": "الدب القطبي 🐻‍❄️ (600 كغ)"
       },
       "itemB": {
         "label": "الثعلب 🦊",
-        "emoji": "🎯",
+        "emoji": "🦊",
         "description": "الثعلب 🦊 (8 كغ)"
       },
       "correctIndex": 0,
@@ -439,12 +439,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 28]",
       "itemA": {
         "label": "الجبل الجليدي",
-        "emoji": "⭐",
+        "emoji": "🏔",
         "description": "الجبل الجليدي 🏔️ (كتلة صخرية جليدية)"
       },
       "itemB": {
         "label": "تلة الرمل",
-        "emoji": "🎯",
+        "emoji": "⛰",
         "description": "تلة الرمل ⛰️ (صغيرة)"
       },
       "correctIndex": 0,
@@ -455,12 +455,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 29]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (80 طناً)"
       },
       "itemB": {
         "label": "السيارة العائلية",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة العائلية 🚗 (طن ونصف)"
       },
       "correctIndex": 0,
@@ -471,12 +471,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 30]",
       "itemA": {
         "label": "وحيد القرن",
-        "emoji": "⭐",
+        "emoji": "🦏",
         "description": "وحيد القرن 🦏 (طنان)"
       },
       "itemB": {
         "label": "الأرنب البري",
-        "emoji": "🎯",
+        "emoji": "🐇",
         "description": "الأرنب البري 🐇 (3 كغ)"
       },
       "correctIndex": 0,
@@ -487,12 +487,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 31]",
       "itemA": {
         "label": "الفيل الإفريقي",
-        "emoji": "⭐",
+        "emoji": "🐘",
         "description": "الفيل الإفريقي 🐘 (6000 كغ)"
       },
       "itemB": {
         "label": "العصفور المغرد",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور المغرد 🐦 (30 غرام)"
       },
       "correctIndex": 0,
@@ -503,12 +503,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 32]",
       "itemA": {
         "label": "الشمس المشرقة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس المشرقة ☀️ (نجم عملاق)"
       },
       "itemB": {
         "label": "كوكب الأرض",
-        "emoji": "🎯",
+        "emoji": "🌍",
         "description": "كوكب الأرض 🌍 (كوكبنا)"
       },
       "correctIndex": 0,
@@ -519,12 +519,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 33]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (150 طناً)"
       },
       "itemB": {
         "label": "سمكة القرش",
-        "emoji": "🎯",
+        "emoji": "🦈",
         "description": "سمكة القرش 🦈 (طن واحد)"
       },
       "correctIndex": 0,
@@ -535,12 +535,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 34]",
       "itemA": {
         "label": "البطيخة الكبيرة",
-        "emoji": "⭐",
+        "emoji": "🍉",
         "description": "البطيخة الكبيرة 🍉 (8 كغ)"
       },
       "itemB": {
         "label": "حبة الفراولة",
-        "emoji": "🎯",
+        "emoji": "🍓",
         "description": "حبة الفراولة 🍓 (15 غرام)"
       },
       "correctIndex": 0,
@@ -551,12 +551,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 35]",
       "itemA": {
         "label": "الشاحنة العملاقة",
-        "emoji": "⭐",
+        "emoji": "🚚",
         "description": "الشاحنة العملاقة 🚚 (20 طناً)"
       },
       "itemB": {
         "label": "الدراجة الهوائية",
-        "emoji": "🎯",
+        "emoji": "🚲",
         "description": "الدراجة الهوائية 🚲 (12 كغ)"
       },
       "correctIndex": 0,
@@ -567,12 +567,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 36]",
       "itemA": {
         "label": "ناطحة السحاب",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "ناطحة السحاب 🏙️ (عشرات الطوابق)"
       },
       "itemB": {
         "label": "الخيمة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "⛺",
         "description": "الخيمة الصغيرة ⛺ (قماش خفيف)"
       },
       "correctIndex": 0,
@@ -583,12 +583,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 37]",
       "itemA": {
         "label": "الدب القطبي",
-        "emoji": "⭐",
+        "emoji": "🐻",
         "description": "الدب القطبي 🐻‍❄️ (600 كغ)"
       },
       "itemB": {
         "label": "الثعلب 🦊",
-        "emoji": "🎯",
+        "emoji": "🦊",
         "description": "الثعلب 🦊 (8 كغ)"
       },
       "correctIndex": 0,
@@ -599,12 +599,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 38]",
       "itemA": {
         "label": "الجبل الجليدي",
-        "emoji": "⭐",
+        "emoji": "🏔",
         "description": "الجبل الجليدي 🏔️ (كتلة صخرية جليدية)"
       },
       "itemB": {
         "label": "تلة الرمل",
-        "emoji": "🎯",
+        "emoji": "⛰",
         "description": "تلة الرمل ⛰️ (صغيرة)"
       },
       "correctIndex": 0,
@@ -615,12 +615,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 39]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (80 طناً)"
       },
       "itemB": {
         "label": "السيارة العائلية",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة العائلية 🚗 (طن ونصف)"
       },
       "correctIndex": 0,
@@ -631,12 +631,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 40]",
       "itemA": {
         "label": "وحيد القرن",
-        "emoji": "⭐",
+        "emoji": "🦏",
         "description": "وحيد القرن 🦏 (طنان)"
       },
       "itemB": {
         "label": "الأرنب البري",
-        "emoji": "🎯",
+        "emoji": "🐇",
         "description": "الأرنب البري 🐇 (3 كغ)"
       },
       "correctIndex": 0,
@@ -647,12 +647,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 41]",
       "itemA": {
         "label": "الفيل الإفريقي",
-        "emoji": "⭐",
+        "emoji": "🐘",
         "description": "الفيل الإفريقي 🐘 (6000 كغ)"
       },
       "itemB": {
         "label": "العصفور المغرد",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور المغرد 🐦 (30 غرام)"
       },
       "correctIndex": 0,
@@ -663,12 +663,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 42]",
       "itemA": {
         "label": "الشمس المشرقة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس المشرقة ☀️ (نجم عملاق)"
       },
       "itemB": {
         "label": "كوكب الأرض",
-        "emoji": "🎯",
+        "emoji": "🌍",
         "description": "كوكب الأرض 🌍 (كوكبنا)"
       },
       "correctIndex": 0,
@@ -679,12 +679,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 43]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (150 طناً)"
       },
       "itemB": {
         "label": "سمكة القرش",
-        "emoji": "🎯",
+        "emoji": "🦈",
         "description": "سمكة القرش 🦈 (طن واحد)"
       },
       "correctIndex": 0,
@@ -695,12 +695,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 44]",
       "itemA": {
         "label": "البطيخة الكبيرة",
-        "emoji": "⭐",
+        "emoji": "🍉",
         "description": "البطيخة الكبيرة 🍉 (8 كغ)"
       },
       "itemB": {
         "label": "حبة الفراولة",
-        "emoji": "🎯",
+        "emoji": "🍓",
         "description": "حبة الفراولة 🍓 (15 غرام)"
       },
       "correctIndex": 0,
@@ -711,12 +711,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 45]",
       "itemA": {
         "label": "الشاحنة العملاقة",
-        "emoji": "⭐",
+        "emoji": "🚚",
         "description": "الشاحنة العملاقة 🚚 (20 طناً)"
       },
       "itemB": {
         "label": "الدراجة الهوائية",
-        "emoji": "🎯",
+        "emoji": "🚲",
         "description": "الدراجة الهوائية 🚲 (12 كغ)"
       },
       "correctIndex": 0,
@@ -727,12 +727,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 46]",
       "itemA": {
         "label": "ناطحة السحاب",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "ناطحة السحاب 🏙️ (عشرات الطوابق)"
       },
       "itemB": {
         "label": "الخيمة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "⛺",
         "description": "الخيمة الصغيرة ⛺ (قماش خفيف)"
       },
       "correctIndex": 0,
@@ -743,12 +743,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 47]",
       "itemA": {
         "label": "الدب القطبي",
-        "emoji": "⭐",
+        "emoji": "🐻",
         "description": "الدب القطبي 🐻‍❄️ (600 كغ)"
       },
       "itemB": {
         "label": "الثعلب 🦊",
-        "emoji": "🎯",
+        "emoji": "🦊",
         "description": "الثعلب 🦊 (8 كغ)"
       },
       "correctIndex": 0,
@@ -759,12 +759,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 48]",
       "itemA": {
         "label": "الجبل الجليدي",
-        "emoji": "⭐",
+        "emoji": "🏔",
         "description": "الجبل الجليدي 🏔️ (كتلة صخرية جليدية)"
       },
       "itemB": {
         "label": "تلة الرمل",
-        "emoji": "🎯",
+        "emoji": "⛰",
         "description": "تلة الرمل ⛰️ (صغيرة)"
       },
       "correctIndex": 0,
@@ -775,12 +775,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 49]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (80 طناً)"
       },
       "itemB": {
         "label": "السيارة العائلية",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة العائلية 🚗 (طن ونصف)"
       },
       "correctIndex": 0,
@@ -791,12 +791,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكبر حجماً أو أثقل وزناً؟ ⚖️ [جولة 50]",
       "itemA": {
         "label": "وحيد القرن",
-        "emoji": "⭐",
+        "emoji": "🦏",
         "description": "وحيد القرن 🦏 (طنان)"
       },
       "itemB": {
         "label": "الأرنب البري",
-        "emoji": "🎯",
+        "emoji": "🐇",
         "description": "الأرنب البري 🐇 (3 كغ)"
       },
       "correctIndex": 0,
@@ -809,12 +809,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 1]",
       "itemA": {
         "label": "الفهد الصياد",
-        "emoji": "⭐",
+        "emoji": "🐆",
         "description": "الفهد الصياد (الشيتا) 🐆 (120 كم/س)"
       },
       "itemB": {
         "label": "السلحفاة البرية",
-        "emoji": "🎯",
+        "emoji": "🐢",
         "description": "السلحفاة البرية 🐢 (0.3 كم/س)"
       },
       "correctIndex": 0,
@@ -825,12 +825,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 2]",
       "itemA": {
         "label": "سرعة الضوء",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "سرعة الضوء ⚡ (300 ألف كم/ث)"
       },
       "itemB": {
         "label": "سرعة الصوت",
-        "emoji": "🎯",
+        "emoji": "🔊",
         "description": "سرعة الصوت 🔊 (340 م/ث)"
       },
       "correctIndex": 0,
@@ -841,12 +841,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 3]",
       "itemA": {
         "label": "صقر الشاهين",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "صقر الشاهين 🦅 (320 كم/س)"
       },
       "itemB": {
         "label": "حمامة الحقول",
-        "emoji": "🎯",
+        "emoji": "🕊",
         "description": "حمامة الحقول 🕊️ (70 كم/س)"
       },
       "correctIndex": 0,
@@ -857,12 +857,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 4]",
       "itemA": {
         "label": "سيارة الفورمولا",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة الفورمولا 1 🏎️ (350 كم/س)"
       },
       "itemB": {
         "label": "الحصان العربي",
-        "emoji": "🎯",
+        "emoji": "🐎",
         "description": "الحصان العربي 🐎 (65 كم/س)"
       },
       "correctIndex": 0,
@@ -873,12 +873,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 5]",
       "itemA": {
         "label": "الصاروخ الفضائي",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "الصاروخ الفضائي 🚀 (28000 كم/س)"
       },
       "itemB": {
         "label": "الطائرة التجارية",
-        "emoji": "🎯",
+        "emoji": "✈",
         "description": "الطائرة التجارية ✈️ (900 كم/س)"
       },
       "correctIndex": 0,
@@ -889,12 +889,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 6]",
       "itemA": {
         "label": "سمكة السيف",
-        "emoji": "⭐",
+        "emoji": "🐟",
         "description": "سمكة السيف 🐟 (110 كم/س)"
       },
       "itemB": {
         "label": "نجم البحر",
-        "emoji": "🎯",
+        "emoji": "⭐",
         "description": "نجم البحر ⭐ (زاحف بطيء)"
       },
       "correctIndex": 0,
@@ -905,12 +905,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 7]",
       "itemA": {
         "label": "القطار المغناطيسي",
-        "emoji": "⭐",
+        "emoji": "🚅",
         "description": "القطار المغناطيسي 🚅 (450 كم/س)"
       },
       "itemB": {
         "label": "الحافلة المدرسية",
-        "emoji": "🎯",
+        "emoji": "🚌",
         "description": "الحافلة المدرسية 🚌 (80 كم/س)"
       },
       "correctIndex": 0,
@@ -921,12 +921,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 8]",
       "itemA": {
         "label": "الغزال الرشيق",
-        "emoji": "⭐",
+        "emoji": "🦌",
         "description": "الغزال الرشيق 🦌 (80 كم/س)"
       },
       "itemB": {
         "label": "حيوان الكسلان",
-        "emoji": "🎯",
+        "emoji": "🦥",
         "description": "حيوان الكسلان 🦥 (0.2 كم/س)"
       },
       "correctIndex": 0,
@@ -937,12 +937,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 9]",
       "itemA": {
         "label": "اليعسوب الطائر",
-        "emoji": "⭐",
+        "emoji": "🪰",
         "description": "اليعسوب الطائر 🪰 (50 كم/س)"
       },
       "itemB": {
         "label": "الحلزون 🐌",
-        "emoji": "🎯",
+        "emoji": "🐌",
         "description": "الحلزون 🐌 (بطيء جداً)"
       },
       "correctIndex": 0,
@@ -953,12 +953,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 10]",
       "itemA": {
         "label": "الدراجة النارية",
-        "emoji": "⭐",
+        "emoji": "🏍",
         "description": "الدراجة النارية 🏍️ (250 كم/س)"
       },
       "itemB": {
         "label": "المشاة 🚶",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "المشاة 🚶 (5 كم/س)"
       },
       "correctIndex": 0,
@@ -969,12 +969,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 11]",
       "itemA": {
         "label": "الفهد الصياد",
-        "emoji": "⭐",
+        "emoji": "🐆",
         "description": "الفهد الصياد (الشيتا) 🐆 (120 كم/س)"
       },
       "itemB": {
         "label": "السلحفاة البرية",
-        "emoji": "🎯",
+        "emoji": "🐢",
         "description": "السلحفاة البرية 🐢 (0.3 كم/س)"
       },
       "correctIndex": 0,
@@ -985,12 +985,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 12]",
       "itemA": {
         "label": "سرعة الضوء",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "سرعة الضوء ⚡ (300 ألف كم/ث)"
       },
       "itemB": {
         "label": "سرعة الصوت",
-        "emoji": "🎯",
+        "emoji": "🔊",
         "description": "سرعة الصوت 🔊 (340 م/ث)"
       },
       "correctIndex": 0,
@@ -1001,12 +1001,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 13]",
       "itemA": {
         "label": "صقر الشاهين",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "صقر الشاهين 🦅 (320 كم/س)"
       },
       "itemB": {
         "label": "حمامة الحقول",
-        "emoji": "🎯",
+        "emoji": "🕊",
         "description": "حمامة الحقول 🕊️ (70 كم/س)"
       },
       "correctIndex": 0,
@@ -1017,12 +1017,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 14]",
       "itemA": {
         "label": "سيارة الفورمولا",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة الفورمولا 1 🏎️ (350 كم/س)"
       },
       "itemB": {
         "label": "الحصان العربي",
-        "emoji": "🎯",
+        "emoji": "🐎",
         "description": "الحصان العربي 🐎 (65 كم/س)"
       },
       "correctIndex": 0,
@@ -1033,12 +1033,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 15]",
       "itemA": {
         "label": "الصاروخ الفضائي",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "الصاروخ الفضائي 🚀 (28000 كم/س)"
       },
       "itemB": {
         "label": "الطائرة التجارية",
-        "emoji": "🎯",
+        "emoji": "✈",
         "description": "الطائرة التجارية ✈️ (900 كم/س)"
       },
       "correctIndex": 0,
@@ -1049,12 +1049,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 16]",
       "itemA": {
         "label": "سمكة السيف",
-        "emoji": "⭐",
+        "emoji": "🐟",
         "description": "سمكة السيف 🐟 (110 كم/س)"
       },
       "itemB": {
         "label": "نجم البحر",
-        "emoji": "🎯",
+        "emoji": "⭐",
         "description": "نجم البحر ⭐ (زاحف بطيء)"
       },
       "correctIndex": 0,
@@ -1065,12 +1065,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 17]",
       "itemA": {
         "label": "القطار المغناطيسي",
-        "emoji": "⭐",
+        "emoji": "🚅",
         "description": "القطار المغناطيسي 🚅 (450 كم/س)"
       },
       "itemB": {
         "label": "الحافلة المدرسية",
-        "emoji": "🎯",
+        "emoji": "🚌",
         "description": "الحافلة المدرسية 🚌 (80 كم/س)"
       },
       "correctIndex": 0,
@@ -1081,12 +1081,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 18]",
       "itemA": {
         "label": "الغزال الرشيق",
-        "emoji": "⭐",
+        "emoji": "🦌",
         "description": "الغزال الرشيق 🦌 (80 كم/س)"
       },
       "itemB": {
         "label": "حيوان الكسلان",
-        "emoji": "🎯",
+        "emoji": "🦥",
         "description": "حيوان الكسلان 🦥 (0.2 كم/س)"
       },
       "correctIndex": 0,
@@ -1097,12 +1097,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 19]",
       "itemA": {
         "label": "اليعسوب الطائر",
-        "emoji": "⭐",
+        "emoji": "🪰",
         "description": "اليعسوب الطائر 🪰 (50 كم/س)"
       },
       "itemB": {
         "label": "الحلزون 🐌",
-        "emoji": "🎯",
+        "emoji": "🐌",
         "description": "الحلزون 🐌 (بطيء جداً)"
       },
       "correctIndex": 0,
@@ -1113,12 +1113,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 20]",
       "itemA": {
         "label": "الدراجة النارية",
-        "emoji": "⭐",
+        "emoji": "🏍",
         "description": "الدراجة النارية 🏍️ (250 كم/س)"
       },
       "itemB": {
         "label": "المشاة 🚶",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "المشاة 🚶 (5 كم/س)"
       },
       "correctIndex": 0,
@@ -1129,12 +1129,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 21]",
       "itemA": {
         "label": "الفهد الصياد",
-        "emoji": "⭐",
+        "emoji": "🐆",
         "description": "الفهد الصياد (الشيتا) 🐆 (120 كم/س)"
       },
       "itemB": {
         "label": "السلحفاة البرية",
-        "emoji": "🎯",
+        "emoji": "🐢",
         "description": "السلحفاة البرية 🐢 (0.3 كم/س)"
       },
       "correctIndex": 0,
@@ -1145,12 +1145,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 22]",
       "itemA": {
         "label": "سرعة الضوء",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "سرعة الضوء ⚡ (300 ألف كم/ث)"
       },
       "itemB": {
         "label": "سرعة الصوت",
-        "emoji": "🎯",
+        "emoji": "🔊",
         "description": "سرعة الصوت 🔊 (340 م/ث)"
       },
       "correctIndex": 0,
@@ -1161,12 +1161,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 23]",
       "itemA": {
         "label": "صقر الشاهين",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "صقر الشاهين 🦅 (320 كم/س)"
       },
       "itemB": {
         "label": "حمامة الحقول",
-        "emoji": "🎯",
+        "emoji": "🕊",
         "description": "حمامة الحقول 🕊️ (70 كم/س)"
       },
       "correctIndex": 0,
@@ -1177,12 +1177,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 24]",
       "itemA": {
         "label": "سيارة الفورمولا",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة الفورمولا 1 🏎️ (350 كم/س)"
       },
       "itemB": {
         "label": "الحصان العربي",
-        "emoji": "🎯",
+        "emoji": "🐎",
         "description": "الحصان العربي 🐎 (65 كم/س)"
       },
       "correctIndex": 0,
@@ -1193,12 +1193,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 25]",
       "itemA": {
         "label": "الصاروخ الفضائي",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "الصاروخ الفضائي 🚀 (28000 كم/س)"
       },
       "itemB": {
         "label": "الطائرة التجارية",
-        "emoji": "🎯",
+        "emoji": "✈",
         "description": "الطائرة التجارية ✈️ (900 كم/س)"
       },
       "correctIndex": 0,
@@ -1209,12 +1209,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 26]",
       "itemA": {
         "label": "سمكة السيف",
-        "emoji": "⭐",
+        "emoji": "🐟",
         "description": "سمكة السيف 🐟 (110 كم/س)"
       },
       "itemB": {
         "label": "نجم البحر",
-        "emoji": "🎯",
+        "emoji": "⭐",
         "description": "نجم البحر ⭐ (زاحف بطيء)"
       },
       "correctIndex": 0,
@@ -1225,12 +1225,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 27]",
       "itemA": {
         "label": "القطار المغناطيسي",
-        "emoji": "⭐",
+        "emoji": "🚅",
         "description": "القطار المغناطيسي 🚅 (450 كم/س)"
       },
       "itemB": {
         "label": "الحافلة المدرسية",
-        "emoji": "🎯",
+        "emoji": "🚌",
         "description": "الحافلة المدرسية 🚌 (80 كم/س)"
       },
       "correctIndex": 0,
@@ -1241,12 +1241,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 28]",
       "itemA": {
         "label": "الغزال الرشيق",
-        "emoji": "⭐",
+        "emoji": "🦌",
         "description": "الغزال الرشيق 🦌 (80 كم/س)"
       },
       "itemB": {
         "label": "حيوان الكسلان",
-        "emoji": "🎯",
+        "emoji": "🦥",
         "description": "حيوان الكسلان 🦥 (0.2 كم/س)"
       },
       "correctIndex": 0,
@@ -1257,12 +1257,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 29]",
       "itemA": {
         "label": "اليعسوب الطائر",
-        "emoji": "⭐",
+        "emoji": "🪰",
         "description": "اليعسوب الطائر 🪰 (50 كم/س)"
       },
       "itemB": {
         "label": "الحلزون 🐌",
-        "emoji": "🎯",
+        "emoji": "🐌",
         "description": "الحلزون 🐌 (بطيء جداً)"
       },
       "correctIndex": 0,
@@ -1273,12 +1273,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 30]",
       "itemA": {
         "label": "الدراجة النارية",
-        "emoji": "⭐",
+        "emoji": "🏍",
         "description": "الدراجة النارية 🏍️ (250 كم/س)"
       },
       "itemB": {
         "label": "المشاة 🚶",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "المشاة 🚶 (5 كم/س)"
       },
       "correctIndex": 0,
@@ -1289,12 +1289,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 31]",
       "itemA": {
         "label": "الفهد الصياد",
-        "emoji": "⭐",
+        "emoji": "🐆",
         "description": "الفهد الصياد (الشيتا) 🐆 (120 كم/س)"
       },
       "itemB": {
         "label": "السلحفاة البرية",
-        "emoji": "🎯",
+        "emoji": "🐢",
         "description": "السلحفاة البرية 🐢 (0.3 كم/س)"
       },
       "correctIndex": 0,
@@ -1305,12 +1305,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 32]",
       "itemA": {
         "label": "سرعة الضوء",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "سرعة الضوء ⚡ (300 ألف كم/ث)"
       },
       "itemB": {
         "label": "سرعة الصوت",
-        "emoji": "🎯",
+        "emoji": "🔊",
         "description": "سرعة الصوت 🔊 (340 م/ث)"
       },
       "correctIndex": 0,
@@ -1321,12 +1321,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 33]",
       "itemA": {
         "label": "صقر الشاهين",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "صقر الشاهين 🦅 (320 كم/س)"
       },
       "itemB": {
         "label": "حمامة الحقول",
-        "emoji": "🎯",
+        "emoji": "🕊",
         "description": "حمامة الحقول 🕊️ (70 كم/س)"
       },
       "correctIndex": 0,
@@ -1337,12 +1337,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 34]",
       "itemA": {
         "label": "سيارة الفورمولا",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة الفورمولا 1 🏎️ (350 كم/س)"
       },
       "itemB": {
         "label": "الحصان العربي",
-        "emoji": "🎯",
+        "emoji": "🐎",
         "description": "الحصان العربي 🐎 (65 كم/س)"
       },
       "correctIndex": 0,
@@ -1353,12 +1353,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 35]",
       "itemA": {
         "label": "الصاروخ الفضائي",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "الصاروخ الفضائي 🚀 (28000 كم/س)"
       },
       "itemB": {
         "label": "الطائرة التجارية",
-        "emoji": "🎯",
+        "emoji": "✈",
         "description": "الطائرة التجارية ✈️ (900 كم/س)"
       },
       "correctIndex": 0,
@@ -1369,12 +1369,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 36]",
       "itemA": {
         "label": "سمكة السيف",
-        "emoji": "⭐",
+        "emoji": "🐟",
         "description": "سمكة السيف 🐟 (110 كم/س)"
       },
       "itemB": {
         "label": "نجم البحر",
-        "emoji": "🎯",
+        "emoji": "⭐",
         "description": "نجم البحر ⭐ (زاحف بطيء)"
       },
       "correctIndex": 0,
@@ -1385,12 +1385,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 37]",
       "itemA": {
         "label": "القطار المغناطيسي",
-        "emoji": "⭐",
+        "emoji": "🚅",
         "description": "القطار المغناطيسي 🚅 (450 كم/س)"
       },
       "itemB": {
         "label": "الحافلة المدرسية",
-        "emoji": "🎯",
+        "emoji": "🚌",
         "description": "الحافلة المدرسية 🚌 (80 كم/س)"
       },
       "correctIndex": 0,
@@ -1401,12 +1401,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 38]",
       "itemA": {
         "label": "الغزال الرشيق",
-        "emoji": "⭐",
+        "emoji": "🦌",
         "description": "الغزال الرشيق 🦌 (80 كم/س)"
       },
       "itemB": {
         "label": "حيوان الكسلان",
-        "emoji": "🎯",
+        "emoji": "🦥",
         "description": "حيوان الكسلان 🦥 (0.2 كم/س)"
       },
       "correctIndex": 0,
@@ -1417,12 +1417,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 39]",
       "itemA": {
         "label": "اليعسوب الطائر",
-        "emoji": "⭐",
+        "emoji": "🪰",
         "description": "اليعسوب الطائر 🪰 (50 كم/س)"
       },
       "itemB": {
         "label": "الحلزون 🐌",
-        "emoji": "🎯",
+        "emoji": "🐌",
         "description": "الحلزون 🐌 (بطيء جداً)"
       },
       "correctIndex": 0,
@@ -1433,12 +1433,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 40]",
       "itemA": {
         "label": "الدراجة النارية",
-        "emoji": "⭐",
+        "emoji": "🏍",
         "description": "الدراجة النارية 🏍️ (250 كم/س)"
       },
       "itemB": {
         "label": "المشاة 🚶",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "المشاة 🚶 (5 كم/س)"
       },
       "correctIndex": 0,
@@ -1449,12 +1449,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 41]",
       "itemA": {
         "label": "الفهد الصياد",
-        "emoji": "⭐",
+        "emoji": "🐆",
         "description": "الفهد الصياد (الشيتا) 🐆 (120 كم/س)"
       },
       "itemB": {
         "label": "السلحفاة البرية",
-        "emoji": "🎯",
+        "emoji": "🐢",
         "description": "السلحفاة البرية 🐢 (0.3 كم/س)"
       },
       "correctIndex": 0,
@@ -1465,12 +1465,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 42]",
       "itemA": {
         "label": "سرعة الضوء",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "سرعة الضوء ⚡ (300 ألف كم/ث)"
       },
       "itemB": {
         "label": "سرعة الصوت",
-        "emoji": "🎯",
+        "emoji": "🔊",
         "description": "سرعة الصوت 🔊 (340 م/ث)"
       },
       "correctIndex": 0,
@@ -1481,12 +1481,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 43]",
       "itemA": {
         "label": "صقر الشاهين",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "صقر الشاهين 🦅 (320 كم/س)"
       },
       "itemB": {
         "label": "حمامة الحقول",
-        "emoji": "🎯",
+        "emoji": "🕊",
         "description": "حمامة الحقول 🕊️ (70 كم/س)"
       },
       "correctIndex": 0,
@@ -1497,12 +1497,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 44]",
       "itemA": {
         "label": "سيارة الفورمولا",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة الفورمولا 1 🏎️ (350 كم/س)"
       },
       "itemB": {
         "label": "الحصان العربي",
-        "emoji": "🎯",
+        "emoji": "🐎",
         "description": "الحصان العربي 🐎 (65 كم/س)"
       },
       "correctIndex": 0,
@@ -1513,12 +1513,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 45]",
       "itemA": {
         "label": "الصاروخ الفضائي",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "الصاروخ الفضائي 🚀 (28000 كم/س)"
       },
       "itemB": {
         "label": "الطائرة التجارية",
-        "emoji": "🎯",
+        "emoji": "✈",
         "description": "الطائرة التجارية ✈️ (900 كم/س)"
       },
       "correctIndex": 0,
@@ -1529,12 +1529,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 46]",
       "itemA": {
         "label": "سمكة السيف",
-        "emoji": "⭐",
+        "emoji": "🐟",
         "description": "سمكة السيف 🐟 (110 كم/س)"
       },
       "itemB": {
         "label": "نجم البحر",
-        "emoji": "🎯",
+        "emoji": "⭐",
         "description": "نجم البحر ⭐ (زاحف بطيء)"
       },
       "correctIndex": 0,
@@ -1545,12 +1545,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 47]",
       "itemA": {
         "label": "القطار المغناطيسي",
-        "emoji": "⭐",
+        "emoji": "🚅",
         "description": "القطار المغناطيسي 🚅 (450 كم/س)"
       },
       "itemB": {
         "label": "الحافلة المدرسية",
-        "emoji": "🎯",
+        "emoji": "🚌",
         "description": "الحافلة المدرسية 🚌 (80 كم/س)"
       },
       "correctIndex": 0,
@@ -1561,12 +1561,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 48]",
       "itemA": {
         "label": "الغزال الرشيق",
-        "emoji": "⭐",
+        "emoji": "🦌",
         "description": "الغزال الرشيق 🦌 (80 كم/س)"
       },
       "itemB": {
         "label": "حيوان الكسلان",
-        "emoji": "🎯",
+        "emoji": "🦥",
         "description": "حيوان الكسلان 🦥 (0.2 كم/س)"
       },
       "correctIndex": 0,
@@ -1577,12 +1577,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 49]",
       "itemA": {
         "label": "اليعسوب الطائر",
-        "emoji": "⭐",
+        "emoji": "🪰",
         "description": "اليعسوب الطائر 🪰 (50 كم/س)"
       },
       "itemB": {
         "label": "الحلزون 🐌",
-        "emoji": "🎯",
+        "emoji": "🐌",
         "description": "الحلزون 🐌 (بطيء جداً)"
       },
       "correctIndex": 0,
@@ -1593,12 +1593,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أسرع حركة وسرعة؟ 🏎️ [جولة 50]",
       "itemA": {
         "label": "الدراجة النارية",
-        "emoji": "⭐",
+        "emoji": "🏍",
         "description": "الدراجة النارية 🏍️ (250 كم/س)"
       },
       "itemB": {
         "label": "المشاة 🚶",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "المشاة 🚶 (5 كم/س)"
       },
       "correctIndex": 0,
@@ -1611,12 +1611,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 1]",
       "itemA": {
         "label": "الزرافة الإفريقية",
-        "emoji": "⭐",
+        "emoji": "🦒",
         "description": "الزرافة الإفريقية 🦒 (5.5 متر)"
       },
       "itemB": {
         "label": "القط الأليف",
-        "emoji": "🎯",
+        "emoji": "🐈",
         "description": "القط الأليف 🐈 (30 سم)"
       },
       "correctIndex": 0,
@@ -1627,12 +1627,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 2]",
       "itemA": {
         "label": "نهر النيل",
-        "emoji": "⭐",
+        "emoji": "🌊",
         "description": "نهر النيل 🌊 (6650 كم)"
       },
       "itemB": {
         "label": "نهر صغير",
-        "emoji": "🎯",
+        "emoji": "🏞",
         "description": "نهر صغير محلي 🏞️ (15 كم)"
       },
       "correctIndex": 0,
@@ -1643,12 +1643,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 3]",
       "itemA": {
         "label": "سور الصين",
-        "emoji": "⭐",
+        "emoji": "🧱",
         "description": "سور الصين العظيم 🧱 (21 ألف كم)"
       },
       "itemB": {
         "label": "سور المدرسة",
-        "emoji": "🎯",
+        "emoji": "🏫",
         "description": "سور المدرسة 🏫 (100 متر)"
       },
       "correctIndex": 0,
@@ -1659,12 +1659,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 4]",
       "itemA": {
         "label": "برج خليفة",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "برج خليفة 🏙️ (828 متراً)"
       },
       "itemB": {
         "label": "منزل من",
-        "emoji": "🎯",
+        "emoji": "🏡",
         "description": "منزل من طابقين 🏡 (8 أمتار)"
       },
       "correctIndex": 0,
@@ -1675,12 +1675,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 5]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (30 متراً)"
       },
       "itemB": {
         "label": "الدلفين 🐬",
-        "emoji": "🎯",
+        "emoji": "🐬",
         "description": "الدلفين 🐬 (3 أمتار)"
       },
       "correctIndex": 0,
@@ -1691,12 +1691,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 6]",
       "itemA": {
         "label": "شجرة السيكويا",
-        "emoji": "⭐",
+        "emoji": "🌲",
         "description": "شجرة السيكويا 🌲 (85 متراً)"
       },
       "itemB": {
         "label": "شجيرة الورد",
-        "emoji": "🎯",
+        "emoji": "🌹",
         "description": "شجيرة الورد 🌹 (متر واحد)"
       },
       "correctIndex": 0,
@@ -1707,12 +1707,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 7]",
       "itemA": {
         "label": "طائر القطرس",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "طائر القطرس الجوال 🦅 (جناحان 3.5 م)"
       },
       "itemB": {
         "label": "العصفور الدوري",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور الدوري 🐦 (جناحان 20 سم)"
       },
       "correctIndex": 0,
@@ -1723,12 +1723,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 8]",
       "itemA": {
         "label": "القطار الطويل",
-        "emoji": "⭐",
+        "emoji": "🚂",
         "description": "القطار الطويل 🚂 (500 متر)"
       },
       "itemB": {
         "label": "السيارة 🚗",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة 🚗 (4 أمتار)"
       },
       "correctIndex": 0,
@@ -1739,12 +1739,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 9]",
       "itemA": {
         "label": "الأفعى المشبكية",
-        "emoji": "⭐",
+        "emoji": "🐍",
         "description": "الأفعى المشبكية 🐍 (7 أمتار)"
       },
       "itemB": {
         "label": "دودة الأرض",
-        "emoji": "🎯",
+        "emoji": "🪱",
         "description": "دودة الأرض 🪱 (10 سم)"
       },
       "correctIndex": 0,
@@ -1755,12 +1755,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 10]",
       "itemA": {
         "label": "جسر الملك",
-        "emoji": "⭐",
+        "emoji": "🌉",
         "description": "جسر الملك فهد 🌉 (25 كم)"
       },
       "itemB": {
         "label": "جسر المشاة",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "جسر المشاة 🚶 (50 متراً)"
       },
       "correctIndex": 0,
@@ -1771,12 +1771,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 11]",
       "itemA": {
         "label": "الزرافة الإفريقية",
-        "emoji": "⭐",
+        "emoji": "🦒",
         "description": "الزرافة الإفريقية 🦒 (5.5 متر)"
       },
       "itemB": {
         "label": "القط الأليف",
-        "emoji": "🎯",
+        "emoji": "🐈",
         "description": "القط الأليف 🐈 (30 سم)"
       },
       "correctIndex": 0,
@@ -1787,12 +1787,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 12]",
       "itemA": {
         "label": "نهر النيل",
-        "emoji": "⭐",
+        "emoji": "🌊",
         "description": "نهر النيل 🌊 (6650 كم)"
       },
       "itemB": {
         "label": "نهر صغير",
-        "emoji": "🎯",
+        "emoji": "🏞",
         "description": "نهر صغير محلي 🏞️ (15 كم)"
       },
       "correctIndex": 0,
@@ -1803,12 +1803,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 13]",
       "itemA": {
         "label": "سور الصين",
-        "emoji": "⭐",
+        "emoji": "🧱",
         "description": "سور الصين العظيم 🧱 (21 ألف كم)"
       },
       "itemB": {
         "label": "سور المدرسة",
-        "emoji": "🎯",
+        "emoji": "🏫",
         "description": "سور المدرسة 🏫 (100 متر)"
       },
       "correctIndex": 0,
@@ -1819,12 +1819,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 14]",
       "itemA": {
         "label": "برج خليفة",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "برج خليفة 🏙️ (828 متراً)"
       },
       "itemB": {
         "label": "منزل من",
-        "emoji": "🎯",
+        "emoji": "🏡",
         "description": "منزل من طابقين 🏡 (8 أمتار)"
       },
       "correctIndex": 0,
@@ -1835,12 +1835,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 15]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (30 متراً)"
       },
       "itemB": {
         "label": "الدلفين 🐬",
-        "emoji": "🎯",
+        "emoji": "🐬",
         "description": "الدلفين 🐬 (3 أمتار)"
       },
       "correctIndex": 0,
@@ -1851,12 +1851,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 16]",
       "itemA": {
         "label": "شجرة السيكويا",
-        "emoji": "⭐",
+        "emoji": "🌲",
         "description": "شجرة السيكويا 🌲 (85 متراً)"
       },
       "itemB": {
         "label": "شجيرة الورد",
-        "emoji": "🎯",
+        "emoji": "🌹",
         "description": "شجيرة الورد 🌹 (متر واحد)"
       },
       "correctIndex": 0,
@@ -1867,12 +1867,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 17]",
       "itemA": {
         "label": "طائر القطرس",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "طائر القطرس الجوال 🦅 (جناحان 3.5 م)"
       },
       "itemB": {
         "label": "العصفور الدوري",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور الدوري 🐦 (جناحان 20 سم)"
       },
       "correctIndex": 0,
@@ -1883,12 +1883,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 18]",
       "itemA": {
         "label": "القطار الطويل",
-        "emoji": "⭐",
+        "emoji": "🚂",
         "description": "القطار الطويل 🚂 (500 متر)"
       },
       "itemB": {
         "label": "السيارة 🚗",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة 🚗 (4 أمتار)"
       },
       "correctIndex": 0,
@@ -1899,12 +1899,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 19]",
       "itemA": {
         "label": "الأفعى المشبكية",
-        "emoji": "⭐",
+        "emoji": "🐍",
         "description": "الأفعى المشبكية 🐍 (7 أمتار)"
       },
       "itemB": {
         "label": "دودة الأرض",
-        "emoji": "🎯",
+        "emoji": "🪱",
         "description": "دودة الأرض 🪱 (10 سم)"
       },
       "correctIndex": 0,
@@ -1915,12 +1915,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 20]",
       "itemA": {
         "label": "جسر الملك",
-        "emoji": "⭐",
+        "emoji": "🌉",
         "description": "جسر الملك فهد 🌉 (25 كم)"
       },
       "itemB": {
         "label": "جسر المشاة",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "جسر المشاة 🚶 (50 متراً)"
       },
       "correctIndex": 0,
@@ -1931,12 +1931,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 21]",
       "itemA": {
         "label": "الزرافة الإفريقية",
-        "emoji": "⭐",
+        "emoji": "🦒",
         "description": "الزرافة الإفريقية 🦒 (5.5 متر)"
       },
       "itemB": {
         "label": "القط الأليف",
-        "emoji": "🎯",
+        "emoji": "🐈",
         "description": "القط الأليف 🐈 (30 سم)"
       },
       "correctIndex": 0,
@@ -1947,12 +1947,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 22]",
       "itemA": {
         "label": "نهر النيل",
-        "emoji": "⭐",
+        "emoji": "🌊",
         "description": "نهر النيل 🌊 (6650 كم)"
       },
       "itemB": {
         "label": "نهر صغير",
-        "emoji": "🎯",
+        "emoji": "🏞",
         "description": "نهر صغير محلي 🏞️ (15 كم)"
       },
       "correctIndex": 0,
@@ -1963,12 +1963,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 23]",
       "itemA": {
         "label": "سور الصين",
-        "emoji": "⭐",
+        "emoji": "🧱",
         "description": "سور الصين العظيم 🧱 (21 ألف كم)"
       },
       "itemB": {
         "label": "سور المدرسة",
-        "emoji": "🎯",
+        "emoji": "🏫",
         "description": "سور المدرسة 🏫 (100 متر)"
       },
       "correctIndex": 0,
@@ -1979,12 +1979,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 24]",
       "itemA": {
         "label": "برج خليفة",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "برج خليفة 🏙️ (828 متراً)"
       },
       "itemB": {
         "label": "منزل من",
-        "emoji": "🎯",
+        "emoji": "🏡",
         "description": "منزل من طابقين 🏡 (8 أمتار)"
       },
       "correctIndex": 0,
@@ -1995,12 +1995,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 25]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (30 متراً)"
       },
       "itemB": {
         "label": "الدلفين 🐬",
-        "emoji": "🎯",
+        "emoji": "🐬",
         "description": "الدلفين 🐬 (3 أمتار)"
       },
       "correctIndex": 0,
@@ -2011,12 +2011,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 26]",
       "itemA": {
         "label": "شجرة السيكويا",
-        "emoji": "⭐",
+        "emoji": "🌲",
         "description": "شجرة السيكويا 🌲 (85 متراً)"
       },
       "itemB": {
         "label": "شجيرة الورد",
-        "emoji": "🎯",
+        "emoji": "🌹",
         "description": "شجيرة الورد 🌹 (متر واحد)"
       },
       "correctIndex": 0,
@@ -2027,12 +2027,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 27]",
       "itemA": {
         "label": "طائر القطرس",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "طائر القطرس الجوال 🦅 (جناحان 3.5 م)"
       },
       "itemB": {
         "label": "العصفور الدوري",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور الدوري 🐦 (جناحان 20 سم)"
       },
       "correctIndex": 0,
@@ -2043,12 +2043,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 28]",
       "itemA": {
         "label": "القطار الطويل",
-        "emoji": "⭐",
+        "emoji": "🚂",
         "description": "القطار الطويل 🚂 (500 متر)"
       },
       "itemB": {
         "label": "السيارة 🚗",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة 🚗 (4 أمتار)"
       },
       "correctIndex": 0,
@@ -2059,12 +2059,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 29]",
       "itemA": {
         "label": "الأفعى المشبكية",
-        "emoji": "⭐",
+        "emoji": "🐍",
         "description": "الأفعى المشبكية 🐍 (7 أمتار)"
       },
       "itemB": {
         "label": "دودة الأرض",
-        "emoji": "🎯",
+        "emoji": "🪱",
         "description": "دودة الأرض 🪱 (10 سم)"
       },
       "correctIndex": 0,
@@ -2075,12 +2075,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 30]",
       "itemA": {
         "label": "جسر الملك",
-        "emoji": "⭐",
+        "emoji": "🌉",
         "description": "جسر الملك فهد 🌉 (25 كم)"
       },
       "itemB": {
         "label": "جسر المشاة",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "جسر المشاة 🚶 (50 متراً)"
       },
       "correctIndex": 0,
@@ -2091,12 +2091,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 31]",
       "itemA": {
         "label": "الزرافة الإفريقية",
-        "emoji": "⭐",
+        "emoji": "🦒",
         "description": "الزرافة الإفريقية 🦒 (5.5 متر)"
       },
       "itemB": {
         "label": "القط الأليف",
-        "emoji": "🎯",
+        "emoji": "🐈",
         "description": "القط الأليف 🐈 (30 سم)"
       },
       "correctIndex": 0,
@@ -2107,12 +2107,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 32]",
       "itemA": {
         "label": "نهر النيل",
-        "emoji": "⭐",
+        "emoji": "🌊",
         "description": "نهر النيل 🌊 (6650 كم)"
       },
       "itemB": {
         "label": "نهر صغير",
-        "emoji": "🎯",
+        "emoji": "🏞",
         "description": "نهر صغير محلي 🏞️ (15 كم)"
       },
       "correctIndex": 0,
@@ -2123,12 +2123,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 33]",
       "itemA": {
         "label": "سور الصين",
-        "emoji": "⭐",
+        "emoji": "🧱",
         "description": "سور الصين العظيم 🧱 (21 ألف كم)"
       },
       "itemB": {
         "label": "سور المدرسة",
-        "emoji": "🎯",
+        "emoji": "🏫",
         "description": "سور المدرسة 🏫 (100 متر)"
       },
       "correctIndex": 0,
@@ -2139,12 +2139,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 34]",
       "itemA": {
         "label": "برج خليفة",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "برج خليفة 🏙️ (828 متراً)"
       },
       "itemB": {
         "label": "منزل من",
-        "emoji": "🎯",
+        "emoji": "🏡",
         "description": "منزل من طابقين 🏡 (8 أمتار)"
       },
       "correctIndex": 0,
@@ -2155,12 +2155,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 35]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (30 متراً)"
       },
       "itemB": {
         "label": "الدلفين 🐬",
-        "emoji": "🎯",
+        "emoji": "🐬",
         "description": "الدلفين 🐬 (3 أمتار)"
       },
       "correctIndex": 0,
@@ -2171,12 +2171,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 36]",
       "itemA": {
         "label": "شجرة السيكويا",
-        "emoji": "⭐",
+        "emoji": "🌲",
         "description": "شجرة السيكويا 🌲 (85 متراً)"
       },
       "itemB": {
         "label": "شجيرة الورد",
-        "emoji": "🎯",
+        "emoji": "🌹",
         "description": "شجيرة الورد 🌹 (متر واحد)"
       },
       "correctIndex": 0,
@@ -2187,12 +2187,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 37]",
       "itemA": {
         "label": "طائر القطرس",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "طائر القطرس الجوال 🦅 (جناحان 3.5 م)"
       },
       "itemB": {
         "label": "العصفور الدوري",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور الدوري 🐦 (جناحان 20 سم)"
       },
       "correctIndex": 0,
@@ -2203,12 +2203,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 38]",
       "itemA": {
         "label": "القطار الطويل",
-        "emoji": "⭐",
+        "emoji": "🚂",
         "description": "القطار الطويل 🚂 (500 متر)"
       },
       "itemB": {
         "label": "السيارة 🚗",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة 🚗 (4 أمتار)"
       },
       "correctIndex": 0,
@@ -2219,12 +2219,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 39]",
       "itemA": {
         "label": "الأفعى المشبكية",
-        "emoji": "⭐",
+        "emoji": "🐍",
         "description": "الأفعى المشبكية 🐍 (7 أمتار)"
       },
       "itemB": {
         "label": "دودة الأرض",
-        "emoji": "🎯",
+        "emoji": "🪱",
         "description": "دودة الأرض 🪱 (10 سم)"
       },
       "correctIndex": 0,
@@ -2235,12 +2235,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 40]",
       "itemA": {
         "label": "جسر الملك",
-        "emoji": "⭐",
+        "emoji": "🌉",
         "description": "جسر الملك فهد 🌉 (25 كم)"
       },
       "itemB": {
         "label": "جسر المشاة",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "جسر المشاة 🚶 (50 متراً)"
       },
       "correctIndex": 0,
@@ -2251,12 +2251,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 41]",
       "itemA": {
         "label": "الزرافة الإفريقية",
-        "emoji": "⭐",
+        "emoji": "🦒",
         "description": "الزرافة الإفريقية 🦒 (5.5 متر)"
       },
       "itemB": {
         "label": "القط الأليف",
-        "emoji": "🎯",
+        "emoji": "🐈",
         "description": "القط الأليف 🐈 (30 سم)"
       },
       "correctIndex": 0,
@@ -2267,12 +2267,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 42]",
       "itemA": {
         "label": "نهر النيل",
-        "emoji": "⭐",
+        "emoji": "🌊",
         "description": "نهر النيل 🌊 (6650 كم)"
       },
       "itemB": {
         "label": "نهر صغير",
-        "emoji": "🎯",
+        "emoji": "🏞",
         "description": "نهر صغير محلي 🏞️ (15 كم)"
       },
       "correctIndex": 0,
@@ -2283,12 +2283,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 43]",
       "itemA": {
         "label": "سور الصين",
-        "emoji": "⭐",
+        "emoji": "🧱",
         "description": "سور الصين العظيم 🧱 (21 ألف كم)"
       },
       "itemB": {
         "label": "سور المدرسة",
-        "emoji": "🎯",
+        "emoji": "🏫",
         "description": "سور المدرسة 🏫 (100 متر)"
       },
       "correctIndex": 0,
@@ -2299,12 +2299,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 44]",
       "itemA": {
         "label": "برج خليفة",
-        "emoji": "⭐",
+        "emoji": "🏙",
         "description": "برج خليفة 🏙️ (828 متراً)"
       },
       "itemB": {
         "label": "منزل من",
-        "emoji": "🎯",
+        "emoji": "🏡",
         "description": "منزل من طابقين 🏡 (8 أمتار)"
       },
       "correctIndex": 0,
@@ -2315,12 +2315,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 45]",
       "itemA": {
         "label": "الحوت الأزرق",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "الحوت الأزرق 🐋 (30 متراً)"
       },
       "itemB": {
         "label": "الدلفين 🐬",
-        "emoji": "🎯",
+        "emoji": "🐬",
         "description": "الدلفين 🐬 (3 أمتار)"
       },
       "correctIndex": 0,
@@ -2331,12 +2331,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 46]",
       "itemA": {
         "label": "شجرة السيكويا",
-        "emoji": "⭐",
+        "emoji": "🌲",
         "description": "شجرة السيكويا 🌲 (85 متراً)"
       },
       "itemB": {
         "label": "شجيرة الورد",
-        "emoji": "🎯",
+        "emoji": "🌹",
         "description": "شجيرة الورد 🌹 (متر واحد)"
       },
       "correctIndex": 0,
@@ -2347,12 +2347,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 47]",
       "itemA": {
         "label": "طائر القطرس",
-        "emoji": "⭐",
+        "emoji": "🦅",
         "description": "طائر القطرس الجوال 🦅 (جناحان 3.5 م)"
       },
       "itemB": {
         "label": "العصفور الدوري",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "العصفور الدوري 🐦 (جناحان 20 سم)"
       },
       "correctIndex": 0,
@@ -2363,12 +2363,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 48]",
       "itemA": {
         "label": "القطار الطويل",
-        "emoji": "⭐",
+        "emoji": "🚂",
         "description": "القطار الطويل 🚂 (500 متر)"
       },
       "itemB": {
         "label": "السيارة 🚗",
-        "emoji": "🎯",
+        "emoji": "🚗",
         "description": "السيارة 🚗 (4 أمتار)"
       },
       "correctIndex": 0,
@@ -2379,12 +2379,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 49]",
       "itemA": {
         "label": "الأفعى المشبكية",
-        "emoji": "⭐",
+        "emoji": "🐍",
         "description": "الأفعى المشبكية 🐍 (7 أمتار)"
       },
       "itemB": {
         "label": "دودة الأرض",
-        "emoji": "🎯",
+        "emoji": "🪱",
         "description": "دودة الأرض 🪱 (10 سم)"
       },
       "correctIndex": 0,
@@ -2395,12 +2395,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أطول قياساً ومسافة؟ 📏 [جولة 50]",
       "itemA": {
         "label": "جسر الملك",
-        "emoji": "⭐",
+        "emoji": "🌉",
         "description": "جسر الملك فهد 🌉 (25 كم)"
       },
       "itemB": {
         "label": "جسر المشاة",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "جسر المشاة 🚶 (50 متراً)"
       },
       "correctIndex": 0,
@@ -2413,12 +2413,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 1]",
       "itemA": {
         "label": "الحمم البركانية",
-        "emoji": "⭐",
+        "emoji": "🔥",
         "description": "الحمم البركانية 🔥 (1000° مئوية)"
       },
       "itemB": {
         "label": "كوب الشاي",
-        "emoji": "🎯",
+        "emoji": "☕",
         "description": "كوب الشاي الساخن ☕ (80° مئوية)"
       },
       "correctIndex": 0,
@@ -2429,12 +2429,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 2]",
       "itemA": {
         "label": "القطب الجنوبي",
-        "emoji": "⭐",
+        "emoji": "❄",
         "description": "القطب الجنوبي ❄️ (-80° مئوية)"
       },
       "itemB": {
         "label": "مكعب الثلج",
-        "emoji": "🎯",
+        "emoji": "🧊",
         "description": "مكعب الثلج في الفريزر 🧊 (-10° مئوية)"
       },
       "correctIndex": 0,
@@ -2445,12 +2445,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 3]",
       "itemA": {
         "label": "مركز الشمس",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "مركز الشمس ☀️ (15 مليون درجة)"
       },
       "itemB": {
         "label": "فرن الخبز",
-        "emoji": "🎯",
+        "emoji": "🍳",
         "description": "فرن الخبز 🍳 (250° مئوية)"
       },
       "correctIndex": 0,
@@ -2461,12 +2461,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 4]",
       "itemA": {
         "label": "صحراء الربع",
-        "emoji": "⭐",
+        "emoji": "🏜",
         "description": "صحراء الربع الخالي صيفاً 🏜️ (50° مئوية)"
       },
       "itemB": {
         "label": "غابات أوروبا",
-        "emoji": "🎯",
+        "emoji": "🌲",
         "description": "غابات أوروبا ربيعاً 🌲 (20° مئوية)"
       },
       "correctIndex": 0,
@@ -2477,12 +2477,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 5]",
       "itemA": {
         "label": "شرارة الصاعقة",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "شرارة الصاعقة الرعدية ⚡ (30 ألف درجة)"
       },
       "itemB": {
         "label": "شمعة مضيئة",
-        "emoji": "🎯",
+        "emoji": "🕯",
         "description": "شمعة مضيئة 🕯️ (800° مئوية)"
       },
       "correctIndex": 0,
@@ -2493,12 +2493,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 6]",
       "itemA": {
         "label": "الماء المغلي",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "الماء المغلي 🍲 (100° مئوية)"
       },
       "itemB": {
         "label": "ماء الصنبور",
-        "emoji": "🎯",
+        "emoji": "🚰",
         "description": "ماء الصنبور المعتدل 🚰 (25° مئوية)"
       },
       "correctIndex": 0,
@@ -2509,12 +2509,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 7]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (460° مئوية)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون الجليدي 🪐 (-200° مئوية)"
       },
       "correctIndex": 0,
@@ -2525,12 +2525,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 8]",
       "itemA": {
         "label": "فصل الصيف",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "فصل الصيف ☀️ (أعلى حرارة)"
       },
       "itemB": {
         "label": "فصل الشتاء",
-        "emoji": "🎯",
+        "emoji": "🌨",
         "description": "فصل الشتاء 🌨️ (أقل حرارة)"
       },
       "correctIndex": 0,
@@ -2541,12 +2541,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 9]",
       "itemA": {
         "label": "حساء الخضار",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "حساء الخضار المغلي 🍲 (ساخن)"
       },
       "itemB": {
         "label": "عصير البرتقال",
-        "emoji": "🎯",
+        "emoji": "🧃",
         "description": "عصير البرتقال البارد 🧃 (منعش)"
       },
       "correctIndex": 0,
@@ -2557,12 +2557,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 10]",
       "itemA": {
         "label": "الحديد المصهور",
-        "emoji": "⭐",
+        "emoji": "🏭",
         "description": "الحديد المصهور في المصنع 🏭 (1500° مئوية)"
       },
       "itemB": {
         "label": "الرمال الدافئة",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "الرمال الدافئة على الشاطئ 🏖️ (40° مئوية)"
       },
       "correctIndex": 0,
@@ -2573,12 +2573,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 11]",
       "itemA": {
         "label": "الحمم البركانية",
-        "emoji": "⭐",
+        "emoji": "🔥",
         "description": "الحمم البركانية 🔥 (1000° مئوية)"
       },
       "itemB": {
         "label": "كوب الشاي",
-        "emoji": "🎯",
+        "emoji": "☕",
         "description": "كوب الشاي الساخن ☕ (80° مئوية)"
       },
       "correctIndex": 0,
@@ -2589,12 +2589,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 12]",
       "itemA": {
         "label": "القطب الجنوبي",
-        "emoji": "⭐",
+        "emoji": "❄",
         "description": "القطب الجنوبي ❄️ (-80° مئوية)"
       },
       "itemB": {
         "label": "مكعب الثلج",
-        "emoji": "🎯",
+        "emoji": "🧊",
         "description": "مكعب الثلج في الفريزر 🧊 (-10° مئوية)"
       },
       "correctIndex": 0,
@@ -2605,12 +2605,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 13]",
       "itemA": {
         "label": "مركز الشمس",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "مركز الشمس ☀️ (15 مليون درجة)"
       },
       "itemB": {
         "label": "فرن الخبز",
-        "emoji": "🎯",
+        "emoji": "🍳",
         "description": "فرن الخبز 🍳 (250° مئوية)"
       },
       "correctIndex": 0,
@@ -2621,12 +2621,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 14]",
       "itemA": {
         "label": "صحراء الربع",
-        "emoji": "⭐",
+        "emoji": "🏜",
         "description": "صحراء الربع الخالي صيفاً 🏜️ (50° مئوية)"
       },
       "itemB": {
         "label": "غابات أوروبا",
-        "emoji": "🎯",
+        "emoji": "🌲",
         "description": "غابات أوروبا ربيعاً 🌲 (20° مئوية)"
       },
       "correctIndex": 0,
@@ -2637,12 +2637,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 15]",
       "itemA": {
         "label": "شرارة الصاعقة",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "شرارة الصاعقة الرعدية ⚡ (30 ألف درجة)"
       },
       "itemB": {
         "label": "شمعة مضيئة",
-        "emoji": "🎯",
+        "emoji": "🕯",
         "description": "شمعة مضيئة 🕯️ (800° مئوية)"
       },
       "correctIndex": 0,
@@ -2653,12 +2653,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 16]",
       "itemA": {
         "label": "الماء المغلي",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "الماء المغلي 🍲 (100° مئوية)"
       },
       "itemB": {
         "label": "ماء الصنبور",
-        "emoji": "🎯",
+        "emoji": "🚰",
         "description": "ماء الصنبور المعتدل 🚰 (25° مئوية)"
       },
       "correctIndex": 0,
@@ -2669,12 +2669,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 17]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (460° مئوية)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون الجليدي 🪐 (-200° مئوية)"
       },
       "correctIndex": 0,
@@ -2685,12 +2685,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 18]",
       "itemA": {
         "label": "فصل الصيف",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "فصل الصيف ☀️ (أعلى حرارة)"
       },
       "itemB": {
         "label": "فصل الشتاء",
-        "emoji": "🎯",
+        "emoji": "🌨",
         "description": "فصل الشتاء 🌨️ (أقل حرارة)"
       },
       "correctIndex": 0,
@@ -2701,12 +2701,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 19]",
       "itemA": {
         "label": "حساء الخضار",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "حساء الخضار المغلي 🍲 (ساخن)"
       },
       "itemB": {
         "label": "عصير البرتقال",
-        "emoji": "🎯",
+        "emoji": "🧃",
         "description": "عصير البرتقال البارد 🧃 (منعش)"
       },
       "correctIndex": 0,
@@ -2717,12 +2717,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 20]",
       "itemA": {
         "label": "الحديد المصهور",
-        "emoji": "⭐",
+        "emoji": "🏭",
         "description": "الحديد المصهور في المصنع 🏭 (1500° مئوية)"
       },
       "itemB": {
         "label": "الرمال الدافئة",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "الرمال الدافئة على الشاطئ 🏖️ (40° مئوية)"
       },
       "correctIndex": 0,
@@ -2733,12 +2733,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 21]",
       "itemA": {
         "label": "الحمم البركانية",
-        "emoji": "⭐",
+        "emoji": "🔥",
         "description": "الحمم البركانية 🔥 (1000° مئوية)"
       },
       "itemB": {
         "label": "كوب الشاي",
-        "emoji": "🎯",
+        "emoji": "☕",
         "description": "كوب الشاي الساخن ☕ (80° مئوية)"
       },
       "correctIndex": 0,
@@ -2749,12 +2749,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 22]",
       "itemA": {
         "label": "القطب الجنوبي",
-        "emoji": "⭐",
+        "emoji": "❄",
         "description": "القطب الجنوبي ❄️ (-80° مئوية)"
       },
       "itemB": {
         "label": "مكعب الثلج",
-        "emoji": "🎯",
+        "emoji": "🧊",
         "description": "مكعب الثلج في الفريزر 🧊 (-10° مئوية)"
       },
       "correctIndex": 0,
@@ -2765,12 +2765,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 23]",
       "itemA": {
         "label": "مركز الشمس",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "مركز الشمس ☀️ (15 مليون درجة)"
       },
       "itemB": {
         "label": "فرن الخبز",
-        "emoji": "🎯",
+        "emoji": "🍳",
         "description": "فرن الخبز 🍳 (250° مئوية)"
       },
       "correctIndex": 0,
@@ -2781,12 +2781,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 24]",
       "itemA": {
         "label": "صحراء الربع",
-        "emoji": "⭐",
+        "emoji": "🏜",
         "description": "صحراء الربع الخالي صيفاً 🏜️ (50° مئوية)"
       },
       "itemB": {
         "label": "غابات أوروبا",
-        "emoji": "🎯",
+        "emoji": "🌲",
         "description": "غابات أوروبا ربيعاً 🌲 (20° مئوية)"
       },
       "correctIndex": 0,
@@ -2797,12 +2797,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 25]",
       "itemA": {
         "label": "شرارة الصاعقة",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "شرارة الصاعقة الرعدية ⚡ (30 ألف درجة)"
       },
       "itemB": {
         "label": "شمعة مضيئة",
-        "emoji": "🎯",
+        "emoji": "🕯",
         "description": "شمعة مضيئة 🕯️ (800° مئوية)"
       },
       "correctIndex": 0,
@@ -2813,12 +2813,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 26]",
       "itemA": {
         "label": "الماء المغلي",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "الماء المغلي 🍲 (100° مئوية)"
       },
       "itemB": {
         "label": "ماء الصنبور",
-        "emoji": "🎯",
+        "emoji": "🚰",
         "description": "ماء الصنبور المعتدل 🚰 (25° مئوية)"
       },
       "correctIndex": 0,
@@ -2829,12 +2829,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 27]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (460° مئوية)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون الجليدي 🪐 (-200° مئوية)"
       },
       "correctIndex": 0,
@@ -2845,12 +2845,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 28]",
       "itemA": {
         "label": "فصل الصيف",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "فصل الصيف ☀️ (أعلى حرارة)"
       },
       "itemB": {
         "label": "فصل الشتاء",
-        "emoji": "🎯",
+        "emoji": "🌨",
         "description": "فصل الشتاء 🌨️ (أقل حرارة)"
       },
       "correctIndex": 0,
@@ -2861,12 +2861,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 29]",
       "itemA": {
         "label": "حساء الخضار",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "حساء الخضار المغلي 🍲 (ساخن)"
       },
       "itemB": {
         "label": "عصير البرتقال",
-        "emoji": "🎯",
+        "emoji": "🧃",
         "description": "عصير البرتقال البارد 🧃 (منعش)"
       },
       "correctIndex": 0,
@@ -2877,12 +2877,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 30]",
       "itemA": {
         "label": "الحديد المصهور",
-        "emoji": "⭐",
+        "emoji": "🏭",
         "description": "الحديد المصهور في المصنع 🏭 (1500° مئوية)"
       },
       "itemB": {
         "label": "الرمال الدافئة",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "الرمال الدافئة على الشاطئ 🏖️ (40° مئوية)"
       },
       "correctIndex": 0,
@@ -2893,12 +2893,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 31]",
       "itemA": {
         "label": "الحمم البركانية",
-        "emoji": "⭐",
+        "emoji": "🔥",
         "description": "الحمم البركانية 🔥 (1000° مئوية)"
       },
       "itemB": {
         "label": "كوب الشاي",
-        "emoji": "🎯",
+        "emoji": "☕",
         "description": "كوب الشاي الساخن ☕ (80° مئوية)"
       },
       "correctIndex": 0,
@@ -2909,12 +2909,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 32]",
       "itemA": {
         "label": "القطب الجنوبي",
-        "emoji": "⭐",
+        "emoji": "❄",
         "description": "القطب الجنوبي ❄️ (-80° مئوية)"
       },
       "itemB": {
         "label": "مكعب الثلج",
-        "emoji": "🎯",
+        "emoji": "🧊",
         "description": "مكعب الثلج في الفريزر 🧊 (-10° مئوية)"
       },
       "correctIndex": 0,
@@ -2925,12 +2925,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 33]",
       "itemA": {
         "label": "مركز الشمس",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "مركز الشمس ☀️ (15 مليون درجة)"
       },
       "itemB": {
         "label": "فرن الخبز",
-        "emoji": "🎯",
+        "emoji": "🍳",
         "description": "فرن الخبز 🍳 (250° مئوية)"
       },
       "correctIndex": 0,
@@ -2941,12 +2941,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 34]",
       "itemA": {
         "label": "صحراء الربع",
-        "emoji": "⭐",
+        "emoji": "🏜",
         "description": "صحراء الربع الخالي صيفاً 🏜️ (50° مئوية)"
       },
       "itemB": {
         "label": "غابات أوروبا",
-        "emoji": "🎯",
+        "emoji": "🌲",
         "description": "غابات أوروبا ربيعاً 🌲 (20° مئوية)"
       },
       "correctIndex": 0,
@@ -2957,12 +2957,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 35]",
       "itemA": {
         "label": "شرارة الصاعقة",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "شرارة الصاعقة الرعدية ⚡ (30 ألف درجة)"
       },
       "itemB": {
         "label": "شمعة مضيئة",
-        "emoji": "🎯",
+        "emoji": "🕯",
         "description": "شمعة مضيئة 🕯️ (800° مئوية)"
       },
       "correctIndex": 0,
@@ -2973,12 +2973,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 36]",
       "itemA": {
         "label": "الماء المغلي",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "الماء المغلي 🍲 (100° مئوية)"
       },
       "itemB": {
         "label": "ماء الصنبور",
-        "emoji": "🎯",
+        "emoji": "🚰",
         "description": "ماء الصنبور المعتدل 🚰 (25° مئوية)"
       },
       "correctIndex": 0,
@@ -2989,12 +2989,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 37]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (460° مئوية)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون الجليدي 🪐 (-200° مئوية)"
       },
       "correctIndex": 0,
@@ -3005,12 +3005,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 38]",
       "itemA": {
         "label": "فصل الصيف",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "فصل الصيف ☀️ (أعلى حرارة)"
       },
       "itemB": {
         "label": "فصل الشتاء",
-        "emoji": "🎯",
+        "emoji": "🌨",
         "description": "فصل الشتاء 🌨️ (أقل حرارة)"
       },
       "correctIndex": 0,
@@ -3021,12 +3021,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 39]",
       "itemA": {
         "label": "حساء الخضار",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "حساء الخضار المغلي 🍲 (ساخن)"
       },
       "itemB": {
         "label": "عصير البرتقال",
-        "emoji": "🎯",
+        "emoji": "🧃",
         "description": "عصير البرتقال البارد 🧃 (منعش)"
       },
       "correctIndex": 0,
@@ -3037,12 +3037,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 40]",
       "itemA": {
         "label": "الحديد المصهور",
-        "emoji": "⭐",
+        "emoji": "🏭",
         "description": "الحديد المصهور في المصنع 🏭 (1500° مئوية)"
       },
       "itemB": {
         "label": "الرمال الدافئة",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "الرمال الدافئة على الشاطئ 🏖️ (40° مئوية)"
       },
       "correctIndex": 0,
@@ -3053,12 +3053,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 41]",
       "itemA": {
         "label": "الحمم البركانية",
-        "emoji": "⭐",
+        "emoji": "🔥",
         "description": "الحمم البركانية 🔥 (1000° مئوية)"
       },
       "itemB": {
         "label": "كوب الشاي",
-        "emoji": "🎯",
+        "emoji": "☕",
         "description": "كوب الشاي الساخن ☕ (80° مئوية)"
       },
       "correctIndex": 0,
@@ -3069,12 +3069,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 42]",
       "itemA": {
         "label": "القطب الجنوبي",
-        "emoji": "⭐",
+        "emoji": "❄",
         "description": "القطب الجنوبي ❄️ (-80° مئوية)"
       },
       "itemB": {
         "label": "مكعب الثلج",
-        "emoji": "🎯",
+        "emoji": "🧊",
         "description": "مكعب الثلج في الفريزر 🧊 (-10° مئوية)"
       },
       "correctIndex": 0,
@@ -3085,12 +3085,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 43]",
       "itemA": {
         "label": "مركز الشمس",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "مركز الشمس ☀️ (15 مليون درجة)"
       },
       "itemB": {
         "label": "فرن الخبز",
-        "emoji": "🎯",
+        "emoji": "🍳",
         "description": "فرن الخبز 🍳 (250° مئوية)"
       },
       "correctIndex": 0,
@@ -3101,12 +3101,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 44]",
       "itemA": {
         "label": "صحراء الربع",
-        "emoji": "⭐",
+        "emoji": "🏜",
         "description": "صحراء الربع الخالي صيفاً 🏜️ (50° مئوية)"
       },
       "itemB": {
         "label": "غابات أوروبا",
-        "emoji": "🎯",
+        "emoji": "🌲",
         "description": "غابات أوروبا ربيعاً 🌲 (20° مئوية)"
       },
       "correctIndex": 0,
@@ -3117,12 +3117,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 45]",
       "itemA": {
         "label": "شرارة الصاعقة",
-        "emoji": "⭐",
+        "emoji": "⚡",
         "description": "شرارة الصاعقة الرعدية ⚡ (30 ألف درجة)"
       },
       "itemB": {
         "label": "شمعة مضيئة",
-        "emoji": "🎯",
+        "emoji": "🕯",
         "description": "شمعة مضيئة 🕯️ (800° مئوية)"
       },
       "correctIndex": 0,
@@ -3133,12 +3133,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 46]",
       "itemA": {
         "label": "الماء المغلي",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "الماء المغلي 🍲 (100° مئوية)"
       },
       "itemB": {
         "label": "ماء الصنبور",
-        "emoji": "🎯",
+        "emoji": "🚰",
         "description": "ماء الصنبور المعتدل 🚰 (25° مئوية)"
       },
       "correctIndex": 0,
@@ -3149,12 +3149,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 47]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (460° مئوية)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون الجليدي 🪐 (-200° مئوية)"
       },
       "correctIndex": 0,
@@ -3165,12 +3165,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 48]",
       "itemA": {
         "label": "فصل الصيف",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "فصل الصيف ☀️ (أعلى حرارة)"
       },
       "itemB": {
         "label": "فصل الشتاء",
-        "emoji": "🎯",
+        "emoji": "🌨",
         "description": "فصل الشتاء 🌨️ (أقل حرارة)"
       },
       "correctIndex": 0,
@@ -3181,12 +3181,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 49]",
       "itemA": {
         "label": "حساء الخضار",
-        "emoji": "⭐",
+        "emoji": "🍲",
         "description": "حساء الخضار المغلي 🍲 (ساخن)"
       },
       "itemB": {
         "label": "عصير البرتقال",
-        "emoji": "🎯",
+        "emoji": "🧃",
         "description": "عصير البرتقال البارد 🧃 (منعش)"
       },
       "correctIndex": 0,
@@ -3197,12 +3197,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى في درجة الحرارة؟ 🌡️ [جولة 50]",
       "itemA": {
         "label": "الحديد المصهور",
-        "emoji": "⭐",
+        "emoji": "🏭",
         "description": "الحديد المصهور في المصنع 🏭 (1500° مئوية)"
       },
       "itemB": {
         "label": "الرمال الدافئة",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "الرمال الدافئة على الشاطئ 🏖️ (40° مئوية)"
       },
       "correctIndex": 0,
@@ -3215,12 +3215,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 1]",
       "itemA": {
         "label": "صخرة الجرانيت",
-        "emoji": "⭐",
+        "emoji": "🪨",
         "description": "صخرة الجرانيت الصماء 🪨"
       },
       "itemB": {
         "label": "حجر الخفاف",
-        "emoji": "🎯",
+        "emoji": "🪨",
         "description": "حجر الخفاف البركاني المسامي 🪨"
       },
       "correctIndex": 0,
@@ -3231,12 +3231,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 2]",
       "itemA": {
         "label": "الذهب الخالص",
-        "emoji": "⭐",
+        "emoji": "🥇",
         "description": "الذهب الخالص 🥇"
       },
       "itemB": {
         "label": "الألمنيوم الخفيف",
-        "emoji": "🎯",
+        "emoji": "🥫",
         "description": "الألمنيوم الخفيف 🥫"
       },
       "correctIndex": 0,
@@ -3247,12 +3247,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 3]",
       "itemA": {
         "label": "ريشة النعامة",
-        "emoji": "⭐",
+        "emoji": "🪶",
         "description": "ريشة النعامة 🪶"
       },
       "itemB": {
         "label": "قرن الوعل",
-        "emoji": "🎯",
+        "emoji": "🐏",
         "description": "قرن الوعل الجبلي 🐏"
       },
       "correctIndex": 1,
@@ -3263,12 +3263,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 4]",
       "itemA": {
         "label": "بالون الهيليوم",
-        "emoji": "⭐",
+        "emoji": "🎈",
         "description": "بالون الهيليوم 🎈"
       },
       "itemB": {
         "label": "كرة البولينغ",
-        "emoji": "🎯",
+        "emoji": "🎳",
         "description": "كرة البولينغ 🎳"
       },
       "correctIndex": 1,
@@ -3279,12 +3279,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 5]",
       "itemA": {
         "label": "بيضة النعامة",
-        "emoji": "⭐",
+        "emoji": "🥚",
         "description": "بيضة النعامة 🥚 (1.5 كغ)"
       },
       "itemB": {
         "label": "بيضة الدجاجة",
-        "emoji": "🎯",
+        "emoji": "🥚",
         "description": "بيضة الدجاجة 🥚 (60 غرام)"
       },
       "correctIndex": 0,
@@ -3295,12 +3295,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 6]",
       "itemA": {
         "label": "غصن الشجرة",
-        "emoji": "⭐",
+        "emoji": "🪵",
         "description": "غصن الشجرة الضخم 🪵"
       },
       "itemB": {
         "label": "ورقة الشجرة",
-        "emoji": "🎯",
+        "emoji": "🍂",
         "description": "ورقة الشجرة المتساقطة 🍂"
       },
       "correctIndex": 0,
@@ -3311,12 +3311,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 7]",
       "itemA": {
         "label": "سندان الحداد",
-        "emoji": "⭐",
+        "emoji": "🔨",
         "description": "سندان الحداد الحديدي 🔨"
       },
       "itemB": {
         "label": "المسمار الفولاذي",
-        "emoji": "🎯",
+        "emoji": "🪛",
         "description": "المسمار الفولاذي 🪛"
       },
       "correctIndex": 0,
@@ -3327,12 +3327,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 8]",
       "itemA": {
         "label": "حقيبة السفر",
-        "emoji": "⭐",
+        "emoji": "🧳",
         "description": "حقيبة السفر الممتلئة 🧳 (23 كغ)"
       },
       "itemB": {
         "label": "المحفظة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "👛",
         "description": "المحفظة الصغيرة 👛 (200 غرام)"
       },
       "correctIndex": 0,
@@ -3343,12 +3343,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 9]",
       "itemA": {
         "label": "حبة الأرز",
-        "emoji": "⭐",
+        "emoji": "🌾",
         "description": "حبة الأرز الواحدة 🌾"
       },
       "itemB": {
         "label": "كيس الأرز",
-        "emoji": "🎯",
+        "emoji": "🍚",
         "description": "كيس الأرز الكامل 🍚 (50 كغ)"
       },
       "correctIndex": 1,
@@ -3359,12 +3359,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 10]",
       "itemA": {
         "label": "قطرة الندى",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "قطرة الندى 💧"
       },
       "itemB": {
         "label": "موجة البحر",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "موجة البحر المتلاطمة 🌊"
       },
       "correctIndex": 1,
@@ -3375,12 +3375,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 11]",
       "itemA": {
         "label": "صخرة الجرانيت",
-        "emoji": "⭐",
+        "emoji": "🪨",
         "description": "صخرة الجرانيت الصماء 🪨"
       },
       "itemB": {
         "label": "حجر الخفاف",
-        "emoji": "🎯",
+        "emoji": "🪨",
         "description": "حجر الخفاف البركاني المسامي 🪨"
       },
       "correctIndex": 0,
@@ -3391,12 +3391,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 12]",
       "itemA": {
         "label": "الذهب الخالص",
-        "emoji": "⭐",
+        "emoji": "🥇",
         "description": "الذهب الخالص 🥇"
       },
       "itemB": {
         "label": "الألمنيوم الخفيف",
-        "emoji": "🎯",
+        "emoji": "🥫",
         "description": "الألمنيوم الخفيف 🥫"
       },
       "correctIndex": 0,
@@ -3407,12 +3407,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 13]",
       "itemA": {
         "label": "ريشة النعامة",
-        "emoji": "⭐",
+        "emoji": "🪶",
         "description": "ريشة النعامة 🪶"
       },
       "itemB": {
         "label": "قرن الوعل",
-        "emoji": "🎯",
+        "emoji": "🐏",
         "description": "قرن الوعل الجبلي 🐏"
       },
       "correctIndex": 1,
@@ -3423,12 +3423,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 14]",
       "itemA": {
         "label": "بالون الهيليوم",
-        "emoji": "⭐",
+        "emoji": "🎈",
         "description": "بالون الهيليوم 🎈"
       },
       "itemB": {
         "label": "كرة البولينغ",
-        "emoji": "🎯",
+        "emoji": "🎳",
         "description": "كرة البولينغ 🎳"
       },
       "correctIndex": 1,
@@ -3439,12 +3439,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 15]",
       "itemA": {
         "label": "بيضة النعامة",
-        "emoji": "⭐",
+        "emoji": "🥚",
         "description": "بيضة النعامة 🥚 (1.5 كغ)"
       },
       "itemB": {
         "label": "بيضة الدجاجة",
-        "emoji": "🎯",
+        "emoji": "🥚",
         "description": "بيضة الدجاجة 🥚 (60 غرام)"
       },
       "correctIndex": 0,
@@ -3455,12 +3455,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 16]",
       "itemA": {
         "label": "غصن الشجرة",
-        "emoji": "⭐",
+        "emoji": "🪵",
         "description": "غصن الشجرة الضخم 🪵"
       },
       "itemB": {
         "label": "ورقة الشجرة",
-        "emoji": "🎯",
+        "emoji": "🍂",
         "description": "ورقة الشجرة المتساقطة 🍂"
       },
       "correctIndex": 0,
@@ -3471,12 +3471,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 17]",
       "itemA": {
         "label": "سندان الحداد",
-        "emoji": "⭐",
+        "emoji": "🔨",
         "description": "سندان الحداد الحديدي 🔨"
       },
       "itemB": {
         "label": "المسمار الفولاذي",
-        "emoji": "🎯",
+        "emoji": "🪛",
         "description": "المسمار الفولاذي 🪛"
       },
       "correctIndex": 0,
@@ -3487,12 +3487,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 18]",
       "itemA": {
         "label": "حقيبة السفر",
-        "emoji": "⭐",
+        "emoji": "🧳",
         "description": "حقيبة السفر الممتلئة 🧳 (23 كغ)"
       },
       "itemB": {
         "label": "المحفظة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "👛",
         "description": "المحفظة الصغيرة 👛 (200 غرام)"
       },
       "correctIndex": 0,
@@ -3503,12 +3503,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 19]",
       "itemA": {
         "label": "حبة الأرز",
-        "emoji": "⭐",
+        "emoji": "🌾",
         "description": "حبة الأرز الواحدة 🌾"
       },
       "itemB": {
         "label": "كيس الأرز",
-        "emoji": "🎯",
+        "emoji": "🍚",
         "description": "كيس الأرز الكامل 🍚 (50 كغ)"
       },
       "correctIndex": 1,
@@ -3519,12 +3519,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 20]",
       "itemA": {
         "label": "قطرة الندى",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "قطرة الندى 💧"
       },
       "itemB": {
         "label": "موجة البحر",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "موجة البحر المتلاطمة 🌊"
       },
       "correctIndex": 1,
@@ -3535,12 +3535,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 21]",
       "itemA": {
         "label": "صخرة الجرانيت",
-        "emoji": "⭐",
+        "emoji": "🪨",
         "description": "صخرة الجرانيت الصماء 🪨"
       },
       "itemB": {
         "label": "حجر الخفاف",
-        "emoji": "🎯",
+        "emoji": "🪨",
         "description": "حجر الخفاف البركاني المسامي 🪨"
       },
       "correctIndex": 0,
@@ -3551,12 +3551,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 22]",
       "itemA": {
         "label": "الذهب الخالص",
-        "emoji": "⭐",
+        "emoji": "🥇",
         "description": "الذهب الخالص 🥇"
       },
       "itemB": {
         "label": "الألمنيوم الخفيف",
-        "emoji": "🎯",
+        "emoji": "🥫",
         "description": "الألمنيوم الخفيف 🥫"
       },
       "correctIndex": 0,
@@ -3567,12 +3567,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 23]",
       "itemA": {
         "label": "ريشة النعامة",
-        "emoji": "⭐",
+        "emoji": "🪶",
         "description": "ريشة النعامة 🪶"
       },
       "itemB": {
         "label": "قرن الوعل",
-        "emoji": "🎯",
+        "emoji": "🐏",
         "description": "قرن الوعل الجبلي 🐏"
       },
       "correctIndex": 1,
@@ -3583,12 +3583,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 24]",
       "itemA": {
         "label": "بالون الهيليوم",
-        "emoji": "⭐",
+        "emoji": "🎈",
         "description": "بالون الهيليوم 🎈"
       },
       "itemB": {
         "label": "كرة البولينغ",
-        "emoji": "🎯",
+        "emoji": "🎳",
         "description": "كرة البولينغ 🎳"
       },
       "correctIndex": 1,
@@ -3599,12 +3599,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 25]",
       "itemA": {
         "label": "بيضة النعامة",
-        "emoji": "⭐",
+        "emoji": "🥚",
         "description": "بيضة النعامة 🥚 (1.5 كغ)"
       },
       "itemB": {
         "label": "بيضة الدجاجة",
-        "emoji": "🎯",
+        "emoji": "🥚",
         "description": "بيضة الدجاجة 🥚 (60 غرام)"
       },
       "correctIndex": 0,
@@ -3615,12 +3615,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 26]",
       "itemA": {
         "label": "غصن الشجرة",
-        "emoji": "⭐",
+        "emoji": "🪵",
         "description": "غصن الشجرة الضخم 🪵"
       },
       "itemB": {
         "label": "ورقة الشجرة",
-        "emoji": "🎯",
+        "emoji": "🍂",
         "description": "ورقة الشجرة المتساقطة 🍂"
       },
       "correctIndex": 0,
@@ -3631,12 +3631,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 27]",
       "itemA": {
         "label": "سندان الحداد",
-        "emoji": "⭐",
+        "emoji": "🔨",
         "description": "سندان الحداد الحديدي 🔨"
       },
       "itemB": {
         "label": "المسمار الفولاذي",
-        "emoji": "🎯",
+        "emoji": "🪛",
         "description": "المسمار الفولاذي 🪛"
       },
       "correctIndex": 0,
@@ -3647,12 +3647,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 28]",
       "itemA": {
         "label": "حقيبة السفر",
-        "emoji": "⭐",
+        "emoji": "🧳",
         "description": "حقيبة السفر الممتلئة 🧳 (23 كغ)"
       },
       "itemB": {
         "label": "المحفظة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "👛",
         "description": "المحفظة الصغيرة 👛 (200 غرام)"
       },
       "correctIndex": 0,
@@ -3663,12 +3663,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 29]",
       "itemA": {
         "label": "حبة الأرز",
-        "emoji": "⭐",
+        "emoji": "🌾",
         "description": "حبة الأرز الواحدة 🌾"
       },
       "itemB": {
         "label": "كيس الأرز",
-        "emoji": "🎯",
+        "emoji": "🍚",
         "description": "كيس الأرز الكامل 🍚 (50 كغ)"
       },
       "correctIndex": 1,
@@ -3679,12 +3679,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 30]",
       "itemA": {
         "label": "قطرة الندى",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "قطرة الندى 💧"
       },
       "itemB": {
         "label": "موجة البحر",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "موجة البحر المتلاطمة 🌊"
       },
       "correctIndex": 1,
@@ -3695,12 +3695,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 31]",
       "itemA": {
         "label": "صخرة الجرانيت",
-        "emoji": "⭐",
+        "emoji": "🪨",
         "description": "صخرة الجرانيت الصماء 🪨"
       },
       "itemB": {
         "label": "حجر الخفاف",
-        "emoji": "🎯",
+        "emoji": "🪨",
         "description": "حجر الخفاف البركاني المسامي 🪨"
       },
       "correctIndex": 0,
@@ -3711,12 +3711,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 32]",
       "itemA": {
         "label": "الذهب الخالص",
-        "emoji": "⭐",
+        "emoji": "🥇",
         "description": "الذهب الخالص 🥇"
       },
       "itemB": {
         "label": "الألمنيوم الخفيف",
-        "emoji": "🎯",
+        "emoji": "🥫",
         "description": "الألمنيوم الخفيف 🥫"
       },
       "correctIndex": 0,
@@ -3727,12 +3727,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 33]",
       "itemA": {
         "label": "ريشة النعامة",
-        "emoji": "⭐",
+        "emoji": "🪶",
         "description": "ريشة النعامة 🪶"
       },
       "itemB": {
         "label": "قرن الوعل",
-        "emoji": "🎯",
+        "emoji": "🐏",
         "description": "قرن الوعل الجبلي 🐏"
       },
       "correctIndex": 1,
@@ -3743,12 +3743,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 34]",
       "itemA": {
         "label": "بالون الهيليوم",
-        "emoji": "⭐",
+        "emoji": "🎈",
         "description": "بالون الهيليوم 🎈"
       },
       "itemB": {
         "label": "كرة البولينغ",
-        "emoji": "🎯",
+        "emoji": "🎳",
         "description": "كرة البولينغ 🎳"
       },
       "correctIndex": 1,
@@ -3759,12 +3759,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 35]",
       "itemA": {
         "label": "بيضة النعامة",
-        "emoji": "⭐",
+        "emoji": "🥚",
         "description": "بيضة النعامة 🥚 (1.5 كغ)"
       },
       "itemB": {
         "label": "بيضة الدجاجة",
-        "emoji": "🎯",
+        "emoji": "🥚",
         "description": "بيضة الدجاجة 🥚 (60 غرام)"
       },
       "correctIndex": 0,
@@ -3775,12 +3775,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 36]",
       "itemA": {
         "label": "غصن الشجرة",
-        "emoji": "⭐",
+        "emoji": "🪵",
         "description": "غصن الشجرة الضخم 🪵"
       },
       "itemB": {
         "label": "ورقة الشجرة",
-        "emoji": "🎯",
+        "emoji": "🍂",
         "description": "ورقة الشجرة المتساقطة 🍂"
       },
       "correctIndex": 0,
@@ -3791,12 +3791,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 37]",
       "itemA": {
         "label": "سندان الحداد",
-        "emoji": "⭐",
+        "emoji": "🔨",
         "description": "سندان الحداد الحديدي 🔨"
       },
       "itemB": {
         "label": "المسمار الفولاذي",
-        "emoji": "🎯",
+        "emoji": "🪛",
         "description": "المسمار الفولاذي 🪛"
       },
       "correctIndex": 0,
@@ -3807,12 +3807,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 38]",
       "itemA": {
         "label": "حقيبة السفر",
-        "emoji": "⭐",
+        "emoji": "🧳",
         "description": "حقيبة السفر الممتلئة 🧳 (23 كغ)"
       },
       "itemB": {
         "label": "المحفظة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "👛",
         "description": "المحفظة الصغيرة 👛 (200 غرام)"
       },
       "correctIndex": 0,
@@ -3823,12 +3823,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 39]",
       "itemA": {
         "label": "حبة الأرز",
-        "emoji": "⭐",
+        "emoji": "🌾",
         "description": "حبة الأرز الواحدة 🌾"
       },
       "itemB": {
         "label": "كيس الأرز",
-        "emoji": "🎯",
+        "emoji": "🍚",
         "description": "كيس الأرز الكامل 🍚 (50 كغ)"
       },
       "correctIndex": 1,
@@ -3839,12 +3839,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 40]",
       "itemA": {
         "label": "قطرة الندى",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "قطرة الندى 💧"
       },
       "itemB": {
         "label": "موجة البحر",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "موجة البحر المتلاطمة 🌊"
       },
       "correctIndex": 1,
@@ -3855,12 +3855,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 41]",
       "itemA": {
         "label": "صخرة الجرانيت",
-        "emoji": "⭐",
+        "emoji": "🪨",
         "description": "صخرة الجرانيت الصماء 🪨"
       },
       "itemB": {
         "label": "حجر الخفاف",
-        "emoji": "🎯",
+        "emoji": "🪨",
         "description": "حجر الخفاف البركاني المسامي 🪨"
       },
       "correctIndex": 0,
@@ -3871,12 +3871,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 42]",
       "itemA": {
         "label": "الذهب الخالص",
-        "emoji": "⭐",
+        "emoji": "🥇",
         "description": "الذهب الخالص 🥇"
       },
       "itemB": {
         "label": "الألمنيوم الخفيف",
-        "emoji": "🎯",
+        "emoji": "🥫",
         "description": "الألمنيوم الخفيف 🥫"
       },
       "correctIndex": 0,
@@ -3887,12 +3887,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 43]",
       "itemA": {
         "label": "ريشة النعامة",
-        "emoji": "⭐",
+        "emoji": "🪶",
         "description": "ريشة النعامة 🪶"
       },
       "itemB": {
         "label": "قرن الوعل",
-        "emoji": "🎯",
+        "emoji": "🐏",
         "description": "قرن الوعل الجبلي 🐏"
       },
       "correctIndex": 1,
@@ -3903,12 +3903,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 44]",
       "itemA": {
         "label": "بالون الهيليوم",
-        "emoji": "⭐",
+        "emoji": "🎈",
         "description": "بالون الهيليوم 🎈"
       },
       "itemB": {
         "label": "كرة البولينغ",
-        "emoji": "🎯",
+        "emoji": "🎳",
         "description": "كرة البولينغ 🎳"
       },
       "correctIndex": 1,
@@ -3919,12 +3919,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 45]",
       "itemA": {
         "label": "بيضة النعامة",
-        "emoji": "⭐",
+        "emoji": "🥚",
         "description": "بيضة النعامة 🥚 (1.5 كغ)"
       },
       "itemB": {
         "label": "بيضة الدجاجة",
-        "emoji": "🎯",
+        "emoji": "🥚",
         "description": "بيضة الدجاجة 🥚 (60 غرام)"
       },
       "correctIndex": 0,
@@ -3935,12 +3935,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 46]",
       "itemA": {
         "label": "غصن الشجرة",
-        "emoji": "⭐",
+        "emoji": "🪵",
         "description": "غصن الشجرة الضخم 🪵"
       },
       "itemB": {
         "label": "ورقة الشجرة",
-        "emoji": "🎯",
+        "emoji": "🍂",
         "description": "ورقة الشجرة المتساقطة 🍂"
       },
       "correctIndex": 0,
@@ -3951,12 +3951,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 47]",
       "itemA": {
         "label": "سندان الحداد",
-        "emoji": "⭐",
+        "emoji": "🔨",
         "description": "سندان الحداد الحديدي 🔨"
       },
       "itemB": {
         "label": "المسمار الفولاذي",
-        "emoji": "🎯",
+        "emoji": "🪛",
         "description": "المسمار الفولاذي 🪛"
       },
       "correctIndex": 0,
@@ -3967,12 +3967,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 48]",
       "itemA": {
         "label": "حقيبة السفر",
-        "emoji": "⭐",
+        "emoji": "🧳",
         "description": "حقيبة السفر الممتلئة 🧳 (23 كغ)"
       },
       "itemB": {
         "label": "المحفظة الصغيرة",
-        "emoji": "🎯",
+        "emoji": "👛",
         "description": "المحفظة الصغيرة 👛 (200 غرام)"
       },
       "correctIndex": 0,
@@ -3983,12 +3983,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 49]",
       "itemA": {
         "label": "حبة الأرز",
-        "emoji": "⭐",
+        "emoji": "🌾",
         "description": "حبة الأرز الواحدة 🌾"
       },
       "itemB": {
         "label": "كيس الأرز",
-        "emoji": "🎯",
+        "emoji": "🍚",
         "description": "كيس الأرز الكامل 🍚 (50 كغ)"
       },
       "correctIndex": 1,
@@ -3999,12 +3999,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أثقل وزناً في الطبيعة؟ ⚖️ [جولة 50]",
       "itemA": {
         "label": "قطرة الندى",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "قطرة الندى 💧"
       },
       "itemB": {
         "label": "موجة البحر",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "موجة البحر المتلاطمة 🌊"
       },
       "correctIndex": 1,
@@ -4017,12 +4017,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 1]",
       "itemA": {
         "label": "دستة كاملة",
-        "emoji": "⭐",
+        "emoji": "✏",
         "description": "دستة كاملة من الأقلام ✏️ (12 قلماً)"
       },
       "itemB": {
         "label": "نصف دستة",
-        "emoji": "🎯",
+        "emoji": "✏",
         "description": "نصف دستة أقلام ✏️ (6 أقلام)"
       },
       "correctIndex": 0,
@@ -4033,12 +4033,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 2]",
       "itemA": {
         "label": "القرن من",
-        "emoji": "⭐",
+        "emoji": "🏛",
         "description": "القرن من الزمان 🏛️ (100 سنة)"
       },
       "itemB": {
         "label": "العقد الزمني",
-        "emoji": "🎯",
+        "emoji": "📅",
         "description": "العقد الزمني 📅 (10 سنوات)"
       },
       "correctIndex": 0,
@@ -4049,12 +4049,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 3]",
       "itemA": {
         "label": "5 كيلوغرامات",
-        "emoji": "⭐",
+        "emoji": "📦",
         "description": "5 كيلوغرامات 📦 (5000 غرام)"
       },
       "itemB": {
         "label": "500 غرام",
-        "emoji": "🎯",
+        "emoji": "📦",
         "description": "500 غرام فقط 📦 (نصف كغ)"
       },
       "correctIndex": 0,
@@ -4065,12 +4065,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 4]",
       "itemA": {
         "label": "أسبوع كامل",
-        "emoji": "⭐",
+        "emoji": "📅",
         "description": "أسبوع كامل 📅 (7 أيام)"
       },
       "itemB": {
         "label": "عطلة نهاية",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "عطلة نهاية الأسبوع 🏖️ (يومان)"
       },
       "correctIndex": 0,
@@ -4081,12 +4081,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 5]",
       "itemA": {
         "label": "لتران من",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "لتران من الماء 💧 (2000 مل)"
       },
       "itemB": {
         "label": "كوب صغير",
-        "emoji": "🎯",
+        "emoji": "🥤",
         "description": "كوب صغير 🥤 (250 مل)"
       },
       "correctIndex": 0,
@@ -4097,12 +4097,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 6]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 8 × 9 🔢 (72)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 7 🔢 (49)"
       },
       "correctIndex": 0,
@@ -4113,12 +4113,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 7]",
       "itemA": {
         "label": "يومان كاملان",
-        "emoji": "⭐",
+        "emoji": "⏰",
         "description": "يومان كاملان ⏰ (48 ساعة)"
       },
       "itemB": {
         "label": "يوم واحد",
-        "emoji": "🎯",
+        "emoji": "☀",
         "description": "يوم واحد ☀️ (24 ساعة)"
       },
       "correctIndex": 0,
@@ -4129,12 +4129,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 8]",
       "itemA": {
         "label": "ورقة نقدية",
-        "emoji": "⭐",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 100 💵"
       },
       "itemB": {
         "label": "ورقة نقدية",
-        "emoji": "🎯",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 20 💵"
       },
       "correctIndex": 0,
@@ -4145,12 +4145,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 9]",
       "itemA": {
         "label": "نصف الرغيف",
-        "emoji": "⭐",
+        "emoji": "🍞",
         "description": "نصف الرغيف 🍞 (50%)"
       },
       "itemB": {
         "label": "ربع الرغيف",
-        "emoji": "🎯",
+        "emoji": "🥖",
         "description": "ربع الرغيف 🥖 (25%)"
       },
       "correctIndex": 0,
@@ -4161,12 +4161,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 10]",
       "itemA": {
         "label": "ساعة كاملة",
-        "emoji": "⭐",
+        "emoji": "⏳",
         "description": "ساعة كاملة ⏳ (60 دقيقة)"
       },
       "itemB": {
         "label": "نصف ساعة",
-        "emoji": "🎯",
+        "emoji": "⏱",
         "description": "نصف ساعة ⏱️ (30 دقيقة)"
       },
       "correctIndex": 0,
@@ -4177,12 +4177,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 11]",
       "itemA": {
         "label": "دستة كاملة",
-        "emoji": "⭐",
+        "emoji": "✏",
         "description": "دستة كاملة من الأقلام ✏️ (12 قلماً)"
       },
       "itemB": {
         "label": "نصف دستة",
-        "emoji": "🎯",
+        "emoji": "✏",
         "description": "نصف دستة أقلام ✏️ (6 أقلام)"
       },
       "correctIndex": 0,
@@ -4193,12 +4193,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 12]",
       "itemA": {
         "label": "القرن من",
-        "emoji": "⭐",
+        "emoji": "🏛",
         "description": "القرن من الزمان 🏛️ (100 سنة)"
       },
       "itemB": {
         "label": "العقد الزمني",
-        "emoji": "🎯",
+        "emoji": "📅",
         "description": "العقد الزمني 📅 (10 سنوات)"
       },
       "correctIndex": 0,
@@ -4209,12 +4209,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 13]",
       "itemA": {
         "label": "5 كيلوغرامات",
-        "emoji": "⭐",
+        "emoji": "📦",
         "description": "5 كيلوغرامات 📦 (5000 غرام)"
       },
       "itemB": {
         "label": "500 غرام",
-        "emoji": "🎯",
+        "emoji": "📦",
         "description": "500 غرام فقط 📦 (نصف كغ)"
       },
       "correctIndex": 0,
@@ -4225,12 +4225,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 14]",
       "itemA": {
         "label": "أسبوع كامل",
-        "emoji": "⭐",
+        "emoji": "📅",
         "description": "أسبوع كامل 📅 (7 أيام)"
       },
       "itemB": {
         "label": "عطلة نهاية",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "عطلة نهاية الأسبوع 🏖️ (يومان)"
       },
       "correctIndex": 0,
@@ -4241,12 +4241,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 15]",
       "itemA": {
         "label": "لتران من",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "لتران من الماء 💧 (2000 مل)"
       },
       "itemB": {
         "label": "كوب صغير",
-        "emoji": "🎯",
+        "emoji": "🥤",
         "description": "كوب صغير 🥤 (250 مل)"
       },
       "correctIndex": 0,
@@ -4257,12 +4257,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 16]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 8 × 9 🔢 (72)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 7 🔢 (49)"
       },
       "correctIndex": 0,
@@ -4273,12 +4273,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 17]",
       "itemA": {
         "label": "يومان كاملان",
-        "emoji": "⭐",
+        "emoji": "⏰",
         "description": "يومان كاملان ⏰ (48 ساعة)"
       },
       "itemB": {
         "label": "يوم واحد",
-        "emoji": "🎯",
+        "emoji": "☀",
         "description": "يوم واحد ☀️ (24 ساعة)"
       },
       "correctIndex": 0,
@@ -4289,12 +4289,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 18]",
       "itemA": {
         "label": "ورقة نقدية",
-        "emoji": "⭐",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 100 💵"
       },
       "itemB": {
         "label": "ورقة نقدية",
-        "emoji": "🎯",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 20 💵"
       },
       "correctIndex": 0,
@@ -4305,12 +4305,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 19]",
       "itemA": {
         "label": "نصف الرغيف",
-        "emoji": "⭐",
+        "emoji": "🍞",
         "description": "نصف الرغيف 🍞 (50%)"
       },
       "itemB": {
         "label": "ربع الرغيف",
-        "emoji": "🎯",
+        "emoji": "🥖",
         "description": "ربع الرغيف 🥖 (25%)"
       },
       "correctIndex": 0,
@@ -4321,12 +4321,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 20]",
       "itemA": {
         "label": "ساعة كاملة",
-        "emoji": "⭐",
+        "emoji": "⏳",
         "description": "ساعة كاملة ⏳ (60 دقيقة)"
       },
       "itemB": {
         "label": "نصف ساعة",
-        "emoji": "🎯",
+        "emoji": "⏱",
         "description": "نصف ساعة ⏱️ (30 دقيقة)"
       },
       "correctIndex": 0,
@@ -4337,12 +4337,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 21]",
       "itemA": {
         "label": "دستة كاملة",
-        "emoji": "⭐",
+        "emoji": "✏",
         "description": "دستة كاملة من الأقلام ✏️ (12 قلماً)"
       },
       "itemB": {
         "label": "نصف دستة",
-        "emoji": "🎯",
+        "emoji": "✏",
         "description": "نصف دستة أقلام ✏️ (6 أقلام)"
       },
       "correctIndex": 0,
@@ -4353,12 +4353,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 22]",
       "itemA": {
         "label": "القرن من",
-        "emoji": "⭐",
+        "emoji": "🏛",
         "description": "القرن من الزمان 🏛️ (100 سنة)"
       },
       "itemB": {
         "label": "العقد الزمني",
-        "emoji": "🎯",
+        "emoji": "📅",
         "description": "العقد الزمني 📅 (10 سنوات)"
       },
       "correctIndex": 0,
@@ -4369,12 +4369,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 23]",
       "itemA": {
         "label": "5 كيلوغرامات",
-        "emoji": "⭐",
+        "emoji": "📦",
         "description": "5 كيلوغرامات 📦 (5000 غرام)"
       },
       "itemB": {
         "label": "500 غرام",
-        "emoji": "🎯",
+        "emoji": "📦",
         "description": "500 غرام فقط 📦 (نصف كغ)"
       },
       "correctIndex": 0,
@@ -4385,12 +4385,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 24]",
       "itemA": {
         "label": "أسبوع كامل",
-        "emoji": "⭐",
+        "emoji": "📅",
         "description": "أسبوع كامل 📅 (7 أيام)"
       },
       "itemB": {
         "label": "عطلة نهاية",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "عطلة نهاية الأسبوع 🏖️ (يومان)"
       },
       "correctIndex": 0,
@@ -4401,12 +4401,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 25]",
       "itemA": {
         "label": "لتران من",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "لتران من الماء 💧 (2000 مل)"
       },
       "itemB": {
         "label": "كوب صغير",
-        "emoji": "🎯",
+        "emoji": "🥤",
         "description": "كوب صغير 🥤 (250 مل)"
       },
       "correctIndex": 0,
@@ -4417,12 +4417,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 26]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 8 × 9 🔢 (72)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 7 🔢 (49)"
       },
       "correctIndex": 0,
@@ -4433,12 +4433,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 27]",
       "itemA": {
         "label": "يومان كاملان",
-        "emoji": "⭐",
+        "emoji": "⏰",
         "description": "يومان كاملان ⏰ (48 ساعة)"
       },
       "itemB": {
         "label": "يوم واحد",
-        "emoji": "🎯",
+        "emoji": "☀",
         "description": "يوم واحد ☀️ (24 ساعة)"
       },
       "correctIndex": 0,
@@ -4449,12 +4449,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 28]",
       "itemA": {
         "label": "ورقة نقدية",
-        "emoji": "⭐",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 100 💵"
       },
       "itemB": {
         "label": "ورقة نقدية",
-        "emoji": "🎯",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 20 💵"
       },
       "correctIndex": 0,
@@ -4465,12 +4465,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 29]",
       "itemA": {
         "label": "نصف الرغيف",
-        "emoji": "⭐",
+        "emoji": "🍞",
         "description": "نصف الرغيف 🍞 (50%)"
       },
       "itemB": {
         "label": "ربع الرغيف",
-        "emoji": "🎯",
+        "emoji": "🥖",
         "description": "ربع الرغيف 🥖 (25%)"
       },
       "correctIndex": 0,
@@ -4481,12 +4481,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 30]",
       "itemA": {
         "label": "ساعة كاملة",
-        "emoji": "⭐",
+        "emoji": "⏳",
         "description": "ساعة كاملة ⏳ (60 دقيقة)"
       },
       "itemB": {
         "label": "نصف ساعة",
-        "emoji": "🎯",
+        "emoji": "⏱",
         "description": "نصف ساعة ⏱️ (30 دقيقة)"
       },
       "correctIndex": 0,
@@ -4497,12 +4497,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 31]",
       "itemA": {
         "label": "دستة كاملة",
-        "emoji": "⭐",
+        "emoji": "✏",
         "description": "دستة كاملة من الأقلام ✏️ (12 قلماً)"
       },
       "itemB": {
         "label": "نصف دستة",
-        "emoji": "🎯",
+        "emoji": "✏",
         "description": "نصف دستة أقلام ✏️ (6 أقلام)"
       },
       "correctIndex": 0,
@@ -4513,12 +4513,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 32]",
       "itemA": {
         "label": "القرن من",
-        "emoji": "⭐",
+        "emoji": "🏛",
         "description": "القرن من الزمان 🏛️ (100 سنة)"
       },
       "itemB": {
         "label": "العقد الزمني",
-        "emoji": "🎯",
+        "emoji": "📅",
         "description": "العقد الزمني 📅 (10 سنوات)"
       },
       "correctIndex": 0,
@@ -4529,12 +4529,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 33]",
       "itemA": {
         "label": "5 كيلوغرامات",
-        "emoji": "⭐",
+        "emoji": "📦",
         "description": "5 كيلوغرامات 📦 (5000 غرام)"
       },
       "itemB": {
         "label": "500 غرام",
-        "emoji": "🎯",
+        "emoji": "📦",
         "description": "500 غرام فقط 📦 (نصف كغ)"
       },
       "correctIndex": 0,
@@ -4545,12 +4545,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 34]",
       "itemA": {
         "label": "أسبوع كامل",
-        "emoji": "⭐",
+        "emoji": "📅",
         "description": "أسبوع كامل 📅 (7 أيام)"
       },
       "itemB": {
         "label": "عطلة نهاية",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "عطلة نهاية الأسبوع 🏖️ (يومان)"
       },
       "correctIndex": 0,
@@ -4561,12 +4561,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 35]",
       "itemA": {
         "label": "لتران من",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "لتران من الماء 💧 (2000 مل)"
       },
       "itemB": {
         "label": "كوب صغير",
-        "emoji": "🎯",
+        "emoji": "🥤",
         "description": "كوب صغير 🥤 (250 مل)"
       },
       "correctIndex": 0,
@@ -4577,12 +4577,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 36]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 8 × 9 🔢 (72)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 7 🔢 (49)"
       },
       "correctIndex": 0,
@@ -4593,12 +4593,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 37]",
       "itemA": {
         "label": "يومان كاملان",
-        "emoji": "⭐",
+        "emoji": "⏰",
         "description": "يومان كاملان ⏰ (48 ساعة)"
       },
       "itemB": {
         "label": "يوم واحد",
-        "emoji": "🎯",
+        "emoji": "☀",
         "description": "يوم واحد ☀️ (24 ساعة)"
       },
       "correctIndex": 0,
@@ -4609,12 +4609,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 38]",
       "itemA": {
         "label": "ورقة نقدية",
-        "emoji": "⭐",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 100 💵"
       },
       "itemB": {
         "label": "ورقة نقدية",
-        "emoji": "🎯",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 20 💵"
       },
       "correctIndex": 0,
@@ -4625,12 +4625,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 39]",
       "itemA": {
         "label": "نصف الرغيف",
-        "emoji": "⭐",
+        "emoji": "🍞",
         "description": "نصف الرغيف 🍞 (50%)"
       },
       "itemB": {
         "label": "ربع الرغيف",
-        "emoji": "🎯",
+        "emoji": "🥖",
         "description": "ربع الرغيف 🥖 (25%)"
       },
       "correctIndex": 0,
@@ -4641,12 +4641,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 40]",
       "itemA": {
         "label": "ساعة كاملة",
-        "emoji": "⭐",
+        "emoji": "⏳",
         "description": "ساعة كاملة ⏳ (60 دقيقة)"
       },
       "itemB": {
         "label": "نصف ساعة",
-        "emoji": "🎯",
+        "emoji": "⏱",
         "description": "نصف ساعة ⏱️ (30 دقيقة)"
       },
       "correctIndex": 0,
@@ -4657,12 +4657,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 41]",
       "itemA": {
         "label": "دستة كاملة",
-        "emoji": "⭐",
+        "emoji": "✏",
         "description": "دستة كاملة من الأقلام ✏️ (12 قلماً)"
       },
       "itemB": {
         "label": "نصف دستة",
-        "emoji": "🎯",
+        "emoji": "✏",
         "description": "نصف دستة أقلام ✏️ (6 أقلام)"
       },
       "correctIndex": 0,
@@ -4673,12 +4673,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 42]",
       "itemA": {
         "label": "القرن من",
-        "emoji": "⭐",
+        "emoji": "🏛",
         "description": "القرن من الزمان 🏛️ (100 سنة)"
       },
       "itemB": {
         "label": "العقد الزمني",
-        "emoji": "🎯",
+        "emoji": "📅",
         "description": "العقد الزمني 📅 (10 سنوات)"
       },
       "correctIndex": 0,
@@ -4689,12 +4689,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 43]",
       "itemA": {
         "label": "5 كيلوغرامات",
-        "emoji": "⭐",
+        "emoji": "📦",
         "description": "5 كيلوغرامات 📦 (5000 غرام)"
       },
       "itemB": {
         "label": "500 غرام",
-        "emoji": "🎯",
+        "emoji": "📦",
         "description": "500 غرام فقط 📦 (نصف كغ)"
       },
       "correctIndex": 0,
@@ -4705,12 +4705,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 44]",
       "itemA": {
         "label": "أسبوع كامل",
-        "emoji": "⭐",
+        "emoji": "📅",
         "description": "أسبوع كامل 📅 (7 أيام)"
       },
       "itemB": {
         "label": "عطلة نهاية",
-        "emoji": "🎯",
+        "emoji": "🏖",
         "description": "عطلة نهاية الأسبوع 🏖️ (يومان)"
       },
       "correctIndex": 0,
@@ -4721,12 +4721,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 45]",
       "itemA": {
         "label": "لتران من",
-        "emoji": "⭐",
+        "emoji": "💧",
         "description": "لتران من الماء 💧 (2000 مل)"
       },
       "itemB": {
         "label": "كوب صغير",
-        "emoji": "🎯",
+        "emoji": "🥤",
         "description": "كوب صغير 🥤 (250 مل)"
       },
       "correctIndex": 0,
@@ -4737,12 +4737,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 46]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 8 × 9 🔢 (72)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 7 🔢 (49)"
       },
       "correctIndex": 0,
@@ -4753,12 +4753,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 47]",
       "itemA": {
         "label": "يومان كاملان",
-        "emoji": "⭐",
+        "emoji": "⏰",
         "description": "يومان كاملان ⏰ (48 ساعة)"
       },
       "itemB": {
         "label": "يوم واحد",
-        "emoji": "🎯",
+        "emoji": "☀",
         "description": "يوم واحد ☀️ (24 ساعة)"
       },
       "correctIndex": 0,
@@ -4769,12 +4769,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 48]",
       "itemA": {
         "label": "ورقة نقدية",
-        "emoji": "⭐",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 100 💵"
       },
       "itemB": {
         "label": "ورقة نقدية",
-        "emoji": "🎯",
+        "emoji": "💵",
         "description": "ورقة نقدية فئة 20 💵"
       },
       "correctIndex": 0,
@@ -4785,12 +4785,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 49]",
       "itemA": {
         "label": "نصف الرغيف",
-        "emoji": "⭐",
+        "emoji": "🍞",
         "description": "نصف الرغيف 🍞 (50%)"
       },
       "itemB": {
         "label": "ربع الرغيف",
-        "emoji": "🎯",
+        "emoji": "🥖",
         "description": "ربع الرغيف 🥖 (25%)"
       },
       "correctIndex": 0,
@@ -4801,12 +4801,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما يمثل كمية أو عدداً أو قيمة أكبر؟ 🔢 [جولة 50]",
       "itemA": {
         "label": "ساعة كاملة",
-        "emoji": "⭐",
+        "emoji": "⏳",
         "description": "ساعة كاملة ⏳ (60 دقيقة)"
       },
       "itemB": {
         "label": "نصف ساعة",
-        "emoji": "🎯",
+        "emoji": "⏱",
         "description": "نصف ساعة ⏱️ (30 دقيقة)"
       },
       "correctIndex": 0,
@@ -4819,12 +4819,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 1]",
       "itemA": {
         "label": "القمر التابع",
-        "emoji": "⭐",
+        "emoji": "🌕",
         "description": "القمر التابع للأرض 🌕 (384 ألف كم)"
       },
       "itemB": {
         "label": "كوكب المريخ",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "كوكب المريخ 🔴 (55 مليون كم)"
       },
       "correctIndex": 0,
@@ -4835,12 +4835,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 2]",
       "itemA": {
         "label": "كوكب عطارد",
-        "emoji": "⭐",
+        "emoji": "🌑",
         "description": "كوكب عطارد 🌑 (الأقرب للشمس)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون 🪐 (أبعد الكواكب)"
       },
       "correctIndex": 0,
@@ -4851,12 +4851,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 3]",
       "itemA": {
         "label": "الشمس ☀️",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس ☀️ (150 مليون كم)"
       },
       "itemB": {
         "label": "نجم ألفا",
-        "emoji": "🎯",
+        "emoji": "✨",
         "description": "نجم ألفا قنطورس ✨ (4 سنوات ضوئية)"
       },
       "correctIndex": 0,
@@ -4867,12 +4867,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 4]",
       "itemA": {
         "label": "محطة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "محطة الفضاء الدولية 🛰️ (400 كم)"
       },
       "itemB": {
         "label": "القمر 🌕",
-        "emoji": "🎯",
+        "emoji": "🌕",
         "description": "القمر 🌕 (384 ألف كم)"
       },
       "correctIndex": 0,
@@ -4883,12 +4883,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 5]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (أقرب كواكب المجموعة لمدارنا)"
       },
       "itemB": {
         "label": "كوكب زحل",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب زحل 🪐 (بعيد جداً)"
       },
       "correctIndex": 0,
@@ -4899,12 +4899,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 6]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (10 كم)"
       },
       "itemB": {
         "label": "الصاروخ في",
-        "emoji": "🎯",
+        "emoji": "🚀",
         "description": "الصاروخ في المدار 🚀 (200 كم)"
       },
       "correctIndex": 0,
@@ -4915,12 +4915,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 7]",
       "itemA": {
         "label": "حزام الكويكبات",
-        "emoji": "⭐",
+        "emoji": "☄",
         "description": "حزام الكويكبات ☄️ (بين المريخ والمشتري)"
       },
       "itemB": {
         "label": "سحابة أورت",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "سحابة أورت 🌌 (أطراف النظام الشمسي)"
       },
       "correctIndex": 0,
@@ -4931,12 +4931,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 8]",
       "itemA": {
         "label": "مجرة درب",
-        "emoji": "⭐",
+        "emoji": "🌌",
         "description": "مجرة درب التبانة 🌌 (مجرتنا التي نعيش فيها)"
       },
       "itemB": {
         "label": "مجرة أندروميدا",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "مجرة أندروميدا 🌌 (تبعد 2.5 مليون سنة ضوئية)"
       },
       "correctIndex": 0,
@@ -4947,12 +4947,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 9]",
       "itemA": {
         "label": "سفينة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "سفينة الفضاء المتجهة للمريخ 🚀"
       },
       "itemB": {
         "label": "المسبار فوييجر",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "المسبار فوييجر خارج المجموعة 🛰️"
       },
       "correctIndex": 0,
@@ -4963,12 +4963,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 10]",
       "itemA": {
         "label": "تلسكوب هابل",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "تلسكوب هابل الفضائي 🛰️ (550 كم)"
       },
       "itemB": {
         "label": "تلسكوب جيمس",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "تلسكوب جيمس ويب 🛰️ (1.5 مليون كم)"
       },
       "correctIndex": 0,
@@ -4979,12 +4979,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 11]",
       "itemA": {
         "label": "القمر التابع",
-        "emoji": "⭐",
+        "emoji": "🌕",
         "description": "القمر التابع للأرض 🌕 (384 ألف كم)"
       },
       "itemB": {
         "label": "كوكب المريخ",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "كوكب المريخ 🔴 (55 مليون كم)"
       },
       "correctIndex": 0,
@@ -4995,12 +4995,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 12]",
       "itemA": {
         "label": "كوكب عطارد",
-        "emoji": "⭐",
+        "emoji": "🌑",
         "description": "كوكب عطارد 🌑 (الأقرب للشمس)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون 🪐 (أبعد الكواكب)"
       },
       "correctIndex": 0,
@@ -5011,12 +5011,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 13]",
       "itemA": {
         "label": "الشمس ☀️",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس ☀️ (150 مليون كم)"
       },
       "itemB": {
         "label": "نجم ألفا",
-        "emoji": "🎯",
+        "emoji": "✨",
         "description": "نجم ألفا قنطورس ✨ (4 سنوات ضوئية)"
       },
       "correctIndex": 0,
@@ -5027,12 +5027,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 14]",
       "itemA": {
         "label": "محطة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "محطة الفضاء الدولية 🛰️ (400 كم)"
       },
       "itemB": {
         "label": "القمر 🌕",
-        "emoji": "🎯",
+        "emoji": "🌕",
         "description": "القمر 🌕 (384 ألف كم)"
       },
       "correctIndex": 0,
@@ -5043,12 +5043,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 15]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (أقرب كواكب المجموعة لمدارنا)"
       },
       "itemB": {
         "label": "كوكب زحل",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب زحل 🪐 (بعيد جداً)"
       },
       "correctIndex": 0,
@@ -5059,12 +5059,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 16]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (10 كم)"
       },
       "itemB": {
         "label": "الصاروخ في",
-        "emoji": "🎯",
+        "emoji": "🚀",
         "description": "الصاروخ في المدار 🚀 (200 كم)"
       },
       "correctIndex": 0,
@@ -5075,12 +5075,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 17]",
       "itemA": {
         "label": "حزام الكويكبات",
-        "emoji": "⭐",
+        "emoji": "☄",
         "description": "حزام الكويكبات ☄️ (بين المريخ والمشتري)"
       },
       "itemB": {
         "label": "سحابة أورت",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "سحابة أورت 🌌 (أطراف النظام الشمسي)"
       },
       "correctIndex": 0,
@@ -5091,12 +5091,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 18]",
       "itemA": {
         "label": "مجرة درب",
-        "emoji": "⭐",
+        "emoji": "🌌",
         "description": "مجرة درب التبانة 🌌 (مجرتنا التي نعيش فيها)"
       },
       "itemB": {
         "label": "مجرة أندروميدا",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "مجرة أندروميدا 🌌 (تبعد 2.5 مليون سنة ضوئية)"
       },
       "correctIndex": 0,
@@ -5107,12 +5107,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 19]",
       "itemA": {
         "label": "سفينة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "سفينة الفضاء المتجهة للمريخ 🚀"
       },
       "itemB": {
         "label": "المسبار فوييجر",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "المسبار فوييجر خارج المجموعة 🛰️"
       },
       "correctIndex": 0,
@@ -5123,12 +5123,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 20]",
       "itemA": {
         "label": "تلسكوب هابل",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "تلسكوب هابل الفضائي 🛰️ (550 كم)"
       },
       "itemB": {
         "label": "تلسكوب جيمس",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "تلسكوب جيمس ويب 🛰️ (1.5 مليون كم)"
       },
       "correctIndex": 0,
@@ -5139,12 +5139,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 21]",
       "itemA": {
         "label": "القمر التابع",
-        "emoji": "⭐",
+        "emoji": "🌕",
         "description": "القمر التابع للأرض 🌕 (384 ألف كم)"
       },
       "itemB": {
         "label": "كوكب المريخ",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "كوكب المريخ 🔴 (55 مليون كم)"
       },
       "correctIndex": 0,
@@ -5155,12 +5155,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 22]",
       "itemA": {
         "label": "كوكب عطارد",
-        "emoji": "⭐",
+        "emoji": "🌑",
         "description": "كوكب عطارد 🌑 (الأقرب للشمس)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون 🪐 (أبعد الكواكب)"
       },
       "correctIndex": 0,
@@ -5171,12 +5171,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 23]",
       "itemA": {
         "label": "الشمس ☀️",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس ☀️ (150 مليون كم)"
       },
       "itemB": {
         "label": "نجم ألفا",
-        "emoji": "🎯",
+        "emoji": "✨",
         "description": "نجم ألفا قنطورس ✨ (4 سنوات ضوئية)"
       },
       "correctIndex": 0,
@@ -5187,12 +5187,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 24]",
       "itemA": {
         "label": "محطة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "محطة الفضاء الدولية 🛰️ (400 كم)"
       },
       "itemB": {
         "label": "القمر 🌕",
-        "emoji": "🎯",
+        "emoji": "🌕",
         "description": "القمر 🌕 (384 ألف كم)"
       },
       "correctIndex": 0,
@@ -5203,12 +5203,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 25]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (أقرب كواكب المجموعة لمدارنا)"
       },
       "itemB": {
         "label": "كوكب زحل",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب زحل 🪐 (بعيد جداً)"
       },
       "correctIndex": 0,
@@ -5219,12 +5219,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 26]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (10 كم)"
       },
       "itemB": {
         "label": "الصاروخ في",
-        "emoji": "🎯",
+        "emoji": "🚀",
         "description": "الصاروخ في المدار 🚀 (200 كم)"
       },
       "correctIndex": 0,
@@ -5235,12 +5235,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 27]",
       "itemA": {
         "label": "حزام الكويكبات",
-        "emoji": "⭐",
+        "emoji": "☄",
         "description": "حزام الكويكبات ☄️ (بين المريخ والمشتري)"
       },
       "itemB": {
         "label": "سحابة أورت",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "سحابة أورت 🌌 (أطراف النظام الشمسي)"
       },
       "correctIndex": 0,
@@ -5251,12 +5251,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 28]",
       "itemA": {
         "label": "مجرة درب",
-        "emoji": "⭐",
+        "emoji": "🌌",
         "description": "مجرة درب التبانة 🌌 (مجرتنا التي نعيش فيها)"
       },
       "itemB": {
         "label": "مجرة أندروميدا",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "مجرة أندروميدا 🌌 (تبعد 2.5 مليون سنة ضوئية)"
       },
       "correctIndex": 0,
@@ -5267,12 +5267,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 29]",
       "itemA": {
         "label": "سفينة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "سفينة الفضاء المتجهة للمريخ 🚀"
       },
       "itemB": {
         "label": "المسبار فوييجر",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "المسبار فوييجر خارج المجموعة 🛰️"
       },
       "correctIndex": 0,
@@ -5283,12 +5283,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 30]",
       "itemA": {
         "label": "تلسكوب هابل",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "تلسكوب هابل الفضائي 🛰️ (550 كم)"
       },
       "itemB": {
         "label": "تلسكوب جيمس",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "تلسكوب جيمس ويب 🛰️ (1.5 مليون كم)"
       },
       "correctIndex": 0,
@@ -5299,12 +5299,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 31]",
       "itemA": {
         "label": "القمر التابع",
-        "emoji": "⭐",
+        "emoji": "🌕",
         "description": "القمر التابع للأرض 🌕 (384 ألف كم)"
       },
       "itemB": {
         "label": "كوكب المريخ",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "كوكب المريخ 🔴 (55 مليون كم)"
       },
       "correctIndex": 0,
@@ -5315,12 +5315,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 32]",
       "itemA": {
         "label": "كوكب عطارد",
-        "emoji": "⭐",
+        "emoji": "🌑",
         "description": "كوكب عطارد 🌑 (الأقرب للشمس)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون 🪐 (أبعد الكواكب)"
       },
       "correctIndex": 0,
@@ -5331,12 +5331,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 33]",
       "itemA": {
         "label": "الشمس ☀️",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس ☀️ (150 مليون كم)"
       },
       "itemB": {
         "label": "نجم ألفا",
-        "emoji": "🎯",
+        "emoji": "✨",
         "description": "نجم ألفا قنطورس ✨ (4 سنوات ضوئية)"
       },
       "correctIndex": 0,
@@ -5347,12 +5347,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 34]",
       "itemA": {
         "label": "محطة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "محطة الفضاء الدولية 🛰️ (400 كم)"
       },
       "itemB": {
         "label": "القمر 🌕",
-        "emoji": "🎯",
+        "emoji": "🌕",
         "description": "القمر 🌕 (384 ألف كم)"
       },
       "correctIndex": 0,
@@ -5363,12 +5363,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 35]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (أقرب كواكب المجموعة لمدارنا)"
       },
       "itemB": {
         "label": "كوكب زحل",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب زحل 🪐 (بعيد جداً)"
       },
       "correctIndex": 0,
@@ -5379,12 +5379,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 36]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (10 كم)"
       },
       "itemB": {
         "label": "الصاروخ في",
-        "emoji": "🎯",
+        "emoji": "🚀",
         "description": "الصاروخ في المدار 🚀 (200 كم)"
       },
       "correctIndex": 0,
@@ -5395,12 +5395,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 37]",
       "itemA": {
         "label": "حزام الكويكبات",
-        "emoji": "⭐",
+        "emoji": "☄",
         "description": "حزام الكويكبات ☄️ (بين المريخ والمشتري)"
       },
       "itemB": {
         "label": "سحابة أورت",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "سحابة أورت 🌌 (أطراف النظام الشمسي)"
       },
       "correctIndex": 0,
@@ -5411,12 +5411,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 38]",
       "itemA": {
         "label": "مجرة درب",
-        "emoji": "⭐",
+        "emoji": "🌌",
         "description": "مجرة درب التبانة 🌌 (مجرتنا التي نعيش فيها)"
       },
       "itemB": {
         "label": "مجرة أندروميدا",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "مجرة أندروميدا 🌌 (تبعد 2.5 مليون سنة ضوئية)"
       },
       "correctIndex": 0,
@@ -5427,12 +5427,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 39]",
       "itemA": {
         "label": "سفينة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "سفينة الفضاء المتجهة للمريخ 🚀"
       },
       "itemB": {
         "label": "المسبار فوييجر",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "المسبار فوييجر خارج المجموعة 🛰️"
       },
       "correctIndex": 0,
@@ -5443,12 +5443,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 40]",
       "itemA": {
         "label": "تلسكوب هابل",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "تلسكوب هابل الفضائي 🛰️ (550 كم)"
       },
       "itemB": {
         "label": "تلسكوب جيمس",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "تلسكوب جيمس ويب 🛰️ (1.5 مليون كم)"
       },
       "correctIndex": 0,
@@ -5459,12 +5459,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 41]",
       "itemA": {
         "label": "القمر التابع",
-        "emoji": "⭐",
+        "emoji": "🌕",
         "description": "القمر التابع للأرض 🌕 (384 ألف كم)"
       },
       "itemB": {
         "label": "كوكب المريخ",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "كوكب المريخ 🔴 (55 مليون كم)"
       },
       "correctIndex": 0,
@@ -5475,12 +5475,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 42]",
       "itemA": {
         "label": "كوكب عطارد",
-        "emoji": "⭐",
+        "emoji": "🌑",
         "description": "كوكب عطارد 🌑 (الأقرب للشمس)"
       },
       "itemB": {
         "label": "كوكب نبتون",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب نبتون 🪐 (أبعد الكواكب)"
       },
       "correctIndex": 0,
@@ -5491,12 +5491,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 43]",
       "itemA": {
         "label": "الشمس ☀️",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الشمس ☀️ (150 مليون كم)"
       },
       "itemB": {
         "label": "نجم ألفا",
-        "emoji": "🎯",
+        "emoji": "✨",
         "description": "نجم ألفا قنطورس ✨ (4 سنوات ضوئية)"
       },
       "correctIndex": 0,
@@ -5507,12 +5507,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 44]",
       "itemA": {
         "label": "محطة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "محطة الفضاء الدولية 🛰️ (400 كم)"
       },
       "itemB": {
         "label": "القمر 🌕",
-        "emoji": "🎯",
+        "emoji": "🌕",
         "description": "القمر 🌕 (384 ألف كم)"
       },
       "correctIndex": 0,
@@ -5523,12 +5523,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 45]",
       "itemA": {
         "label": "كوكب الزهرة",
-        "emoji": "⭐",
+        "emoji": "🪐",
         "description": "كوكب الزهرة 🪐 (أقرب كواكب المجموعة لمدارنا)"
       },
       "itemB": {
         "label": "كوكب زحل",
-        "emoji": "🎯",
+        "emoji": "🪐",
         "description": "كوكب زحل 🪐 (بعيد جداً)"
       },
       "correctIndex": 0,
@@ -5539,12 +5539,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 46]",
       "itemA": {
         "label": "طائرة الركاب",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "طائرة الركاب ✈️ (10 كم)"
       },
       "itemB": {
         "label": "الصاروخ في",
-        "emoji": "🎯",
+        "emoji": "🚀",
         "description": "الصاروخ في المدار 🚀 (200 كم)"
       },
       "correctIndex": 0,
@@ -5555,12 +5555,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 47]",
       "itemA": {
         "label": "حزام الكويكبات",
-        "emoji": "⭐",
+        "emoji": "☄",
         "description": "حزام الكويكبات ☄️ (بين المريخ والمشتري)"
       },
       "itemB": {
         "label": "سحابة أورت",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "سحابة أورت 🌌 (أطراف النظام الشمسي)"
       },
       "correctIndex": 0,
@@ -5571,12 +5571,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 48]",
       "itemA": {
         "label": "مجرة درب",
-        "emoji": "⭐",
+        "emoji": "🌌",
         "description": "مجرة درب التبانة 🌌 (مجرتنا التي نعيش فيها)"
       },
       "itemB": {
         "label": "مجرة أندروميدا",
-        "emoji": "🎯",
+        "emoji": "🌌",
         "description": "مجرة أندروميدا 🌌 (تبعد 2.5 مليون سنة ضوئية)"
       },
       "correctIndex": 0,
@@ -5587,12 +5587,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 49]",
       "itemA": {
         "label": "سفينة الفضاء",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "سفينة الفضاء المتجهة للمريخ 🚀"
       },
       "itemB": {
         "label": "المسبار فوييجر",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "المسبار فوييجر خارج المجموعة 🛰️"
       },
       "correctIndex": 0,
@@ -5603,12 +5603,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أقرب إلى كوكب الأرض أو الشمس؟ 🪐 [جولة 50]",
       "itemA": {
         "label": "تلسكوب هابل",
-        "emoji": "⭐",
+        "emoji": "🛰",
         "description": "تلسكوب هابل الفضائي 🛰️ (550 كم)"
       },
       "itemB": {
         "label": "تلسكوب جيمس",
-        "emoji": "🎯",
+        "emoji": "🛰",
         "description": "تلسكوب جيمس ويب 🛰️ (1.5 مليون كم)"
       },
       "correctIndex": 0,
@@ -5621,12 +5621,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 1]",
       "itemA": {
         "label": "إقلاع الصاروخ",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "إقلاع الصاروخ الفضائي 🚀 (180 ديسيبل)"
       },
       "itemB": {
         "label": "همس الإنسان",
-        "emoji": "🎯",
+        "emoji": "🗣",
         "description": "همس الإنسان الهادئ 🗣️ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5637,12 +5637,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 2]",
       "itemA": {
         "label": "صوت الرعد",
-        "emoji": "⭐",
+        "emoji": "🌩",
         "description": "صوت الرعد الشديد 🌩️ (120 ديسيبل)"
       },
       "itemB": {
         "label": "حفيف أوراق",
-        "emoji": "🎯",
+        "emoji": "🍃",
         "description": "حفيف أوراق الشجر 🍃 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5653,12 +5653,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 3]",
       "itemA": {
         "label": "زئير الأسد",
-        "emoji": "⭐",
+        "emoji": "🦁",
         "description": "زئير الأسد في البراري 🦁 (114 ديسيبل)"
       },
       "itemB": {
         "label": "مواء القطة",
-        "emoji": "🎯",
+        "emoji": "🐱",
         "description": "مواء القطة الصغيرة 🐱 (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5669,12 +5669,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 4]",
       "itemA": {
         "label": "محرك الطائرة",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "محرك الطائرة النفاثة ✈️ (140 ديسيبل)"
       },
       "itemB": {
         "label": "دقات ساعة",
-        "emoji": "🎯",
+        "emoji": "⏰",
         "description": "دقات ساعة الحائط ⏰ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5685,12 +5685,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 5]",
       "itemA": {
         "label": "صفارة إنذار",
-        "emoji": "⭐",
+        "emoji": "🚑",
         "description": "صفارة إنذار الإسعاف 🚑 (100 ديسيبل)"
       },
       "itemB": {
         "label": "تغريد البلبل",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "تغريد البلبل في الصباح 🐦 (50 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5701,12 +5701,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 6]",
       "itemA": {
         "label": "نداء الحوت",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "نداء الحوت الأزرق في المحيط 🐋 (188 ديسيبل)"
       },
       "itemB": {
         "label": "سباحة السمكة",
-        "emoji": "🎯",
+        "emoji": "🐠",
         "description": "سباحة السمكة الذهبية 🐠 (صامتة)"
       },
       "correctIndex": 0,
@@ -5717,12 +5717,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 7]",
       "itemA": {
         "label": "المكنسة الكهربائية",
-        "emoji": "⭐",
+        "emoji": "🧹",
         "description": "المكنسة الكهربائية المنزلية 🧹 (75 ديسيبل)"
       },
       "itemB": {
         "label": "تقليب صفحات",
-        "emoji": "🎯",
+        "emoji": "📖",
         "description": "تقليب صفحات الكتاب 📖 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5733,12 +5733,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 8]",
       "itemA": {
         "label": "بوق شاحنة",
-        "emoji": "⭐",
+        "emoji": "📢",
         "description": "بوق شاحنة البضائع 📢 (110 ديسيبل)"
       },
       "itemB": {
         "label": "خطوات المشي",
-        "emoji": "🎯",
+        "emoji": "🧦",
         "description": "خطوات المشي بالجورب 🧦 (15 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5749,12 +5749,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 9]",
       "itemA": {
         "label": "انفجار البركان",
-        "emoji": "⭐",
+        "emoji": "🌋",
         "description": "انفجار البركان الهائل 🌋 (صوت قياسي هائل)"
       },
       "itemB": {
         "label": "تساقط المطر",
-        "emoji": "🎯",
+        "emoji": "🌧",
         "description": "تساقط المطر الخفيف 🌧️ (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5765,12 +5765,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 10]",
       "itemA": {
         "label": "هتاف 60",
-        "emoji": "⭐",
+        "emoji": "🏟",
         "description": "هتاف 60 ألف مشجع في الملعب 🏟️ (115 ديسيبل)"
       },
       "itemB": {
         "label": "همس المدرس",
-        "emoji": "🎯",
+        "emoji": "🤫",
         "description": "همس المدرس في الفصل 🤫 (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5781,12 +5781,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 11]",
       "itemA": {
         "label": "إقلاع الصاروخ",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "إقلاع الصاروخ الفضائي 🚀 (180 ديسيبل)"
       },
       "itemB": {
         "label": "همس الإنسان",
-        "emoji": "🎯",
+        "emoji": "🗣",
         "description": "همس الإنسان الهادئ 🗣️ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5797,12 +5797,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 12]",
       "itemA": {
         "label": "صوت الرعد",
-        "emoji": "⭐",
+        "emoji": "🌩",
         "description": "صوت الرعد الشديد 🌩️ (120 ديسيبل)"
       },
       "itemB": {
         "label": "حفيف أوراق",
-        "emoji": "🎯",
+        "emoji": "🍃",
         "description": "حفيف أوراق الشجر 🍃 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5813,12 +5813,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 13]",
       "itemA": {
         "label": "زئير الأسد",
-        "emoji": "⭐",
+        "emoji": "🦁",
         "description": "زئير الأسد في البراري 🦁 (114 ديسيبل)"
       },
       "itemB": {
         "label": "مواء القطة",
-        "emoji": "🎯",
+        "emoji": "🐱",
         "description": "مواء القطة الصغيرة 🐱 (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5829,12 +5829,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 14]",
       "itemA": {
         "label": "محرك الطائرة",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "محرك الطائرة النفاثة ✈️ (140 ديسيبل)"
       },
       "itemB": {
         "label": "دقات ساعة",
-        "emoji": "🎯",
+        "emoji": "⏰",
         "description": "دقات ساعة الحائط ⏰ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5845,12 +5845,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 15]",
       "itemA": {
         "label": "صفارة إنذار",
-        "emoji": "⭐",
+        "emoji": "🚑",
         "description": "صفارة إنذار الإسعاف 🚑 (100 ديسيبل)"
       },
       "itemB": {
         "label": "تغريد البلبل",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "تغريد البلبل في الصباح 🐦 (50 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5861,12 +5861,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 16]",
       "itemA": {
         "label": "نداء الحوت",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "نداء الحوت الأزرق في المحيط 🐋 (188 ديسيبل)"
       },
       "itemB": {
         "label": "سباحة السمكة",
-        "emoji": "🎯",
+        "emoji": "🐠",
         "description": "سباحة السمكة الذهبية 🐠 (صامتة)"
       },
       "correctIndex": 0,
@@ -5877,12 +5877,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 17]",
       "itemA": {
         "label": "المكنسة الكهربائية",
-        "emoji": "⭐",
+        "emoji": "🧹",
         "description": "المكنسة الكهربائية المنزلية 🧹 (75 ديسيبل)"
       },
       "itemB": {
         "label": "تقليب صفحات",
-        "emoji": "🎯",
+        "emoji": "📖",
         "description": "تقليب صفحات الكتاب 📖 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5893,12 +5893,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 18]",
       "itemA": {
         "label": "بوق شاحنة",
-        "emoji": "⭐",
+        "emoji": "📢",
         "description": "بوق شاحنة البضائع 📢 (110 ديسيبل)"
       },
       "itemB": {
         "label": "خطوات المشي",
-        "emoji": "🎯",
+        "emoji": "🧦",
         "description": "خطوات المشي بالجورب 🧦 (15 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5909,12 +5909,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 19]",
       "itemA": {
         "label": "انفجار البركان",
-        "emoji": "⭐",
+        "emoji": "🌋",
         "description": "انفجار البركان الهائل 🌋 (صوت قياسي هائل)"
       },
       "itemB": {
         "label": "تساقط المطر",
-        "emoji": "🎯",
+        "emoji": "🌧",
         "description": "تساقط المطر الخفيف 🌧️ (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5925,12 +5925,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 20]",
       "itemA": {
         "label": "هتاف 60",
-        "emoji": "⭐",
+        "emoji": "🏟",
         "description": "هتاف 60 ألف مشجع في الملعب 🏟️ (115 ديسيبل)"
       },
       "itemB": {
         "label": "همس المدرس",
-        "emoji": "🎯",
+        "emoji": "🤫",
         "description": "همس المدرس في الفصل 🤫 (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5941,12 +5941,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 21]",
       "itemA": {
         "label": "إقلاع الصاروخ",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "إقلاع الصاروخ الفضائي 🚀 (180 ديسيبل)"
       },
       "itemB": {
         "label": "همس الإنسان",
-        "emoji": "🎯",
+        "emoji": "🗣",
         "description": "همس الإنسان الهادئ 🗣️ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5957,12 +5957,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 22]",
       "itemA": {
         "label": "صوت الرعد",
-        "emoji": "⭐",
+        "emoji": "🌩",
         "description": "صوت الرعد الشديد 🌩️ (120 ديسيبل)"
       },
       "itemB": {
         "label": "حفيف أوراق",
-        "emoji": "🎯",
+        "emoji": "🍃",
         "description": "حفيف أوراق الشجر 🍃 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5973,12 +5973,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 23]",
       "itemA": {
         "label": "زئير الأسد",
-        "emoji": "⭐",
+        "emoji": "🦁",
         "description": "زئير الأسد في البراري 🦁 (114 ديسيبل)"
       },
       "itemB": {
         "label": "مواء القطة",
-        "emoji": "🎯",
+        "emoji": "🐱",
         "description": "مواء القطة الصغيرة 🐱 (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -5989,12 +5989,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 24]",
       "itemA": {
         "label": "محرك الطائرة",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "محرك الطائرة النفاثة ✈️ (140 ديسيبل)"
       },
       "itemB": {
         "label": "دقات ساعة",
-        "emoji": "🎯",
+        "emoji": "⏰",
         "description": "دقات ساعة الحائط ⏰ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6005,12 +6005,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 25]",
       "itemA": {
         "label": "صفارة إنذار",
-        "emoji": "⭐",
+        "emoji": "🚑",
         "description": "صفارة إنذار الإسعاف 🚑 (100 ديسيبل)"
       },
       "itemB": {
         "label": "تغريد البلبل",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "تغريد البلبل في الصباح 🐦 (50 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6021,12 +6021,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 26]",
       "itemA": {
         "label": "نداء الحوت",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "نداء الحوت الأزرق في المحيط 🐋 (188 ديسيبل)"
       },
       "itemB": {
         "label": "سباحة السمكة",
-        "emoji": "🎯",
+        "emoji": "🐠",
         "description": "سباحة السمكة الذهبية 🐠 (صامتة)"
       },
       "correctIndex": 0,
@@ -6037,12 +6037,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 27]",
       "itemA": {
         "label": "المكنسة الكهربائية",
-        "emoji": "⭐",
+        "emoji": "🧹",
         "description": "المكنسة الكهربائية المنزلية 🧹 (75 ديسيبل)"
       },
       "itemB": {
         "label": "تقليب صفحات",
-        "emoji": "🎯",
+        "emoji": "📖",
         "description": "تقليب صفحات الكتاب 📖 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6053,12 +6053,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 28]",
       "itemA": {
         "label": "بوق شاحنة",
-        "emoji": "⭐",
+        "emoji": "📢",
         "description": "بوق شاحنة البضائع 📢 (110 ديسيبل)"
       },
       "itemB": {
         "label": "خطوات المشي",
-        "emoji": "🎯",
+        "emoji": "🧦",
         "description": "خطوات المشي بالجورب 🧦 (15 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6069,12 +6069,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 29]",
       "itemA": {
         "label": "انفجار البركان",
-        "emoji": "⭐",
+        "emoji": "🌋",
         "description": "انفجار البركان الهائل 🌋 (صوت قياسي هائل)"
       },
       "itemB": {
         "label": "تساقط المطر",
-        "emoji": "🎯",
+        "emoji": "🌧",
         "description": "تساقط المطر الخفيف 🌧️ (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6085,12 +6085,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 30]",
       "itemA": {
         "label": "هتاف 60",
-        "emoji": "⭐",
+        "emoji": "🏟",
         "description": "هتاف 60 ألف مشجع في الملعب 🏟️ (115 ديسيبل)"
       },
       "itemB": {
         "label": "همس المدرس",
-        "emoji": "🎯",
+        "emoji": "🤫",
         "description": "همس المدرس في الفصل 🤫 (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6101,12 +6101,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 31]",
       "itemA": {
         "label": "إقلاع الصاروخ",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "إقلاع الصاروخ الفضائي 🚀 (180 ديسيبل)"
       },
       "itemB": {
         "label": "همس الإنسان",
-        "emoji": "🎯",
+        "emoji": "🗣",
         "description": "همس الإنسان الهادئ 🗣️ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6117,12 +6117,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 32]",
       "itemA": {
         "label": "صوت الرعد",
-        "emoji": "⭐",
+        "emoji": "🌩",
         "description": "صوت الرعد الشديد 🌩️ (120 ديسيبل)"
       },
       "itemB": {
         "label": "حفيف أوراق",
-        "emoji": "🎯",
+        "emoji": "🍃",
         "description": "حفيف أوراق الشجر 🍃 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6133,12 +6133,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 33]",
       "itemA": {
         "label": "زئير الأسد",
-        "emoji": "⭐",
+        "emoji": "🦁",
         "description": "زئير الأسد في البراري 🦁 (114 ديسيبل)"
       },
       "itemB": {
         "label": "مواء القطة",
-        "emoji": "🎯",
+        "emoji": "🐱",
         "description": "مواء القطة الصغيرة 🐱 (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6149,12 +6149,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 34]",
       "itemA": {
         "label": "محرك الطائرة",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "محرك الطائرة النفاثة ✈️ (140 ديسيبل)"
       },
       "itemB": {
         "label": "دقات ساعة",
-        "emoji": "🎯",
+        "emoji": "⏰",
         "description": "دقات ساعة الحائط ⏰ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6165,12 +6165,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 35]",
       "itemA": {
         "label": "صفارة إنذار",
-        "emoji": "⭐",
+        "emoji": "🚑",
         "description": "صفارة إنذار الإسعاف 🚑 (100 ديسيبل)"
       },
       "itemB": {
         "label": "تغريد البلبل",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "تغريد البلبل في الصباح 🐦 (50 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6181,12 +6181,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 36]",
       "itemA": {
         "label": "نداء الحوت",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "نداء الحوت الأزرق في المحيط 🐋 (188 ديسيبل)"
       },
       "itemB": {
         "label": "سباحة السمكة",
-        "emoji": "🎯",
+        "emoji": "🐠",
         "description": "سباحة السمكة الذهبية 🐠 (صامتة)"
       },
       "correctIndex": 0,
@@ -6197,12 +6197,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 37]",
       "itemA": {
         "label": "المكنسة الكهربائية",
-        "emoji": "⭐",
+        "emoji": "🧹",
         "description": "المكنسة الكهربائية المنزلية 🧹 (75 ديسيبل)"
       },
       "itemB": {
         "label": "تقليب صفحات",
-        "emoji": "🎯",
+        "emoji": "📖",
         "description": "تقليب صفحات الكتاب 📖 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6213,12 +6213,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 38]",
       "itemA": {
         "label": "بوق شاحنة",
-        "emoji": "⭐",
+        "emoji": "📢",
         "description": "بوق شاحنة البضائع 📢 (110 ديسيبل)"
       },
       "itemB": {
         "label": "خطوات المشي",
-        "emoji": "🎯",
+        "emoji": "🧦",
         "description": "خطوات المشي بالجورب 🧦 (15 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6229,12 +6229,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 39]",
       "itemA": {
         "label": "انفجار البركان",
-        "emoji": "⭐",
+        "emoji": "🌋",
         "description": "انفجار البركان الهائل 🌋 (صوت قياسي هائل)"
       },
       "itemB": {
         "label": "تساقط المطر",
-        "emoji": "🎯",
+        "emoji": "🌧",
         "description": "تساقط المطر الخفيف 🌧️ (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6245,12 +6245,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 40]",
       "itemA": {
         "label": "هتاف 60",
-        "emoji": "⭐",
+        "emoji": "🏟",
         "description": "هتاف 60 ألف مشجع في الملعب 🏟️ (115 ديسيبل)"
       },
       "itemB": {
         "label": "همس المدرس",
-        "emoji": "🎯",
+        "emoji": "🤫",
         "description": "همس المدرس في الفصل 🤫 (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6261,12 +6261,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 41]",
       "itemA": {
         "label": "إقلاع الصاروخ",
-        "emoji": "⭐",
+        "emoji": "🚀",
         "description": "إقلاع الصاروخ الفضائي 🚀 (180 ديسيبل)"
       },
       "itemB": {
         "label": "همس الإنسان",
-        "emoji": "🎯",
+        "emoji": "🗣",
         "description": "همس الإنسان الهادئ 🗣️ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6277,12 +6277,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 42]",
       "itemA": {
         "label": "صوت الرعد",
-        "emoji": "⭐",
+        "emoji": "🌩",
         "description": "صوت الرعد الشديد 🌩️ (120 ديسيبل)"
       },
       "itemB": {
         "label": "حفيف أوراق",
-        "emoji": "🎯",
+        "emoji": "🍃",
         "description": "حفيف أوراق الشجر 🍃 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6293,12 +6293,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 43]",
       "itemA": {
         "label": "زئير الأسد",
-        "emoji": "⭐",
+        "emoji": "🦁",
         "description": "زئير الأسد في البراري 🦁 (114 ديسيبل)"
       },
       "itemB": {
         "label": "مواء القطة",
-        "emoji": "🎯",
+        "emoji": "🐱",
         "description": "مواء القطة الصغيرة 🐱 (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6309,12 +6309,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 44]",
       "itemA": {
         "label": "محرك الطائرة",
-        "emoji": "⭐",
+        "emoji": "✈",
         "description": "محرك الطائرة النفاثة ✈️ (140 ديسيبل)"
       },
       "itemB": {
         "label": "دقات ساعة",
-        "emoji": "🎯",
+        "emoji": "⏰",
         "description": "دقات ساعة الحائط ⏰ (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6325,12 +6325,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 45]",
       "itemA": {
         "label": "صفارة إنذار",
-        "emoji": "⭐",
+        "emoji": "🚑",
         "description": "صفارة إنذار الإسعاف 🚑 (100 ديسيبل)"
       },
       "itemB": {
         "label": "تغريد البلبل",
-        "emoji": "🎯",
+        "emoji": "🐦",
         "description": "تغريد البلبل في الصباح 🐦 (50 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6341,12 +6341,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 46]",
       "itemA": {
         "label": "نداء الحوت",
-        "emoji": "⭐",
+        "emoji": "🐋",
         "description": "نداء الحوت الأزرق في المحيط 🐋 (188 ديسيبل)"
       },
       "itemB": {
         "label": "سباحة السمكة",
-        "emoji": "🎯",
+        "emoji": "🐠",
         "description": "سباحة السمكة الذهبية 🐠 (صامتة)"
       },
       "correctIndex": 0,
@@ -6357,12 +6357,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 47]",
       "itemA": {
         "label": "المكنسة الكهربائية",
-        "emoji": "⭐",
+        "emoji": "🧹",
         "description": "المكنسة الكهربائية المنزلية 🧹 (75 ديسيبل)"
       },
       "itemB": {
         "label": "تقليب صفحات",
-        "emoji": "🎯",
+        "emoji": "📖",
         "description": "تقليب صفحات الكتاب 📖 (20 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6373,12 +6373,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 48]",
       "itemA": {
         "label": "بوق شاحنة",
-        "emoji": "⭐",
+        "emoji": "📢",
         "description": "بوق شاحنة البضائع 📢 (110 ديسيبل)"
       },
       "itemB": {
         "label": "خطوات المشي",
-        "emoji": "🎯",
+        "emoji": "🧦",
         "description": "خطوات المشي بالجورب 🧦 (15 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6389,12 +6389,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 49]",
       "itemA": {
         "label": "انفجار البركان",
-        "emoji": "⭐",
+        "emoji": "🌋",
         "description": "انفجار البركان الهائل 🌋 (صوت قياسي هائل)"
       },
       "itemB": {
         "label": "تساقط المطر",
-        "emoji": "🎯",
+        "emoji": "🌧",
         "description": "تساقط المطر الخفيف 🌧️ (40 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6405,12 +6405,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أعلى شدة صوتية في مقياس الديسيبل؟ 🔊 [جولة 50]",
       "itemA": {
         "label": "هتاف 60",
-        "emoji": "⭐",
+        "emoji": "🏟",
         "description": "هتاف 60 ألف مشجع في الملعب 🏟️ (115 ديسيبل)"
       },
       "itemB": {
         "label": "همس المدرس",
-        "emoji": "🎯",
+        "emoji": "🤫",
         "description": "همس المدرس في الفصل 🤫 (30 ديسيبل)"
       },
       "correctIndex": 0,
@@ -6423,12 +6423,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 1]",
       "itemA": {
         "label": "عداء الـ",
-        "emoji": "⭐",
+        "emoji": "🏃",
         "description": "عداء الـ 100 متر (يوسين بولت) 🏃 (44 كم/س)"
       },
       "itemB": {
         "label": "متسابق المشي",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "متسابق المشي الرياضي 🚶 (15 كم/س)"
       },
       "correctIndex": 0,
@@ -6439,12 +6439,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 2]",
       "itemA": {
         "label": "ضربة إرسال",
-        "emoji": "⭐",
+        "emoji": "🎾",
         "description": "ضربة إرسال التنس 🎾 (240 كم/س)"
       },
       "itemB": {
         "label": "رمية كرة",
-        "emoji": "🎯",
+        "emoji": "🏸",
         "description": "رمية كرة الريشة الطائرة 🏸 (صغيرة خفيفة)"
       },
       "correctIndex": 0,
@@ -6455,12 +6455,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 3]",
       "itemA": {
         "label": "رباع رفع",
-        "emoji": "⭐",
+        "emoji": "🏋",
         "description": "رباع رفع الأثقال الأولمبي 🏋️ (يرفع 260 كغ)"
       },
       "itemB": {
         "label": "لاعب تنس",
-        "emoji": "🎯",
+        "emoji": "🏓",
         "description": "لاعب تنس الطاولة 🏓 (يرفع مضرباً)"
       },
       "correctIndex": 0,
@@ -6471,12 +6471,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 4]",
       "itemA": {
         "label": "سيارة سباق",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة سباق الفورمولا 1 🏎️ (360 كم/س)"
       },
       "itemB": {
         "label": "قارب التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "قارب التجديف الرياضي 🚣 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6487,12 +6487,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 5]",
       "itemA": {
         "label": "لاعب الوثب",
-        "emoji": "⭐",
+        "emoji": "🥢",
         "description": "لاعب الوثب بالزانة 🥢 (يقفز فوق 6 أمتار)"
       },
       "itemB": {
         "label": "القفز العالي",
-        "emoji": "🎯",
+        "emoji": "👟",
         "description": "القفز العالي بالقدمين فقط 👟 (2.45 متر)"
       },
       "correctIndex": 0,
@@ -6503,12 +6503,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 6]",
       "itemA": {
         "label": "سرعة ركلة",
-        "emoji": "⭐",
+        "emoji": "⚽",
         "description": "سرعة ركلة لاعب كرة القدم ⚽ (130 كم/س)"
       },
       "itemB": {
         "label": "تمريرة كرة",
-        "emoji": "🎯",
+        "emoji": "🤾",
         "description": "تمريرة كرة اليد 🤾 (90 كم/س)"
       },
       "correctIndex": 0,
@@ -6519,12 +6519,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 7]",
       "itemA": {
         "label": "المتزلج على",
-        "emoji": "⭐",
+        "emoji": "⛷",
         "description": "المتزلج على المنحدرات الثلجية ⛷️ (150 كم/س)"
       },
       "itemB": {
         "label": "المتزلج باللوح",
-        "emoji": "🎯",
+        "emoji": "🛹",
         "description": "المتزلج باللوح الخشبي في الحديقة 🛹 (25 كم/س)"
       },
       "correctIndex": 0,
@@ -6535,12 +6535,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 8]",
       "itemA": {
         "label": "لكمة بطل",
-        "emoji": "⭐",
+        "emoji": "🥊",
         "description": "لكمة بطل الملاكمة للوزن الثقيل 🥊 (قوة 400 كغ)"
       },
       "itemB": {
         "label": "رمية حجر",
-        "emoji": "🎯",
+        "emoji": "🎲",
         "description": "رمية حجر النرد في الطاولة 🎲"
       },
       "correctIndex": 0,
@@ -6551,12 +6551,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 9]",
       "itemA": {
         "label": "المتسابق بالدراجة",
-        "emoji": "⭐",
+        "emoji": "🚴",
         "description": "المتسابق بالدراجة الهوائية في سباق فرنسا 🚴 (60 كم/س)"
       },
       "itemB": {
         "label": "الجري لمسافات",
-        "emoji": "🎯",
+        "emoji": "🏃",
         "description": "الجري لمسافات طويلة (الماراثون) 🏃 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6567,12 +6567,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 10]",
       "itemA": {
         "label": "سباح الـ",
-        "emoji": "⭐",
+        "emoji": "🏊",
         "description": "سباح الـ 50 متر حرة 🏊 (8 كم/س)"
       },
       "itemB": {
         "label": "سباح التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "سباح التجديف بالقارب 🚣 (18 كم/س)"
       },
       "correctIndex": 1,
@@ -6583,12 +6583,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 11]",
       "itemA": {
         "label": "عداء الـ",
-        "emoji": "⭐",
+        "emoji": "🏃",
         "description": "عداء الـ 100 متر (يوسين بولت) 🏃 (44 كم/س)"
       },
       "itemB": {
         "label": "متسابق المشي",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "متسابق المشي الرياضي 🚶 (15 كم/س)"
       },
       "correctIndex": 0,
@@ -6599,12 +6599,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 12]",
       "itemA": {
         "label": "ضربة إرسال",
-        "emoji": "⭐",
+        "emoji": "🎾",
         "description": "ضربة إرسال التنس 🎾 (240 كم/س)"
       },
       "itemB": {
         "label": "رمية كرة",
-        "emoji": "🎯",
+        "emoji": "🏸",
         "description": "رمية كرة الريشة الطائرة 🏸 (صغيرة خفيفة)"
       },
       "correctIndex": 0,
@@ -6615,12 +6615,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 13]",
       "itemA": {
         "label": "رباع رفع",
-        "emoji": "⭐",
+        "emoji": "🏋",
         "description": "رباع رفع الأثقال الأولمبي 🏋️ (يرفع 260 كغ)"
       },
       "itemB": {
         "label": "لاعب تنس",
-        "emoji": "🎯",
+        "emoji": "🏓",
         "description": "لاعب تنس الطاولة 🏓 (يرفع مضرباً)"
       },
       "correctIndex": 0,
@@ -6631,12 +6631,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 14]",
       "itemA": {
         "label": "سيارة سباق",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة سباق الفورمولا 1 🏎️ (360 كم/س)"
       },
       "itemB": {
         "label": "قارب التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "قارب التجديف الرياضي 🚣 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6647,12 +6647,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 15]",
       "itemA": {
         "label": "لاعب الوثب",
-        "emoji": "⭐",
+        "emoji": "🥢",
         "description": "لاعب الوثب بالزانة 🥢 (يقفز فوق 6 أمتار)"
       },
       "itemB": {
         "label": "القفز العالي",
-        "emoji": "🎯",
+        "emoji": "👟",
         "description": "القفز العالي بالقدمين فقط 👟 (2.45 متر)"
       },
       "correctIndex": 0,
@@ -6663,12 +6663,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 16]",
       "itemA": {
         "label": "سرعة ركلة",
-        "emoji": "⭐",
+        "emoji": "⚽",
         "description": "سرعة ركلة لاعب كرة القدم ⚽ (130 كم/س)"
       },
       "itemB": {
         "label": "تمريرة كرة",
-        "emoji": "🎯",
+        "emoji": "🤾",
         "description": "تمريرة كرة اليد 🤾 (90 كم/س)"
       },
       "correctIndex": 0,
@@ -6679,12 +6679,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 17]",
       "itemA": {
         "label": "المتزلج على",
-        "emoji": "⭐",
+        "emoji": "⛷",
         "description": "المتزلج على المنحدرات الثلجية ⛷️ (150 كم/س)"
       },
       "itemB": {
         "label": "المتزلج باللوح",
-        "emoji": "🎯",
+        "emoji": "🛹",
         "description": "المتزلج باللوح الخشبي في الحديقة 🛹 (25 كم/س)"
       },
       "correctIndex": 0,
@@ -6695,12 +6695,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 18]",
       "itemA": {
         "label": "لكمة بطل",
-        "emoji": "⭐",
+        "emoji": "🥊",
         "description": "لكمة بطل الملاكمة للوزن الثقيل 🥊 (قوة 400 كغ)"
       },
       "itemB": {
         "label": "رمية حجر",
-        "emoji": "🎯",
+        "emoji": "🎲",
         "description": "رمية حجر النرد في الطاولة 🎲"
       },
       "correctIndex": 0,
@@ -6711,12 +6711,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 19]",
       "itemA": {
         "label": "المتسابق بالدراجة",
-        "emoji": "⭐",
+        "emoji": "🚴",
         "description": "المتسابق بالدراجة الهوائية في سباق فرنسا 🚴 (60 كم/س)"
       },
       "itemB": {
         "label": "الجري لمسافات",
-        "emoji": "🎯",
+        "emoji": "🏃",
         "description": "الجري لمسافات طويلة (الماراثون) 🏃 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6727,12 +6727,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 20]",
       "itemA": {
         "label": "سباح الـ",
-        "emoji": "⭐",
+        "emoji": "🏊",
         "description": "سباح الـ 50 متر حرة 🏊 (8 كم/س)"
       },
       "itemB": {
         "label": "سباح التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "سباح التجديف بالقارب 🚣 (18 كم/س)"
       },
       "correctIndex": 1,
@@ -6743,12 +6743,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 21]",
       "itemA": {
         "label": "عداء الـ",
-        "emoji": "⭐",
+        "emoji": "🏃",
         "description": "عداء الـ 100 متر (يوسين بولت) 🏃 (44 كم/س)"
       },
       "itemB": {
         "label": "متسابق المشي",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "متسابق المشي الرياضي 🚶 (15 كم/س)"
       },
       "correctIndex": 0,
@@ -6759,12 +6759,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 22]",
       "itemA": {
         "label": "ضربة إرسال",
-        "emoji": "⭐",
+        "emoji": "🎾",
         "description": "ضربة إرسال التنس 🎾 (240 كم/س)"
       },
       "itemB": {
         "label": "رمية كرة",
-        "emoji": "🎯",
+        "emoji": "🏸",
         "description": "رمية كرة الريشة الطائرة 🏸 (صغيرة خفيفة)"
       },
       "correctIndex": 0,
@@ -6775,12 +6775,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 23]",
       "itemA": {
         "label": "رباع رفع",
-        "emoji": "⭐",
+        "emoji": "🏋",
         "description": "رباع رفع الأثقال الأولمبي 🏋️ (يرفع 260 كغ)"
       },
       "itemB": {
         "label": "لاعب تنس",
-        "emoji": "🎯",
+        "emoji": "🏓",
         "description": "لاعب تنس الطاولة 🏓 (يرفع مضرباً)"
       },
       "correctIndex": 0,
@@ -6791,12 +6791,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 24]",
       "itemA": {
         "label": "سيارة سباق",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة سباق الفورمولا 1 🏎️ (360 كم/س)"
       },
       "itemB": {
         "label": "قارب التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "قارب التجديف الرياضي 🚣 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6807,12 +6807,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 25]",
       "itemA": {
         "label": "لاعب الوثب",
-        "emoji": "⭐",
+        "emoji": "🥢",
         "description": "لاعب الوثب بالزانة 🥢 (يقفز فوق 6 أمتار)"
       },
       "itemB": {
         "label": "القفز العالي",
-        "emoji": "🎯",
+        "emoji": "👟",
         "description": "القفز العالي بالقدمين فقط 👟 (2.45 متر)"
       },
       "correctIndex": 0,
@@ -6823,12 +6823,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 26]",
       "itemA": {
         "label": "سرعة ركلة",
-        "emoji": "⭐",
+        "emoji": "⚽",
         "description": "سرعة ركلة لاعب كرة القدم ⚽ (130 كم/س)"
       },
       "itemB": {
         "label": "تمريرة كرة",
-        "emoji": "🎯",
+        "emoji": "🤾",
         "description": "تمريرة كرة اليد 🤾 (90 كم/س)"
       },
       "correctIndex": 0,
@@ -6839,12 +6839,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 27]",
       "itemA": {
         "label": "المتزلج على",
-        "emoji": "⭐",
+        "emoji": "⛷",
         "description": "المتزلج على المنحدرات الثلجية ⛷️ (150 كم/س)"
       },
       "itemB": {
         "label": "المتزلج باللوح",
-        "emoji": "🎯",
+        "emoji": "🛹",
         "description": "المتزلج باللوح الخشبي في الحديقة 🛹 (25 كم/س)"
       },
       "correctIndex": 0,
@@ -6855,12 +6855,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 28]",
       "itemA": {
         "label": "لكمة بطل",
-        "emoji": "⭐",
+        "emoji": "🥊",
         "description": "لكمة بطل الملاكمة للوزن الثقيل 🥊 (قوة 400 كغ)"
       },
       "itemB": {
         "label": "رمية حجر",
-        "emoji": "🎯",
+        "emoji": "🎲",
         "description": "رمية حجر النرد في الطاولة 🎲"
       },
       "correctIndex": 0,
@@ -6871,12 +6871,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 29]",
       "itemA": {
         "label": "المتسابق بالدراجة",
-        "emoji": "⭐",
+        "emoji": "🚴",
         "description": "المتسابق بالدراجة الهوائية في سباق فرنسا 🚴 (60 كم/س)"
       },
       "itemB": {
         "label": "الجري لمسافات",
-        "emoji": "🎯",
+        "emoji": "🏃",
         "description": "الجري لمسافات طويلة (الماراثون) 🏃 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6887,12 +6887,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 30]",
       "itemA": {
         "label": "سباح الـ",
-        "emoji": "⭐",
+        "emoji": "🏊",
         "description": "سباح الـ 50 متر حرة 🏊 (8 كم/س)"
       },
       "itemB": {
         "label": "سباح التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "سباح التجديف بالقارب 🚣 (18 كم/س)"
       },
       "correctIndex": 1,
@@ -6903,12 +6903,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 31]",
       "itemA": {
         "label": "عداء الـ",
-        "emoji": "⭐",
+        "emoji": "🏃",
         "description": "عداء الـ 100 متر (يوسين بولت) 🏃 (44 كم/س)"
       },
       "itemB": {
         "label": "متسابق المشي",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "متسابق المشي الرياضي 🚶 (15 كم/س)"
       },
       "correctIndex": 0,
@@ -6919,12 +6919,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 32]",
       "itemA": {
         "label": "ضربة إرسال",
-        "emoji": "⭐",
+        "emoji": "🎾",
         "description": "ضربة إرسال التنس 🎾 (240 كم/س)"
       },
       "itemB": {
         "label": "رمية كرة",
-        "emoji": "🎯",
+        "emoji": "🏸",
         "description": "رمية كرة الريشة الطائرة 🏸 (صغيرة خفيفة)"
       },
       "correctIndex": 0,
@@ -6935,12 +6935,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 33]",
       "itemA": {
         "label": "رباع رفع",
-        "emoji": "⭐",
+        "emoji": "🏋",
         "description": "رباع رفع الأثقال الأولمبي 🏋️ (يرفع 260 كغ)"
       },
       "itemB": {
         "label": "لاعب تنس",
-        "emoji": "🎯",
+        "emoji": "🏓",
         "description": "لاعب تنس الطاولة 🏓 (يرفع مضرباً)"
       },
       "correctIndex": 0,
@@ -6951,12 +6951,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 34]",
       "itemA": {
         "label": "سيارة سباق",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة سباق الفورمولا 1 🏎️ (360 كم/س)"
       },
       "itemB": {
         "label": "قارب التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "قارب التجديف الرياضي 🚣 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -6967,12 +6967,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 35]",
       "itemA": {
         "label": "لاعب الوثب",
-        "emoji": "⭐",
+        "emoji": "🥢",
         "description": "لاعب الوثب بالزانة 🥢 (يقفز فوق 6 أمتار)"
       },
       "itemB": {
         "label": "القفز العالي",
-        "emoji": "🎯",
+        "emoji": "👟",
         "description": "القفز العالي بالقدمين فقط 👟 (2.45 متر)"
       },
       "correctIndex": 0,
@@ -6983,12 +6983,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 36]",
       "itemA": {
         "label": "سرعة ركلة",
-        "emoji": "⭐",
+        "emoji": "⚽",
         "description": "سرعة ركلة لاعب كرة القدم ⚽ (130 كم/س)"
       },
       "itemB": {
         "label": "تمريرة كرة",
-        "emoji": "🎯",
+        "emoji": "🤾",
         "description": "تمريرة كرة اليد 🤾 (90 كم/س)"
       },
       "correctIndex": 0,
@@ -6999,12 +6999,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 37]",
       "itemA": {
         "label": "المتزلج على",
-        "emoji": "⭐",
+        "emoji": "⛷",
         "description": "المتزلج على المنحدرات الثلجية ⛷️ (150 كم/س)"
       },
       "itemB": {
         "label": "المتزلج باللوح",
-        "emoji": "🎯",
+        "emoji": "🛹",
         "description": "المتزلج باللوح الخشبي في الحديقة 🛹 (25 كم/س)"
       },
       "correctIndex": 0,
@@ -7015,12 +7015,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 38]",
       "itemA": {
         "label": "لكمة بطل",
-        "emoji": "⭐",
+        "emoji": "🥊",
         "description": "لكمة بطل الملاكمة للوزن الثقيل 🥊 (قوة 400 كغ)"
       },
       "itemB": {
         "label": "رمية حجر",
-        "emoji": "🎯",
+        "emoji": "🎲",
         "description": "رمية حجر النرد في الطاولة 🎲"
       },
       "correctIndex": 0,
@@ -7031,12 +7031,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 39]",
       "itemA": {
         "label": "المتسابق بالدراجة",
-        "emoji": "⭐",
+        "emoji": "🚴",
         "description": "المتسابق بالدراجة الهوائية في سباق فرنسا 🚴 (60 كم/س)"
       },
       "itemB": {
         "label": "الجري لمسافات",
-        "emoji": "🎯",
+        "emoji": "🏃",
         "description": "الجري لمسافات طويلة (الماراثون) 🏃 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -7047,12 +7047,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 40]",
       "itemA": {
         "label": "سباح الـ",
-        "emoji": "⭐",
+        "emoji": "🏊",
         "description": "سباح الـ 50 متر حرة 🏊 (8 كم/س)"
       },
       "itemB": {
         "label": "سباح التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "سباح التجديف بالقارب 🚣 (18 كم/س)"
       },
       "correctIndex": 1,
@@ -7063,12 +7063,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 41]",
       "itemA": {
         "label": "عداء الـ",
-        "emoji": "⭐",
+        "emoji": "🏃",
         "description": "عداء الـ 100 متر (يوسين بولت) 🏃 (44 كم/س)"
       },
       "itemB": {
         "label": "متسابق المشي",
-        "emoji": "🎯",
+        "emoji": "🚶",
         "description": "متسابق المشي الرياضي 🚶 (15 كم/س)"
       },
       "correctIndex": 0,
@@ -7079,12 +7079,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 42]",
       "itemA": {
         "label": "ضربة إرسال",
-        "emoji": "⭐",
+        "emoji": "🎾",
         "description": "ضربة إرسال التنس 🎾 (240 كم/س)"
       },
       "itemB": {
         "label": "رمية كرة",
-        "emoji": "🎯",
+        "emoji": "🏸",
         "description": "رمية كرة الريشة الطائرة 🏸 (صغيرة خفيفة)"
       },
       "correctIndex": 0,
@@ -7095,12 +7095,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 43]",
       "itemA": {
         "label": "رباع رفع",
-        "emoji": "⭐",
+        "emoji": "🏋",
         "description": "رباع رفع الأثقال الأولمبي 🏋️ (يرفع 260 كغ)"
       },
       "itemB": {
         "label": "لاعب تنس",
-        "emoji": "🎯",
+        "emoji": "🏓",
         "description": "لاعب تنس الطاولة 🏓 (يرفع مضرباً)"
       },
       "correctIndex": 0,
@@ -7111,12 +7111,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 44]",
       "itemA": {
         "label": "سيارة سباق",
-        "emoji": "⭐",
+        "emoji": "🏎",
         "description": "سيارة سباق الفورمولا 1 🏎️ (360 كم/س)"
       },
       "itemB": {
         "label": "قارب التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "قارب التجديف الرياضي 🚣 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -7127,12 +7127,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 45]",
       "itemA": {
         "label": "لاعب الوثب",
-        "emoji": "⭐",
+        "emoji": "🥢",
         "description": "لاعب الوثب بالزانة 🥢 (يقفز فوق 6 أمتار)"
       },
       "itemB": {
         "label": "القفز العالي",
-        "emoji": "🎯",
+        "emoji": "👟",
         "description": "القفز العالي بالقدمين فقط 👟 (2.45 متر)"
       },
       "correctIndex": 0,
@@ -7143,12 +7143,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 46]",
       "itemA": {
         "label": "سرعة ركلة",
-        "emoji": "⭐",
+        "emoji": "⚽",
         "description": "سرعة ركلة لاعب كرة القدم ⚽ (130 كم/س)"
       },
       "itemB": {
         "label": "تمريرة كرة",
-        "emoji": "🎯",
+        "emoji": "🤾",
         "description": "تمريرة كرة اليد 🤾 (90 كم/س)"
       },
       "correctIndex": 0,
@@ -7159,12 +7159,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 47]",
       "itemA": {
         "label": "المتزلج على",
-        "emoji": "⭐",
+        "emoji": "⛷",
         "description": "المتزلج على المنحدرات الثلجية ⛷️ (150 كم/س)"
       },
       "itemB": {
         "label": "المتزلج باللوح",
-        "emoji": "🎯",
+        "emoji": "🛹",
         "description": "المتزلج باللوح الخشبي في الحديقة 🛹 (25 كم/س)"
       },
       "correctIndex": 0,
@@ -7175,12 +7175,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 48]",
       "itemA": {
         "label": "لكمة بطل",
-        "emoji": "⭐",
+        "emoji": "🥊",
         "description": "لكمة بطل الملاكمة للوزن الثقيل 🥊 (قوة 400 كغ)"
       },
       "itemB": {
         "label": "رمية حجر",
-        "emoji": "🎯",
+        "emoji": "🎲",
         "description": "رمية حجر النرد في الطاولة 🎲"
       },
       "correctIndex": 0,
@@ -7191,12 +7191,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 49]",
       "itemA": {
         "label": "المتسابق بالدراجة",
-        "emoji": "⭐",
+        "emoji": "🚴",
         "description": "المتسابق بالدراجة الهوائية في سباق فرنسا 🚴 (60 كم/س)"
       },
       "itemB": {
         "label": "الجري لمسافات",
-        "emoji": "🎯",
+        "emoji": "🏃",
         "description": "الجري لمسافات طويلة (الماراثون) 🏃 (20 كم/س)"
       },
       "correctIndex": 0,
@@ -7207,12 +7207,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "أيهما أكثر سرعة أو قوة في الأداء الرياضي؟ 🏆 [جولة 50]",
       "itemA": {
         "label": "سباح الـ",
-        "emoji": "⭐",
+        "emoji": "🏊",
         "description": "سباح الـ 50 متر حرة 🏊 (8 كم/س)"
       },
       "itemB": {
         "label": "سباح التجديف",
-        "emoji": "🎯",
+        "emoji": "🚣",
         "description": "سباح التجديف بالقارب 🚣 (18 كم/س)"
       },
       "correctIndex": 1,
@@ -7225,12 +7225,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 1]",
       "itemA": {
         "label": "اللون الأحمر",
-        "emoji": "⭐",
+        "emoji": "🔴",
         "description": "اللون الأحمر 🔴 (طول موجي 700 نانومتر)"
       },
       "itemB": {
         "label": "اللون البنفسجي",
-        "emoji": "🎯",
+        "emoji": "🟣",
         "description": "اللون البنفسجي 🟣 (طول موجي 400 نانومتر)"
       },
       "correctIndex": 0,
@@ -7241,12 +7241,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 2]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 8 🔢 (56)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 6 × 9 🔢 (54)"
       },
       "correctIndex": 0,
@@ -7257,12 +7257,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 3]",
       "itemA": {
         "label": "ألوان قوس",
-        "emoji": "⭐",
+        "emoji": "🌈",
         "description": "ألوان قوس قزح 🌈 (7 ألوان)"
       },
       "itemB": {
         "label": "ألوان إشارة",
-        "emoji": "🎯",
+        "emoji": "🚦",
         "description": "ألوان إشارة المرور 🚦 (3 ألوان)"
       },
       "correctIndex": 0,
@@ -7273,12 +7273,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 4]",
       "itemA": {
         "label": "الرقم 24",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "الرقم 24 🔢 (عدد زوجي يقبل القسمة على 2)"
       },
       "itemB": {
         "label": "الرقم 27",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "الرقم 27 🔢 (عدد فردي لا يقبل على 2)"
       },
       "correctIndex": 0,
@@ -7289,12 +7289,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 5]",
       "itemA": {
         "label": "الألوان الدافئة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الألوان الدافئة ☀️ (الأحمر والبرتقالي والأصفر)"
       },
       "itemB": {
         "label": "الألوان الباردة",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "الألوان الباردة 🌊 (الأزرق والأخضر والبنفسجي)"
       },
       "correctIndex": 0,
@@ -7305,12 +7305,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 6]",
       "itemA": {
         "label": "حاصل جمع",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل جمع 45 + 55 🔢 (100)"
       },
       "itemB": {
         "label": "حاصل جمع",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل جمع 30 + 60 🔢 (90)"
       },
       "correctIndex": 0,
@@ -7321,12 +7321,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 7]",
       "itemA": {
         "label": "اللون الأصفر",
-        "emoji": "⭐",
+        "emoji": "🟨",
         "description": "اللون الأصفر 🟨 (لون أساسي لا ينتج عن خلط)"
       },
       "itemB": {
         "label": "اللون الأخضر",
-        "emoji": "🎯",
+        "emoji": "🟩",
         "description": "اللون الأخضر 🟩 (ينتج عن خلط أصفر وأزرق)"
       },
       "correctIndex": 0,
@@ -7337,12 +7337,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 8]",
       "itemA": {
         "label": "العدد الأولي",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "العدد الأولي 17 🔢 (لا يقبل إلا على 1 ونفسه)"
       },
       "itemB": {
         "label": "العدد 18",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "العدد 18 🔢 (يقبل على 2 و3 و6 و9)"
       },
       "correctIndex": 0,
@@ -7353,12 +7353,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 9]",
       "itemA": {
         "label": "ثلث الرقم",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "ثلث الرقم 90 🔢 (30)"
       },
       "itemB": {
         "label": "ربع الرقم",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "ربع الرقم 100 🔢 (25)"
       },
       "correctIndex": 0,
@@ -7369,12 +7369,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 10]",
       "itemA": {
         "label": "أطوال إشارة",
-        "emoji": "⭐",
+        "emoji": "🟢",
         "description": "أطوال إشارة المرور الخضراء 🟢 (انطلاق)"
       },
       "itemB": {
         "label": "إشارة المرور",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "إشارة المرور الحمراء 🔴 (توقف إلزامي)"
       },
       "correctIndex": 1,
@@ -7385,12 +7385,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 11]",
       "itemA": {
         "label": "اللون الأحمر",
-        "emoji": "⭐",
+        "emoji": "🔴",
         "description": "اللون الأحمر 🔴 (طول موجي 700 نانومتر)"
       },
       "itemB": {
         "label": "اللون البنفسجي",
-        "emoji": "🎯",
+        "emoji": "🟣",
         "description": "اللون البنفسجي 🟣 (طول موجي 400 نانومتر)"
       },
       "correctIndex": 0,
@@ -7401,12 +7401,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 12]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 8 🔢 (56)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 6 × 9 🔢 (54)"
       },
       "correctIndex": 0,
@@ -7417,12 +7417,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 13]",
       "itemA": {
         "label": "ألوان قوس",
-        "emoji": "⭐",
+        "emoji": "🌈",
         "description": "ألوان قوس قزح 🌈 (7 ألوان)"
       },
       "itemB": {
         "label": "ألوان إشارة",
-        "emoji": "🎯",
+        "emoji": "🚦",
         "description": "ألوان إشارة المرور 🚦 (3 ألوان)"
       },
       "correctIndex": 0,
@@ -7433,12 +7433,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 14]",
       "itemA": {
         "label": "الرقم 24",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "الرقم 24 🔢 (عدد زوجي يقبل القسمة على 2)"
       },
       "itemB": {
         "label": "الرقم 27",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "الرقم 27 🔢 (عدد فردي لا يقبل على 2)"
       },
       "correctIndex": 0,
@@ -7449,12 +7449,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 15]",
       "itemA": {
         "label": "الألوان الدافئة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الألوان الدافئة ☀️ (الأحمر والبرتقالي والأصفر)"
       },
       "itemB": {
         "label": "الألوان الباردة",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "الألوان الباردة 🌊 (الأزرق والأخضر والبنفسجي)"
       },
       "correctIndex": 0,
@@ -7465,12 +7465,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 16]",
       "itemA": {
         "label": "حاصل جمع",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل جمع 45 + 55 🔢 (100)"
       },
       "itemB": {
         "label": "حاصل جمع",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل جمع 30 + 60 🔢 (90)"
       },
       "correctIndex": 0,
@@ -7481,12 +7481,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 17]",
       "itemA": {
         "label": "اللون الأصفر",
-        "emoji": "⭐",
+        "emoji": "🟨",
         "description": "اللون الأصفر 🟨 (لون أساسي لا ينتج عن خلط)"
       },
       "itemB": {
         "label": "اللون الأخضر",
-        "emoji": "🎯",
+        "emoji": "🟩",
         "description": "اللون الأخضر 🟩 (ينتج عن خلط أصفر وأزرق)"
       },
       "correctIndex": 0,
@@ -7497,12 +7497,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 18]",
       "itemA": {
         "label": "العدد الأولي",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "العدد الأولي 17 🔢 (لا يقبل إلا على 1 ونفسه)"
       },
       "itemB": {
         "label": "العدد 18",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "العدد 18 🔢 (يقبل على 2 و3 و6 و9)"
       },
       "correctIndex": 0,
@@ -7513,12 +7513,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 19]",
       "itemA": {
         "label": "ثلث الرقم",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "ثلث الرقم 90 🔢 (30)"
       },
       "itemB": {
         "label": "ربع الرقم",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "ربع الرقم 100 🔢 (25)"
       },
       "correctIndex": 0,
@@ -7529,12 +7529,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 20]",
       "itemA": {
         "label": "أطوال إشارة",
-        "emoji": "⭐",
+        "emoji": "🟢",
         "description": "أطوال إشارة المرور الخضراء 🟢 (انطلاق)"
       },
       "itemB": {
         "label": "إشارة المرور",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "إشارة المرور الحمراء 🔴 (توقف إلزامي)"
       },
       "correctIndex": 1,
@@ -7545,12 +7545,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 21]",
       "itemA": {
         "label": "اللون الأحمر",
-        "emoji": "⭐",
+        "emoji": "🔴",
         "description": "اللون الأحمر 🔴 (طول موجي 700 نانومتر)"
       },
       "itemB": {
         "label": "اللون البنفسجي",
-        "emoji": "🎯",
+        "emoji": "🟣",
         "description": "اللون البنفسجي 🟣 (طول موجي 400 نانومتر)"
       },
       "correctIndex": 0,
@@ -7561,12 +7561,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 22]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 8 🔢 (56)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 6 × 9 🔢 (54)"
       },
       "correctIndex": 0,
@@ -7577,12 +7577,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 23]",
       "itemA": {
         "label": "ألوان قوس",
-        "emoji": "⭐",
+        "emoji": "🌈",
         "description": "ألوان قوس قزح 🌈 (7 ألوان)"
       },
       "itemB": {
         "label": "ألوان إشارة",
-        "emoji": "🎯",
+        "emoji": "🚦",
         "description": "ألوان إشارة المرور 🚦 (3 ألوان)"
       },
       "correctIndex": 0,
@@ -7593,12 +7593,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 24]",
       "itemA": {
         "label": "الرقم 24",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "الرقم 24 🔢 (عدد زوجي يقبل القسمة على 2)"
       },
       "itemB": {
         "label": "الرقم 27",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "الرقم 27 🔢 (عدد فردي لا يقبل على 2)"
       },
       "correctIndex": 0,
@@ -7609,12 +7609,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 25]",
       "itemA": {
         "label": "الألوان الدافئة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الألوان الدافئة ☀️ (الأحمر والبرتقالي والأصفر)"
       },
       "itemB": {
         "label": "الألوان الباردة",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "الألوان الباردة 🌊 (الأزرق والأخضر والبنفسجي)"
       },
       "correctIndex": 0,
@@ -7625,12 +7625,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 26]",
       "itemA": {
         "label": "حاصل جمع",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل جمع 45 + 55 🔢 (100)"
       },
       "itemB": {
         "label": "حاصل جمع",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل جمع 30 + 60 🔢 (90)"
       },
       "correctIndex": 0,
@@ -7641,12 +7641,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 27]",
       "itemA": {
         "label": "اللون الأصفر",
-        "emoji": "⭐",
+        "emoji": "🟨",
         "description": "اللون الأصفر 🟨 (لون أساسي لا ينتج عن خلط)"
       },
       "itemB": {
         "label": "اللون الأخضر",
-        "emoji": "🎯",
+        "emoji": "🟩",
         "description": "اللون الأخضر 🟩 (ينتج عن خلط أصفر وأزرق)"
       },
       "correctIndex": 0,
@@ -7657,12 +7657,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 28]",
       "itemA": {
         "label": "العدد الأولي",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "العدد الأولي 17 🔢 (لا يقبل إلا على 1 ونفسه)"
       },
       "itemB": {
         "label": "العدد 18",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "العدد 18 🔢 (يقبل على 2 و3 و6 و9)"
       },
       "correctIndex": 0,
@@ -7673,12 +7673,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 29]",
       "itemA": {
         "label": "ثلث الرقم",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "ثلث الرقم 90 🔢 (30)"
       },
       "itemB": {
         "label": "ربع الرقم",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "ربع الرقم 100 🔢 (25)"
       },
       "correctIndex": 0,
@@ -7689,12 +7689,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 30]",
       "itemA": {
         "label": "أطوال إشارة",
-        "emoji": "⭐",
+        "emoji": "🟢",
         "description": "أطوال إشارة المرور الخضراء 🟢 (انطلاق)"
       },
       "itemB": {
         "label": "إشارة المرور",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "إشارة المرور الحمراء 🔴 (توقف إلزامي)"
       },
       "correctIndex": 1,
@@ -7705,12 +7705,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 31]",
       "itemA": {
         "label": "اللون الأحمر",
-        "emoji": "⭐",
+        "emoji": "🔴",
         "description": "اللون الأحمر 🔴 (طول موجي 700 نانومتر)"
       },
       "itemB": {
         "label": "اللون البنفسجي",
-        "emoji": "🎯",
+        "emoji": "🟣",
         "description": "اللون البنفسجي 🟣 (طول موجي 400 نانومتر)"
       },
       "correctIndex": 0,
@@ -7721,12 +7721,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 32]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 8 🔢 (56)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 6 × 9 🔢 (54)"
       },
       "correctIndex": 0,
@@ -7737,12 +7737,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 33]",
       "itemA": {
         "label": "ألوان قوس",
-        "emoji": "⭐",
+        "emoji": "🌈",
         "description": "ألوان قوس قزح 🌈 (7 ألوان)"
       },
       "itemB": {
         "label": "ألوان إشارة",
-        "emoji": "🎯",
+        "emoji": "🚦",
         "description": "ألوان إشارة المرور 🚦 (3 ألوان)"
       },
       "correctIndex": 0,
@@ -7753,12 +7753,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 34]",
       "itemA": {
         "label": "الرقم 24",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "الرقم 24 🔢 (عدد زوجي يقبل القسمة على 2)"
       },
       "itemB": {
         "label": "الرقم 27",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "الرقم 27 🔢 (عدد فردي لا يقبل على 2)"
       },
       "correctIndex": 0,
@@ -7769,12 +7769,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 35]",
       "itemA": {
         "label": "الألوان الدافئة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الألوان الدافئة ☀️ (الأحمر والبرتقالي والأصفر)"
       },
       "itemB": {
         "label": "الألوان الباردة",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "الألوان الباردة 🌊 (الأزرق والأخضر والبنفسجي)"
       },
       "correctIndex": 0,
@@ -7785,12 +7785,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 36]",
       "itemA": {
         "label": "حاصل جمع",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل جمع 45 + 55 🔢 (100)"
       },
       "itemB": {
         "label": "حاصل جمع",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل جمع 30 + 60 🔢 (90)"
       },
       "correctIndex": 0,
@@ -7801,12 +7801,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 37]",
       "itemA": {
         "label": "اللون الأصفر",
-        "emoji": "⭐",
+        "emoji": "🟨",
         "description": "اللون الأصفر 🟨 (لون أساسي لا ينتج عن خلط)"
       },
       "itemB": {
         "label": "اللون الأخضر",
-        "emoji": "🎯",
+        "emoji": "🟩",
         "description": "اللون الأخضر 🟩 (ينتج عن خلط أصفر وأزرق)"
       },
       "correctIndex": 0,
@@ -7817,12 +7817,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 38]",
       "itemA": {
         "label": "العدد الأولي",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "العدد الأولي 17 🔢 (لا يقبل إلا على 1 ونفسه)"
       },
       "itemB": {
         "label": "العدد 18",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "العدد 18 🔢 (يقبل على 2 و3 و6 و9)"
       },
       "correctIndex": 0,
@@ -7833,12 +7833,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 39]",
       "itemA": {
         "label": "ثلث الرقم",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "ثلث الرقم 90 🔢 (30)"
       },
       "itemB": {
         "label": "ربع الرقم",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "ربع الرقم 100 🔢 (25)"
       },
       "correctIndex": 0,
@@ -7849,12 +7849,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 40]",
       "itemA": {
         "label": "أطوال إشارة",
-        "emoji": "⭐",
+        "emoji": "🟢",
         "description": "أطوال إشارة المرور الخضراء 🟢 (انطلاق)"
       },
       "itemB": {
         "label": "إشارة المرور",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "إشارة المرور الحمراء 🔴 (توقف إلزامي)"
       },
       "correctIndex": 1,
@@ -7865,12 +7865,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 41]",
       "itemA": {
         "label": "اللون الأحمر",
-        "emoji": "⭐",
+        "emoji": "🔴",
         "description": "اللون الأحمر 🔴 (طول موجي 700 نانومتر)"
       },
       "itemB": {
         "label": "اللون البنفسجي",
-        "emoji": "🎯",
+        "emoji": "🟣",
         "description": "اللون البنفسجي 🟣 (طول موجي 400 نانومتر)"
       },
       "correctIndex": 0,
@@ -7881,12 +7881,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 42]",
       "itemA": {
         "label": "حاصل ضرب",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل ضرب 7 × 8 🔢 (56)"
       },
       "itemB": {
         "label": "حاصل ضرب",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل ضرب 6 × 9 🔢 (54)"
       },
       "correctIndex": 0,
@@ -7897,12 +7897,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 43]",
       "itemA": {
         "label": "ألوان قوس",
-        "emoji": "⭐",
+        "emoji": "🌈",
         "description": "ألوان قوس قزح 🌈 (7 ألوان)"
       },
       "itemB": {
         "label": "ألوان إشارة",
-        "emoji": "🎯",
+        "emoji": "🚦",
         "description": "ألوان إشارة المرور 🚦 (3 ألوان)"
       },
       "correctIndex": 0,
@@ -7913,12 +7913,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 44]",
       "itemA": {
         "label": "الرقم 24",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "الرقم 24 🔢 (عدد زوجي يقبل القسمة على 2)"
       },
       "itemB": {
         "label": "الرقم 27",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "الرقم 27 🔢 (عدد فردي لا يقبل على 2)"
       },
       "correctIndex": 0,
@@ -7929,12 +7929,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 45]",
       "itemA": {
         "label": "الألوان الدافئة",
-        "emoji": "⭐",
+        "emoji": "☀",
         "description": "الألوان الدافئة ☀️ (الأحمر والبرتقالي والأصفر)"
       },
       "itemB": {
         "label": "الألوان الباردة",
-        "emoji": "🎯",
+        "emoji": "🌊",
         "description": "الألوان الباردة 🌊 (الأزرق والأخضر والبنفسجي)"
       },
       "correctIndex": 0,
@@ -7945,12 +7945,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 46]",
       "itemA": {
         "label": "حاصل جمع",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "حاصل جمع 45 + 55 🔢 (100)"
       },
       "itemB": {
         "label": "حاصل جمع",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "حاصل جمع 30 + 60 🔢 (90)"
       },
       "correctIndex": 0,
@@ -7961,12 +7961,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 47]",
       "itemA": {
         "label": "اللون الأصفر",
-        "emoji": "⭐",
+        "emoji": "🟨",
         "description": "اللون الأصفر 🟨 (لون أساسي لا ينتج عن خلط)"
       },
       "itemB": {
         "label": "اللون الأخضر",
-        "emoji": "🎯",
+        "emoji": "🟩",
         "description": "اللون الأخضر 🟩 (ينتج عن خلط أصفر وأزرق)"
       },
       "correctIndex": 0,
@@ -7977,12 +7977,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 48]",
       "itemA": {
         "label": "العدد الأولي",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "العدد الأولي 17 🔢 (لا يقبل إلا على 1 ونفسه)"
       },
       "itemB": {
         "label": "العدد 18",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "العدد 18 🔢 (يقبل على 2 و3 و6 و9)"
       },
       "correctIndex": 0,
@@ -7993,12 +7993,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 49]",
       "itemA": {
         "label": "ثلث الرقم",
-        "emoji": "⭐",
+        "emoji": "🔢",
         "description": "ثلث الرقم 90 🔢 (30)"
       },
       "itemB": {
         "label": "ربع الرقم",
-        "emoji": "🎯",
+        "emoji": "🔢",
         "description": "ربع الرقم 100 🔢 (25)"
       },
       "correctIndex": 0,
@@ -8009,12 +8009,12 @@ export const COMPARISONS_BANK: Record<string, ComparisonRound[]> = {
       "prompt": "قارن بين الألوان والأرقام والقيم الحسابية: 🎨 [جولة 50]",
       "itemA": {
         "label": "أطوال إشارة",
-        "emoji": "⭐",
+        "emoji": "🟢",
         "description": "أطوال إشارة المرور الخضراء 🟢 (انطلاق)"
       },
       "itemB": {
         "label": "إشارة المرور",
-        "emoji": "🎯",
+        "emoji": "🔴",
         "description": "إشارة المرور الحمراء 🔴 (توقف إلزامي)"
       },
       "correctIndex": 1,
