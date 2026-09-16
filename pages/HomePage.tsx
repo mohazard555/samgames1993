@@ -52,6 +52,12 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleGameSelect = (game: Game) => {
+    // If channel subscription & video watch requirements are disabled in settings:
+    if (settings.requireSubscriptionAndVideos === false) {
+      navigate(`/game/${game.id}`);
+      return;
+    }
+
     const requiresVideo = settings.videoRequiredGameIds?.includes(game.id);
 
     // If game requires video and is not yet unlocked in this session

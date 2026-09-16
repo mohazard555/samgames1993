@@ -434,7 +434,7 @@ const SettingsPage: React.FC = () => {
           }`}
         >
           <span>⏳</span>
-          <span>مهلة الفيديو وقنوات يوتيوب</span>
+          <span>الاشتراك والفيديوهات</span>
         </button>
 
         <button
@@ -1005,11 +1005,82 @@ const SettingsPage: React.FC = () => {
             <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
               <span className="text-3xl">⏳</span>
               <div>
-                <h2 className="text-xl font-black text-gray-800">مهلة انتظار الفيديو وإعدادات يوتيوب</h2>
+                <h2 className="text-xl font-black text-gray-800">إعدادات الاشتراك بالقناة والفيديوهات الترويجية</h2>
                 <p className="text-xs text-gray-500">
-                  تحديد مدة العداد التنازلي وتخصيص الألعاب التي تتطلب مشاهدة الفيديو
+                  التحكم في تفعيل أو تعطيل شرط الاشتراك ومشاهدة الفيديو، وتحديد الألعاب المطلوبة
                 </p>
               </div>
+            </div>
+
+            {/* MASTER TOGGLE: ENABLE / DISABLE SUBSCRIPTION & VIDEO REQUIREMENTS */}
+            <div
+              className={`p-5 sm:p-6 rounded-3xl border-2 transition-all shadow-sm ${
+                localSettings.requireSubscriptionAndVideos !== false
+                  ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300'
+                  : 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm shrink-0 ${
+                      localSettings.requireSubscriptionAndVideos !== false
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-amber-500 text-white'
+                    }`}
+                  >
+                    {localSettings.requireSubscriptionAndVideos !== false ? '🔒' : '🔓'}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-black text-gray-900">
+                        طلب الاشتراك بالقناة ومشاهدة الفيديوهات للعب
+                      </h3>
+                      <span
+                        className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+                          localSettings.requireSubscriptionAndVideos !== false
+                            ? 'bg-emerald-200 text-emerald-900'
+                            : 'bg-amber-200 text-amber-900'
+                        }`}
+                      >
+                        {localSettings.requireSubscriptionAndVideos !== false ? 'مفعّل (يتطلب اشتراك/مشاهدة)' : 'معطّل (لعب فوري بدون قيود)'}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                      {localSettings.requireSubscriptionAndVideos !== false
+                        ? 'عند التفعيل: تظهر للزائر نافذة تطلب الاشتراك بالقناة أو مشاهدة فيديو للألعاب المحددة أدناه.'
+                        : 'عند عدم التفعيل: تفتح جميع الألعاب فوراً للزوار بدون طلب اشتراك بالقناة ولا مشاهدة أي فيديو!'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Custom Toggle Switch */}
+                <label className="relative inline-flex items-center cursor-pointer select-none shrink-0 self-end sm:self-center">
+                  <input
+                    type="checkbox"
+                    id="requireSubscriptionAndVideos"
+                    name="requireSubscriptionAndVideos"
+                    checked={localSettings.requireSubscriptionAndVideos !== false}
+                    onChange={(e) => {
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        requireSubscriptionAndVideos: e.target.checked,
+                      }));
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-14 h-7 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-600 shadow-inner"></div>
+                </label>
+              </div>
+
+              {localSettings.requireSubscriptionAndVideos === false && (
+                <div className="mt-4 pt-3 border-t border-amber-200 flex items-center gap-2 text-xs sm:text-sm text-amber-900 font-bold">
+                  <span>🎉</span>
+                  <span>
+                    الوضع المباشر المجاني نشط الآن: يمكن لجميع الزوار والأطفال تشغيل أي لعبة فوراً دون توقف أو طلب اشتراك.
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

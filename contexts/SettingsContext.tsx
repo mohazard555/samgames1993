@@ -16,6 +16,7 @@ const defaultSettings: Settings = {
   feedbackEmail: 'feedback@toysgameworld.com',
   videoWaitTime: 15, // مهلة انتظار فتح الفيديو بالثواني
   videoRequiredGameIds: [1, 3, 7, 10, 22], // الألعاب المحددة التي تتطلب مشاهدة فيديو
+  requireSubscriptionAndVideos: true, // عند التعطيل: تفتح جميع الألعاب فوراً بدون اشتراك ولا مشاهدة فيديو
   adSettings: {
     enabled: false,
     name: 'مفاجأة للأبطال!',
@@ -129,6 +130,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           videoRequiredGameIds: Array.isArray(parsed.videoRequiredGameIds)
             ? parsed.videoRequiredGameIds
             : defaultSettings.videoRequiredGameIds,
+          requireSubscriptionAndVideos:
+            typeof parsed.requireSubscriptionAndVideos === 'boolean'
+              ? parsed.requireSubscriptionAndVideos
+              : defaultSettings.requireSubscriptionAndVideos ?? true,
           adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
           feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
@@ -207,6 +212,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const isGameUnlocked = (gameId: number): boolean => {
+    if (settings.requireSubscriptionAndVideos === false) {
+      return true;
+    }
     const requiresVideo = settings.videoRequiredGameIds?.includes(gameId);
     if (!requiresVideo) {
       return isSubscribed;
@@ -398,6 +406,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           videoRequiredGameIds: Array.isArray(fetchedSettings.videoRequiredGameIds)
             ? fetchedSettings.videoRequiredGameIds
             : defaultSettings.videoRequiredGameIds,
+          requireSubscriptionAndVideos:
+            typeof fetchedSettings.requireSubscriptionAndVideos === 'boolean'
+              ? fetchedSettings.requireSubscriptionAndVideos
+              : typeof localParsed.requireSubscriptionAndVideos === 'boolean'
+              ? localParsed.requireSubscriptionAndVideos
+              : defaultSettings.requireSubscriptionAndVideos ?? true,
           adSettings: {
             ...defaultSettings.adSettings,
             ...(fetchedSettings.adSettings || {}),

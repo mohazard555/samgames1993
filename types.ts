@@ -72,6 +72,7 @@ export interface Settings {
   feedbackEmail: string;
   videoWaitTime: number; // Waiting duration in seconds for video watch countdown
   videoRequiredGameIds: number[]; // IDs of games that require watching a video
+  requireSubscriptionAndVideos?: boolean; // When false: visitors can play all games directly without needing channel subscription or video watch
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;
   feedbacks?: FeedbackItem[];
