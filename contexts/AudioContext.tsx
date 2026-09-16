@@ -99,9 +99,19 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       audio.volume = 0.35;
       audio.onplay = () => setIsPlaying(true);
       audio.onpause = () => setIsPlaying(false);
+      audio.onerror = () => {
+        if (playable !== '/audio/default-music.mp3') {
+          console.warn('Custom music failed to load, falling back to /audio/default-music.mp3');
+          audio.src = '/audio/default-music.mp3';
+          audio.load();
+          if (!userMutedRef.current && (hasUserInteractedRef.current || isPlayingRef.current)) {
+            audio.play().catch(() => {});
+          }
+        }
+      };
       audioRef.current = audio;
     } else {
-      if (audioRef.current.src !== playable) {
+      if (audioRef.current.src !== playable && !audioRef.current.src.endsWith(playable)) {
         audioRef.current.src = playable;
         audioRef.current.load();
       }

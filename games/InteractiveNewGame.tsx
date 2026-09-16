@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
 import { getAuthentic50Items } from './banks/allBanks';
 import { getQuestionVisual } from '../src/utils/questionVisuals';
+import { useSettings } from '../contexts/SettingsContext';
+import QuestionGateModal from '../components/QuestionGateModal';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
 import {
   playSuccessSound,
   playErrorSound,
@@ -36,6 +39,8 @@ interface InteractiveNewGameProps {
 
 export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName }) => {
   const gameDef: GameDefinition | undefined = NEW_GAMES_REGISTRY[gameName];
+  const { settings, isVipActive } = useSettings();
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -46,6 +51,13 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
 
   const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
   const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
+
+  const gateNumber = settings.paidSettings?.questionGateNumber ?? 15;
+  const isQuestionGated =
+    !isVipActive &&
+    Boolean(settings.paidSettings?.enabled) &&
+    settings.paidSettings?.questionGateEnabled !== false &&
+    currentIndex + 1 >= gateNumber;
 
   const loadGameData = (def: GameDefinition) => {
     const data = getAuthentic50Items(def);
@@ -444,6 +456,21 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
           </div>
         );
       })()}
+
+      {/* Subscription Question Gate Modal when reaching question 15+ */}
+      <QuestionGateModal
+        isOpen={isQuestionGated}
+        currentQuestionNumber={currentIndex + 1}
+        totalQuestions={totalItems}
+        gameTitle={gameDef.title}
+        onOpenVipModal={() => setIsVipModalOpen(true)}
+      />
+
+      {/* VIP Full Upgrade & Sham Cash Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+      />
     </div>
   );
 };

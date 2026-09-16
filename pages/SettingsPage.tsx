@@ -1670,6 +1670,102 @@ const SettingsPage: React.FC = () => {
                   />
                 </div>
               </div>
+
+              {/* 50 Questions Game Lock & Stage Configuration */}
+              <div className="bg-amber-50/80 p-5 rounded-2xl border-2 border-amber-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">🎯</span>
+                    <div>
+                      <h4 className="text-sm sm:text-base font-black text-amber-950">
+                        طلب اشتراك VIP عند مرحلة معينة في ألعاب الـ 50 سؤال
+                      </h4>
+                      <p className="text-xs text-gray-600 font-bold">
+                        السماح للطفل باللعب مجاناً حتى سؤال معين، ثم طلب ترقية النسخة لمتابعة باقي الأسئلة الـ 50
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={localSettings.paidSettings?.questionGateEnabled ?? true}
+                      onChange={(e) =>
+                        setLocalSettings((prev) => ({
+                          ...prev,
+                          paidSettings: {
+                            ...prev.paidSettings!,
+                            questionGateEnabled: e.target.checked,
+                          },
+                        }))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                    <span className="ms-2.5 text-xs font-black text-amber-950">
+                      {localSettings.paidSettings?.questionGateEnabled !== false ? 'مفعّل' : 'معطّل'}
+                    </span>
+                  </label>
+                </div>
+
+                {localSettings.paidSettings?.questionGateEnabled !== false && (
+                  <div className="pt-3 border-t border-amber-200 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-gray-800 mb-1">
+                        رقم السؤال الذي يتوقف عنده اللعب ويطلب اشتراك (افتراضي: 15):
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="49"
+                          value={localSettings.paidSettings?.questionGateNumber ?? 15}
+                          onChange={(e) =>
+                            setLocalSettings((prev) => ({
+                              ...prev,
+                              paidSettings: {
+                                ...prev.paidSettings!,
+                                questionGateNumber: Math.max(1, parseInt(e.target.value) || 15),
+                              },
+                            }))
+                          }
+                          className="w-28 px-3.5 py-2 bg-white border border-amber-300 rounded-xl font-black text-center text-lg text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
+                        />
+                        <span className="text-xs font-bold text-gray-600">
+                          (سيلعب الطفل الأسئلة حتى السؤال {(localSettings.paidSettings?.questionGateNumber ?? 15) - 1}، وعند الوصول للسؤال {localSettings.paidSettings?.questionGateNumber ?? 15} ستظهر نافذة الترقية)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Presets */}
+                    <div className="flex items-center gap-1.5 self-end sm:self-center">
+                      <span className="text-[11px] font-bold text-gray-500">نماذج سريعة:</span>
+                      {[10, 15, 20, 25].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() =>
+                            setLocalSettings((prev) => ({
+                              ...prev,
+                              paidSettings: {
+                                ...prev.paidSettings!,
+                                questionGateNumber: preset,
+                              },
+                            }))
+                          }
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            (localSettings.paidSettings?.questionGateNumber ?? 15) === preset
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'bg-white text-gray-700 hover:bg-amber-100 border border-amber-200'
+                          }`}
+                        >
+                          السؤال {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Sham Cash Settings */}

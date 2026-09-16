@@ -2,18 +2,30 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FAMOUS_LANDMARKS_50, LandmarkItem } from './banks/landmarksAndFlagsData';
 import { playSuccessSound, playErrorSound, playWinFanfare, playPopSound } from '../utils/soundEffects';
+import { useSettings } from '../contexts/SettingsContext';
+import QuestionGateModal from '../components/QuestionGateModal';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
 
 interface GameProps {
   gameName: string;
 }
 
 const FamousLandmarks: React.FC<GameProps> = ({ gameName }) => {
+  const { settings, isVipActive } = useSettings();
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+
+  const gateNumber = settings.paidSettings?.questionGateNumber ?? 15;
+  const isQuestionGated =
+    !isVipActive &&
+    Boolean(settings.paidSettings?.enabled) &&
+    settings.paidSettings?.questionGateEnabled !== false &&
+    currentIndex + 1 >= gateNumber;
 
   const currentLandmark: LandmarkItem = FAMOUS_LANDMARKS_50[currentIndex];
 
@@ -185,6 +197,21 @@ const FamousLandmarks: React.FC<GameProps> = ({ gameName }) => {
           </div>
         )}
       </div>
+
+      {/* Subscription Question Gate Modal */}
+      <QuestionGateModal
+        isOpen={isQuestionGated}
+        currentQuestionNumber={currentIndex + 1}
+        totalQuestions={FAMOUS_LANDMARKS_50.length}
+        gameTitle={gameName}
+        onOpenVipModal={() => setIsVipModalOpen(true)}
+      />
+
+      {/* VIP Full Upgrade & Sham Cash Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+      />
     </div>
   );
 };

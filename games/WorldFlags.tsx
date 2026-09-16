@@ -2,18 +2,30 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { WORLD_FLAGS_50, FlagItem } from './banks/landmarksAndFlagsData';
 import { playSuccessSound, playErrorSound, playWinFanfare, playPopSound } from '../utils/soundEffects';
+import { useSettings } from '../contexts/SettingsContext';
+import QuestionGateModal from '../components/QuestionGateModal';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
 
 interface GameProps {
   gameName: string;
 }
 
 const WorldFlags: React.FC<GameProps> = ({ gameName }) => {
+  const { settings, isVipActive } = useSettings();
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isFinished, setIsFinished] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  const gateNumber = settings.paidSettings?.questionGateNumber ?? 15;
+  const isQuestionGated =
+    !isVipActive &&
+    Boolean(settings.paidSettings?.enabled) &&
+    settings.paidSettings?.questionGateEnabled !== false &&
+    currentIndex + 1 >= gateNumber;
 
   const currentFlag: FlagItem = WORLD_FLAGS_50[currentIndex];
 
@@ -186,6 +198,21 @@ const WorldFlags: React.FC<GameProps> = ({ gameName }) => {
           </div>
         )}
       </div>
+
+      {/* Subscription Question Gate Modal */}
+      <QuestionGateModal
+        isOpen={isQuestionGated}
+        currentQuestionNumber={currentIndex + 1}
+        totalQuestions={WORLD_FLAGS_50.length}
+        gameTitle={gameName}
+        onOpenVipModal={() => setIsVipModalOpen(true)}
+      />
+
+      {/* VIP Full Upgrade & Sham Cash Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+      />
     </div>
   );
 };

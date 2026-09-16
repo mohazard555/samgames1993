@@ -11,6 +11,8 @@ const defaultPaidSettings: Settings['paidSettings'] = {
   currency: 'دولار',
   periodName: 'تفعيل دائم مدى الحياة',
   paidGameIds: [1, 5, 12, 18, 25, 30, 40, 50], // Initial premium/VIP games
+  questionGateEnabled: true, // تفعيل طلب الاشتراك عند الوصول لسؤال محدد
+  questionGateNumber: 15, // السؤال رقم 15
   shamCash: {
     enabled: true,
     accountName: 'mohannad anis ahmad',
@@ -25,7 +27,7 @@ const defaultSettings: Settings = {
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
   subscriptionUrl: 'https://www.youtube.com/@mkstudio_963',
   youtubeUrls: 'https://www.youtube.com/@mkstudio_963\nhttps://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
-  backgroundMusicUrl: 'https://grubby-plum-uukfa7rf.edgeone.dev/',
+  backgroundMusicUrl: '/audio/default-music.mp3',
   backgroundMusicEnabled: true,
   contactEmail: 'contact@toysgameworld.com',
   feedbackEmail: 'feedback@toysgameworld.com',

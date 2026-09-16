@@ -82,6 +82,8 @@ export interface PaidSettings {
   currency: string; // e.g. "دولار" أو "USD"
   periodName: string; // e.g. "تفعيل دائم مدى الحياة"
   paidGameIds: number[]; // الألعاب التي تحتاج اشتراك مدفوع لتفتح
+  questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين في ألعاب الـ 50 سؤال
+  questionGateNumber?: number; // رقم السؤال الذي يتطلب اشتراك لمتابعة اللعب (افتراضي: 15)
   shamCash: ShamCashSettings;
   otherMethods?: OtherPaymentMethod[];
 }

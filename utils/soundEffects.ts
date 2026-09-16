@@ -308,7 +308,25 @@ export function playPianoNote(note: string): void {
 }
 
 /**
- * Play synthesized animal sounds
+ * Speak Arabic text for animal or educational learning
+ */
+export function speakArabic(text: string): void {
+  try {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-SA';
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch (e) {
+    // Ignore speech failure on unsupported browsers
+  }
+}
+
+/**
+ * Play synthesized animal sounds with realistic acoustic physics and acoustic formant synthesis
  */
 export function playAnimalSound(animal: string): void {
   try {
@@ -322,13 +340,13 @@ export function playAnimalSound(animal: string): void {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(450, now);
-      osc.frequency.linearRampToValueAtTime(820, now + 0.25);
-      osc.frequency.linearRampToValueAtTime(520, now + 0.6);
+      osc.frequency.setValueAtTime(460, now);
+      osc.frequency.linearRampToValueAtTime(840, now + 0.22);
+      osc.frequency.linearRampToValueAtTime(510, now + 0.58);
 
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.35, now + 0.08);
-      gain.gain.linearRampToValueAtTime(0.25, now + 0.45);
+      gain.gain.linearRampToValueAtTime(0.35, now + 0.07);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.42);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
 
       osc.connect(gain);
@@ -336,69 +354,205 @@ export function playAnimalSound(animal: string): void {
       osc.start(now);
       osc.stop(now + 0.66);
     } else if (clean.includes('كلب') || clean.includes('نباح') || clean.includes('dog') || clean.includes('🐶')) {
-      // Dog Bark: two quick modulated bursts
-      [0, 0.22].forEach((offset) => {
+      // Dog Bark: two crisp modulated bursts
+      [0, 0.2].forEach((offset) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(340, now + offset);
-        osc.frequency.exponentialRampToValueAtTime(110, now + offset + 0.14);
+        osc.frequency.setValueAtTime(360, now + offset);
+        osc.frequency.exponentialRampToValueAtTime(110, now + offset + 0.13);
 
         gain.gain.setValueAtTime(0.35, now + offset);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.14);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(now + offset);
-        osc.stop(now + offset + 0.16);
+        osc.stop(now + offset + 0.15);
       });
-    } else if (clean.includes('بقر') || clean.includes('موو') || clean.includes('cow') || clean.includes('🐮')) {
+    } else if (clean.includes('بقر') || clean.includes('موو') || clean.includes('خوار') || clean.includes('cow') || clean.includes('🐮')) {
       // Cow Moo: Low resonant tone with subtle vibrato
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(145, now);
-      osc.frequency.linearRampToValueAtTime(125, now + 0.7);
+      osc.frequency.linearRampToValueAtTime(120, now + 0.8);
 
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.38, now + 0.1);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.85);
+      gain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.95);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 0.86);
+      osc.stop(now + 0.96);
     } else if (clean.includes('خروف') || clean.includes('ثغاء') || clean.includes('sheep') || clean.includes('🐑')) {
       // Sheep Baaa: Vibrato tone
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(260, now);
-      osc.frequency.linearRampToValueAtTime(230, now + 0.6);
+      osc.frequency.setValueAtTime(270, now);
+      osc.frequency.linearRampToValueAtTime(220, now + 0.65);
 
       gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.25, now + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+      gain.gain.linearRampToValueAtTime(0.28, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 0.66);
-    } else if (clean.includes('أسد') || clean.includes('زئير') || clean.includes('lion') || clean.includes('🦁')) {
-      // Lion Roar: Low noise sweep
+      osc.stop(now + 0.71);
+    } else if (clean.includes('ماعز') || clean.includes('goat') || clean.includes('🐐')) {
+      // Goat Bleat: Rapid staccato vibrato
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(130, now);
-      osc.frequency.linearRampToValueAtTime(75, now + 0.7);
+      osc.frequency.setValueAtTime(310, now);
+      osc.frequency.linearRampToValueAtTime(260, now + 0.55);
 
-      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.3, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.61);
+    } else if (clean.includes('أسد') || clean.includes('زئير') || clean.includes('lion') || clean.includes('🦁') || clean.includes('نمر') || clean.includes('tiger') || clean.includes('🐯')) {
+      // Lion / Tiger Roar: Powerful low frequency growl sweep
+      [0, 0.1].forEach((off) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now + off);
+        osc.frequency.linearRampToValueAtTime(65, now + off + 0.85);
+
+        gain.gain.setValueAtTime(0.4, now + off);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.9);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.92);
+      });
+    } else if (clean.includes('حصان') || clean.includes('صهيل') || clean.includes('horse') || clean.includes('🐴') || clean.includes('🐎')) {
+      // Horse Whinny (صهيل): Ascending pitch vibrato sweep then descending
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.85);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.35, now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.92);
+    } else if (clean.includes('فيل') || clean.includes('نفير') || clean.includes('elephant') || clean.includes('🐘')) {
+      // Elephant Trumpet (نفير الفيل): Dual brassy tone blast
+      [220, 440].forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.linearRampToValueAtTime(freq * 1.6, now + 0.25);
+        osc.frequency.linearRampToValueAtTime(freq * 0.9, now + 0.75);
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.82);
+      });
+    } else if (clean.includes('ذئب') || clean.includes('عواء') || clean.includes('wolf') || clean.includes('🐺')) {
+      // Wolf Howl (عواء الذئب): Haunting rising and falling smooth sine
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(280, now);
+      osc.frequency.exponentialRampToValueAtTime(650, now + 0.45);
+      osc.frequency.exponentialRampToValueAtTime(380, now + 1.1);
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.38, now + 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 1.15);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 1.16);
+    } else if (clean.includes('قرد') || clean.includes('monkey') || clean.includes('🐒') || clean.includes('🐵')) {
+      // Monkey Chatter: Staccato rhythmic bursts (أوو أأ أأ)
+      [0, 0.12, 0.24, 0.38].forEach((off, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600 + (i % 2) * 200, now + off);
+        osc.frequency.exponentialRampToValueAtTime(350, now + off + 0.08);
+
+        gain.gain.setValueAtTime(0.3, now + off);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.09);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.1);
+      });
+    } else if (clean.includes('دب') || clean.includes('bear') || clean.includes('🐻')) {
+      // Bear Growl (زمجرة الدب)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, now);
+      osc.frequency.linearRampToValueAtTime(70, now + 0.7);
+
+      gain.gain.setValueAtTime(0.38, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.75);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now);
       osc.stop(now + 0.76);
+    } else if (clean.includes('حمار') || clean.includes('نهيق') || clean.includes('donkey') || clean.includes('🫏')) {
+      // Donkey Bray (نهيق الحمار: شهيق وزفير متتابع)
+      [0, 0.35, 0.7].forEach((off, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        const startFreq = idx % 2 === 0 ? 550 : 220;
+        const endFreq = idx % 2 === 0 ? 750 : 150;
+        osc.frequency.setValueAtTime(startFreq, now + off);
+        osc.frequency.linearRampToValueAtTime(endFreq, now + off + 0.25);
+
+        gain.gain.setValueAtTime(0.3, now + off);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.28);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.3);
+      });
+    } else if (clean.includes('جمل') || clean.includes('رغاء') || clean.includes('camel') || clean.includes('🐪') || clean.includes('🐫')) {
+      // Camel Grunt (رغاء الجمل)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.linearRampToValueAtTime(110, now + 0.6);
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.66);
     } else if (clean.includes('ديك') || clean.includes('صياح') || clean.includes('rooster') || clean.includes('🐔')) {
       // Rooster Cock-a-doodle-doo
       const freqs = [440, 520, 660, 580];
@@ -433,6 +587,40 @@ export function playAnimalSound(animal: string): void {
         osc.start(now + off);
         osc.stop(now + off + 0.07);
       });
+    } else if (clean.includes('بومة') || clean.includes('owl') || clean.includes('🦉')) {
+      // Owl Hoot (نعيق البومة): Soft two-tone hoot
+      [0, 0.25].forEach((off) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(380, now + off);
+        osc.frequency.linearRampToValueAtTime(320, now + off + 0.2);
+
+        gain.gain.setValueAtTime(0, now + off);
+        gain.gain.linearRampToValueAtTime(0.3, now + off + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.22);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.23);
+      });
+    } else if (clean.includes('نسر') || clean.includes('صقر') || clean.includes('eagle') || clean.includes('falcon') || clean.includes('🦅')) {
+      // Eagle / Falcon Screech
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1800, now);
+      osc.frequency.linearRampToValueAtTime(2400, now + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(1200, now + 0.5);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.56);
     } else if (clean.includes('بطة') || clean.includes('duck') || clean.includes('🦆')) {
       // Duck Quack: Nasal twin pulse
       [0, 0.15].forEach((off) => {
@@ -466,6 +654,55 @@ export function playAnimalSound(animal: string): void {
         gain.connect(ctx.destination);
         osc.start(now + off);
         osc.stop(now + off + 0.11);
+      });
+    } else if (clean.includes('دلفين') || clean.includes('dolphin') || clean.includes('🐬')) {
+      // Dolphin Click-Whistle
+      [0, 0.06, 0.12, 0.22].forEach((off, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2800 + i * 400, now + off);
+        osc.frequency.exponentialRampToValueAtTime(4000, now + off + 0.05);
+
+        gain.gain.setValueAtTime(0.25, now + off);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.06);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.07);
+      });
+    } else if (clean.includes('نحلة') || clean.includes('bee') || clean.includes('🐝')) {
+      // Bee Buzz: Sawtooth pitch buzz
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.linearRampToValueAtTime(290, now + 0.4);
+
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.52);
+    } else if (clean.includes('حمامة') || clean.includes('حمام') || clean.includes('pigeon') || clean.includes('dove') || clean.includes('🕊️')) {
+      // Pigeon Coo (هديل الحمام)
+      [0, 0.2].forEach((off) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(340, now + off);
+        osc.frequency.linearRampToValueAtTime(400, now + off + 0.15);
+
+        gain.gain.setValueAtTime(0.25, now + off);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + off + 0.18);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + off);
+        osc.stop(now + off + 0.2);
       });
     } else {
       playSuccessSound();
