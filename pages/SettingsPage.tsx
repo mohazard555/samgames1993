@@ -24,6 +24,7 @@ const SettingsPage: React.FC = () => {
     updateContactMessageStatus,
     deleteContactMessage,
     deleteSkillTestResult,
+    syncError,
   } = useSettings();
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
@@ -269,9 +270,9 @@ const SettingsPage: React.FC = () => {
     if (synced) {
       setSaveMessage('✓ تم حفظ الإعدادات ونشرها على السحابة (Gist) بنجاح ليراها جميع الزوار!');
     } else {
-      setSaveMessage('✓ تم الحفظ محلياً بنجاح (تحقق من بيانات Gist للنشر السحابي العام)');
+      setSaveMessage(syncError ? `✓ تم الحفظ محلياً. تنبيه السحابة: ${syncError}` : '✓ تم الحفظ محلياً بنجاح (تحقق من بيانات Gist للنشر السحابي العام)');
     }
-    setTimeout(() => setSaveMessage(''), 4500);
+    setTimeout(() => setSaveMessage(''), 6000);
   };
 
   const handleLoadFromGist = async () => {
@@ -291,11 +292,11 @@ const SettingsPage: React.FC = () => {
     setSyncMessage({ text: '...جاري الحفظ والمزامنة مع Gist', type: 'info' });
     const success = await saveToGist(localSettings);
     if (success) {
-      setSyncMessage({ text: 'تم حفظ الإعدادات ونشرها على Gist بنجاح!', type: 'success' });
+      setSyncMessage({ text: 'تم حفظ الإعدادات ونشرها على Gist بنجاح ليراها الزوار!', type: 'success' });
     } else {
-      setSyncMessage({ text: 'فشل الحفظ. تحقق من الرابط والتوكن.', type: 'error' });
+      setSyncMessage({ text: syncError || 'فشل الحفظ في Gist. يرجى التحقق من التوكن أو حجم الملف.', type: 'error' });
     }
-    setTimeout(() => setSyncMessage({ text: '', type: '' }), 4000);
+    setTimeout(() => setSyncMessage({ text: '', type: '' }), 6000);
   };
 
   const exportSettings = () => {

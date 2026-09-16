@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
+import { getAuthentic50Items } from './banks/allBanks';
 import {
   playSuccessSound,
   playErrorSound,
@@ -27,89 +28,23 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
   const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
 
-  const ensure50Items = (def: GameDefinition) => {
-    const cat = def.category || 'عام';
-    const title = def.title || '';
-    if (def.type === 'quiz') {
-      const baseQs = [...(def.questions || [])];
-      const extraPool: QuizQuestion[] = [];
-      
-      for (let i = baseQs.length + 1; i <= 50; i++) {
-        let qText = `سؤال تفاعلي (${i}) حول ${title} ضمن فئة ${cat}: ما هو الخيار الصحيح علمياً؟`;
-        let opts = [
-          `خيار تقديري أول (${i})`,
-          `الإجابة العلمية المعتمدة رقم (${i})`,
-          `خيار بديل ثالث (${i})`,
-          `خيار إضافي رابع (${i})`
-        ];
-        let correct = `الإجابة العلمية المعتمدة رقم (${i})`;
-        let expl = `هذا سؤال تفاعلي ممتع ضمن الـ 50 سؤالاً لاختبار مهاراتك في ${title}!`;
-
-        if (cat.includes('رياضة')) {
-          const sportsList = ['كرة القدم', 'كرة السلة', 'السباحة', 'الجري السريع', 'الأولمبياد', 'اللياقة'];
-          const sp = sportsList[(i - 1) % sportsList.length];
-          qText = `سؤال رياضي ممتع (${i}) عن ${sp}: ما هي قاعدة الأداء الأفضل؟`;
-          opts = [`التركيز والسرعة الرياضية`, `الإرهاق البدني العام`, `التوقف السريع للمنافس`, `الابتعاد عن التدريب`];
-          correct = `التركيز والسرعة الرياضية`;
-          expl = `الرياضة تبني الجسم السليم وتنمي روح التعاون والمثابرة!`;
-        } else if (cat.includes('موسيقى')) {
-          qText = `سؤال موسيقي ونغمات (${i}): كيف تتألف النغمة الإيقاعية الصحيحة؟`;
-          opts = [`بتناغم الأوتار والسرعة`, `بالضوضاء العالية`, `بإيقاف الصوت تماماً`, `بالعزف العشوائي`];
-          correct = `بتناغم الأوتار والسرعة`;
-          expl = `الموسيقى ترتقي بالذوق العام وتنمي الحس الفني الراقي!`;
-        } else if (cat.includes('ألوان')) {
-          qText = `سؤال الألوان والفنون (${i}): ما هي النتيجة الفنية لتناسق الألوان؟`;
-          opts = [`لوحة فنية متناغمة وجميلة`, `إخفاء الألوان نهائياً`, `فوضى بصرية`, `غياب الرؤية`];
-          correct = `لوحة فنية متناغمة وجميلة`;
-          expl = `عالم الألوان يمنح الحياة بهجة وجمالاً مذهلاً!`;
-        } else if (cat.includes('ألغاز')) {
-          qText = `لغز ذكاء وتفكير (${i}): ما هو الحل الأذكى لهذا اللغز؟`;
-          opts = [`التفكير المنطقي والعميق`, `التسرع في القرار`, `تجاهل السؤال`, `الإجابة العشوائية`];
-          correct = `التفكير المنطقي والعميق`;
-          expl = `الألغاز تنشط الذاكرة وتزيد نسبة الذكاء والتركيز!`;
-        }
-
-        extraPool.push({
-          id: i,
-          question: qText,
-          image: def.iconEmoji,
-          options: [...opts].sort(() => Math.random() - 0.5),
-          correctAnswer: correct,
-          explanation: expl,
-        });
-      }
-
-      const processedBase = baseQs.map((q) => ({
+  const loadGameData = (def: GameDefinition) => {
+    const data = getAuthentic50Items(def);
+    if (data.type === 'quiz' && data.questions && data.questions.length > 0) {
+      const randomized = data.questions.map((q) => ({
         ...q,
         options: [...q.options].sort(() => Math.random() - 0.5),
-      }));
-
-      return [...processedBase, ...extraPool];
-    } else {
-      const baseComps = [...(def.comparisons || [])];
-      const extraComps: ComparisonRound[] = [];
-      for (let i = baseComps.length + 1; i <= 50; i++) {
-        extraComps.push({
-          id: i,
-          prompt: `مقارنة المهارات والذكاء رقم (${i}) ⚖️ أيهما أقوى أو أسرع أو أكثر قيمة؟`,
-          itemA: { label: `العنصر الأول (${i})`, emoji: '⭐', description: 'خيار تفاعلي أول' },
-          itemB: { label: `العنصر الثاني الفائز (${i})`, emoji: '🚀', description: 'خيار تفاعلي متقدم' },
-          correctIndex: i % 2 === 0 ? 1 : 0,
-          explanation: `هذه مقارنة تفاعلية ضمن الـ 50 جولة لتنمية سرعة البديهة والتمييز السليم!`,
-        });
-      }
-      return [...baseComps, ...extraComps];
+      })).sort(() => Math.random() - 0.5);
+      setShuffledQuestions(randomized);
+    } else if (data.comparisons && data.comparisons.length > 0) {
+      const randomized = [...data.comparisons].sort(() => Math.random() - 0.5);
+      setShuffledComparisons(randomized);
     }
   };
 
   useEffect(() => {
     if (gameDef) {
-      const fullList = ensure50Items(gameDef);
-      if (gameDef.type === 'quiz') {
-        setShuffledQuestions([...(fullList as QuizQuestion[])].sort(() => Math.random() - 0.5));
-      } else {
-        setShuffledComparisons([...(fullList as ComparisonRound[])].sort(() => Math.random() - 0.5));
-      }
+      loadGameData(gameDef);
       setCurrentIndex(0);
       setScore(0);
       setStreak(0);
@@ -201,12 +136,7 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
     setSelectedAnswer(null);
     setIsCompleted(false);
     if (gameDef) {
-      const fullList = ensure50Items(gameDef);
-      if (gameDef.type === 'quiz') {
-        setShuffledQuestions([...(fullList as QuizQuestion[])].sort(() => Math.random() - 0.5));
-      } else {
-        setShuffledComparisons([...(fullList as ComparisonRound[])].sort(() => Math.random() - 0.5));
-      }
+      loadGameData(gameDef);
     }
   };
 
@@ -296,9 +226,16 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
       {/* MAIN GAME CONTENT */}
       {isQuiz && currentQ && (
         <div className="bg-gradient-to-b from-sky-50 to-blue-50/50 p-6 sm:p-8 rounded-3xl border border-sky-100 shadow-inner">
-          {/* Question illustration */}
-          <div className="text-7xl sm:text-8xl mb-4 text-center filter drop-shadow-md">
-            {currentQ.image || gameDef.iconEmoji}
+          {/* Neutral Question Indicator (No hints or spoilers) */}
+          <div className="flex flex-col items-center justify-center mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-sky-100/90 border-2 border-sky-300 text-sky-700 flex items-center justify-center text-2xl sm:text-3xl font-black shadow-sm">
+              ❓
+            </div>
+            {currentQ.badge && (
+              <span className="mt-2.5 inline-block bg-sky-100 text-sky-800 text-xs font-black px-3 py-1 rounded-full border border-sky-200">
+                {currentQ.badge}
+              </span>
+            )}
           </div>
 
           {/* Question Text */}

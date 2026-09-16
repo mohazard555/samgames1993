@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { Settings, FeedbackItem, ContactMessage, SkillTestResult } from '../types';
+import { saveAudioToCache, getAudioFromCache } from '../utils/audioStorage';
 
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
@@ -79,6 +80,8 @@ interface SettingsContextType {
   isSyncing: boolean;
   isInitialLoading: boolean;
   lastSyncTime: string | null;
+  syncError: string | null;
+  setSyncError: (err: string | null) => void;
   // Feedback & Contact Management
   addFeedback: (item: { name: string; email: string; rating: number; category?: string; message: string }) => Promise<void>;
   updateFeedbackStatus: (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => void;
@@ -103,6 +106,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
     return localStorage.getItem('toysGameLastGistSync') || null;
   });
@@ -112,6 +116,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const savedSettings = localStorage.getItem('toysGameSettings');
       if (savedSettings) {
         const parsed = JSON.parse(savedSettings);
+        if (parsed.backgroundMusicUrl === 'SAVED_IN_CLOUD_BASE64') {
+          delete parsed.backgroundMusicUrl;
+        }
         return {
           ...defaultSettings,
           ...parsed,
@@ -134,6 +141,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return defaultSettings;
     }
   });
+
+  // Check IndexedDB audio cache on initial load
+  useEffect(() => {
+    getAudioFromCache().then((cachedAudio) => {
+      if (cachedAudio && cachedAudio.startsWith('data:audio/')) {
+        setSettings((prev) => {
+          if (!prev.backgroundMusicUrl || prev.backgroundMusicUrl === defaultSettings.backgroundMusicUrl) {
+            return { ...prev, backgroundMusicUrl: cachedAudio };
+          }
+          return prev;
+        });
+      }
+    });
+  }, []);
 
   // User subscription state in localStorage
   const [isSubscribed, setIsSubscribedState] = useState<boolean>(() => {
@@ -228,11 +249,36 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const saveSettings = (newSettings: Settings) => {
+    // Always update React state first so UI and Audio immediately have the latest settings!
+    setSettings(newSettings);
+
+    // If audio is a valid base64 dataURI, cache it securely in IndexedDB
+    if (
+      typeof newSettings.backgroundMusicUrl === 'string' &&
+      newSettings.backgroundMusicUrl.startsWith('data:audio/')
+    ) {
+      saveAudioToCache(newSettings.backgroundMusicUrl).catch(() => {});
+    }
+
     try {
       localStorage.setItem('toysGameSettings', JSON.stringify(newSettings));
-      setSettings(newSettings);
     } catch (error) {
-      console.error('Error saving settings to localStorage', error);
+      console.warn('LocalStorage quota exceeded. Storing lightweight copy without large media:', error);
+      try {
+        const isHeavyAudio =
+          typeof newSettings.backgroundMusicUrl === 'string' &&
+          newSettings.backgroundMusicUrl.startsWith('data:audio/');
+        const lightweightSettings = {
+          ...newSettings,
+          // Never replace with invalid placeholder tokens; keep default or external URL for localStorage fallback
+          backgroundMusicUrl: isHeavyAudio
+            ? defaultSettings.backgroundMusicUrl
+            : newSettings.backgroundMusicUrl,
+        };
+        localStorage.setItem('toysGameSettings', JSON.stringify(lightweightSettings));
+      } catch (innerErr) {
+        console.warn('Could not save lightweight settings to localStorage:', innerErr);
+      }
     }
   };
 
@@ -277,8 +323,26 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (apiRes.ok) {
           const gistData = await apiRes.json();
           const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0];
-          if (targetFile && (targetFile as any).content) {
-            fetchedSettings = JSON.parse((targetFile as any).content);
+          
+          if (targetFile) {
+            // CRITICAL: If file is truncated by GitHub API (>1MB), fetch the full file from raw_url!
+            if (targetFile.truncated && targetFile.raw_url) {
+              const fullRawRes = await fetch(`${targetFile.raw_url}?_t=${Date.now()}`, { cache: 'no-store' });
+              if (fullRawRes.ok) {
+                fetchedSettings = await fullRawRes.json();
+              }
+            } else if (targetFile.content) {
+              try {
+                fetchedSettings = JSON.parse(targetFile.content);
+              } catch {
+                if (targetFile.raw_url) {
+                  const fullRawRes = await fetch(`${targetFile.raw_url}?_t=${Date.now()}`, { cache: 'no-store' });
+                  if (fullRawRes.ok) {
+                    fetchedSettings = await fullRawRes.json();
+                  }
+                }
+              }
+            }
           }
         }
       } catch (apiErr) {
@@ -319,9 +383,17 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
+        let safeMusicUrl = fetchedSettings.backgroundMusicUrl;
+        if (!safeMusicUrl || safeMusicUrl === 'SAVED_IN_CLOUD_BASE64') {
+          safeMusicUrl = defaultSettings.backgroundMusicUrl;
+        } else if (safeMusicUrl.startsWith('data:audio/')) {
+          saveAudioToCache(safeMusicUrl).catch(() => {});
+        }
+
         const merged: Settings = {
           ...defaultSettings,
           ...fetchedSettings,
+          backgroundMusicUrl: safeMusicUrl,
           videoWaitTime: parsedWaitTime,
           videoRequiredGameIds: Array.isArray(fetchedSettings.videoRequiredGameIds)
             ? fetchedSettings.videoRequiredGameIds
@@ -356,17 +428,34 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // Save settings directly to GitHub Gist
   const saveToGist = async (overrideSettings?: Settings): Promise<boolean> => {
+    setSyncError(null);
     const targetUrl = (gistUrl || DEFAULT_GIST_URL).trim();
     const targetToken = (gistToken || localStorage.getItem('gistToken') || '').trim();
 
-    if (!targetUrl) return false;
+    if (!targetUrl) {
+      setSyncError('رابط Gist غير محدد.');
+      return false;
+    }
     if (!targetToken) {
-      console.warn('Gist token not set. Skipping remote Gist push.');
+      const msg = 'رمز التحقق (GitHub Token) غير مدخل. لن يتمكن الزوار من سماع الموسيقى الجديدة حتى تُدخل الـ Token في تبويب المزامنة لحفظها سحابياً.';
+      console.warn(msg);
+      setSyncError(msg);
+      return false;
+    }
+
+    const dataToSave = overrideSettings || settings;
+    const jsonPayload = JSON.stringify(dataToSave, null, 2);
+
+    // GitHub Gist 1MB hard limit safeguard
+    if (jsonPayload.length > 950000) {
+      const kb = Math.round(jsonPayload.length / 1024);
+      const errMsg = `حجم البيانات (${kb} كيلوبايت) يتجاوز الحد المسموح به في سحابة GitHub Gist (1 ميجابايت). ملف الموسيقى كبير جداً، يرجى استخدام ميزة الضغط التلقائي أو رابط صوت خارجي (URL).`;
+      console.warn(errMsg);
+      setSyncError(errMsg);
       return false;
     }
 
     setIsSyncing(true);
-    const dataToSave = overrideSettings || settings;
     const { gistId, filename } = extractGistInfo(targetUrl);
 
     try {
@@ -380,15 +469,29 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         body: JSON.stringify({
           files: {
             [filename]: {
-              content: JSON.stringify(dataToSave, null, 2),
+              content: jsonPayload,
             },
           },
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Failed to save to Gist: ${errorData.message}`);
+        let errMessage = 'فشل في حفظ البيانات على Gist';
+        try {
+          const errorData = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            errMessage = 'رمز التحقق (GitHub Token) غير صالح أو انتهت صلاحيته أو تنقصه صلاحية gist.';
+          } else if (response.status === 422) {
+            errMessage = `رفض خادم GitHub الملف بسبب الحجم أو التنسيق: ${errorData.message || ''}`;
+          } else {
+            errMessage = errorData.message || errMessage;
+          }
+        } catch {
+          // fallback
+        }
+        setSyncError(errMessage);
+        setIsSyncing(false);
+        return false;
       }
 
       // Also persist locally
@@ -396,10 +499,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
       setLastSyncTime(syncTimeStr);
       localStorage.setItem('toysGameLastGistSync', syncTimeStr);
+      setSyncError(null);
       setIsSyncing(false);
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      const errStr = error instanceof Error ? error.message : String(error);
       console.error('Failed to save settings to Gist:', error);
+      setSyncError(`خطأ أثناء الاتصال بسحابة Gist: ${errStr}`);
       setIsSyncing(false);
       return false;
     }
@@ -568,6 +674,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         isSyncing,
         isInitialLoading,
         lastSyncTime,
+        syncError,
+        setSyncError,
         addFeedback,
         updateFeedbackStatus,
         deleteFeedback,

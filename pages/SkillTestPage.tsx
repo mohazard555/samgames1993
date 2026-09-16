@@ -2,76 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import { playSuccessSound, playErrorSound, playWinFanfare, playPopSound } from '../utils/soundEffects';
-
-interface SkillQuestion {
-  id: number;
-  question: string;
-  emoji: string;
-  category: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-}
-
-// Master pool of 50 diverse questions for Show Skills mode
-const SKILL_TEST_QUESTIONS: SkillQuestion[] = [
-  { id: 1, category: 'علوم', emoji: '🌍', question: 'ما هو الكوكب الذي نعيش عليه ويسمى الكوكب الأزرق؟', options: ['المريخ', 'الأرض', 'المشتري', 'زحل'], correctAnswer: 'الأرض', explanation: 'الأرض هو كوكبنا الجميل المغطى بالمحيطات والمياه.' },
-  { id: 2, category: 'حيوانات', emoji: '🐘', question: 'ما هو أكبر حيوان بري على كوكب الأرض؟', options: ['الفيل', 'الزرافة', 'الأسد', 'الحصان'], correctAnswer: 'الفيل', explanation: 'الفيل الإفريقي هو أضخم حيوان يعيش على اليابسة.' },
-  { id: 3, category: 'فضاء', emoji: '☀️', question: 'ما هو النجم الكبير الذي يمدنا بالدفء والضوء نهاراً؟', options: ['القمر', 'الشمس', 'المريخ', 'الزهرة'], correctAnswer: 'الشمس', explanation: 'الشمس هي النجم الذي يمنحنا الحرارة والضوء.' },
-  { id: 4, category: 'جغرافيا', emoji: '🌊', question: 'كم عدد المحيطات الرئيسية في كوكب الأرض؟', options: ['3 محيطات', '5 محيطات', '7 محيطات', 'محيط واحد'], correctAnswer: '5 محيطات', explanation: 'المحيطات الخمسة هي: الهادي، الأطلسي، الهندي، المتجمد الشمالي، والمتجمد الجنوبي.' },
-  { id: 5, category: 'رياضيات', emoji: '🔢', question: 'ما ناتج جمع: 15 + 15؟', options: ['25', '30', '35', '20'], correctAnswer: '30', explanation: '15 مضافاً إليها 15 تساوي 30 تماماً.' },
-  { id: 6, category: 'حيوانات', emoji: '🦒', question: 'ما هو الحيوان الذي يمتلك رقبة طويلة جداً ويأكل أوراق الأشجار العالية؟', options: ['الحمار الوحشي', 'الفهد', 'الزرافة', 'القرد'], correctAnswer: 'الزرافة', explanation: 'الزرافة تتميز برقبتها الطويلة التي تمكنها من الوصول لأعالي الأشجار.' },
-  { id: 7, category: 'تاريخ', emoji: '🏛️', question: 'في أي دولة تقع الأهرامات المصرية العريقة؟', options: ['مصر', 'السعودية', 'المغرب', 'الإمارات'], correctAnswer: 'مصر', explanation: 'تقع أهرامات الجيزة الخالدة في جمهورية مصر العربية.' },
-  { id: 8, category: 'رياضة', emoji: '⚽', question: 'كم عدد لاعبين فريق كرة القدم الأساسي في الملعب؟', options: ['9 لاعبين', '10 لاعبين', '11 لاعباً', '7 لاعبين'], correctAnswer: '11 لاعباً', explanation: 'يتكون الفريق الواحد في كرة القدم من 11 لاعباً أساسياً.' },
-  { id: 9, category: 'علوم', emoji: '💧', question: 'ما هو الرمز الكيميائي للماء النقي؟', options: ['H2O', 'CO2', 'O2', 'NaCl'], correctAnswer: 'H2O', explanation: 'الماء يتكون من ذرتي هيدروجين وذرة أكسجين (H2O).' },
-  { id: 10, category: 'حيوانات', emoji: '🦁', question: 'من هو ملك الغابة في عالم الحيوانات البرية؟', options: ['النمر', 'الأسد', 'الفيل', 'الدب'], correctAnswer: 'الأسد', explanation: 'يُلقب الأسد بملك الغابة لقوته وشجاعته.' },
-  { id: 11, category: 'فضاء', emoji: '🌙', question: 'ما هو الجسم السماوي الذي يدور حول الأرض ويظهر ليلاً؟', options: ['القمر', 'المريخ', 'المذنب', 'الشهاب'], correctAnswer: 'القمر', explanation: 'القمر هو تابع الأرض الطبيعي الذي يدور حولها.' },
-  { id: 12, category: 'ألوان', emoji: '🎨', question: 'ماذا ينتج عن دمج اللون الأصفر مع اللون الأزرق؟', options: ['اللون الأخضر', 'اللون البرتقالي', 'اللون البنفسجي', 'اللون الأحمر'], correctAnswer: 'اللون الأخضر', explanation: 'مزج الأصفر والأزرق يعطي لوناً أخضر ساحراً.' },
-  { id: 13, category: 'علوم', emoji: '🌱', question: 'ماذا تحتاج النبتة الصغيرة لكي تنمو وتكبر؟', options: ['ماء وضوء شمس وتربة', 'ظلام تام ومواد بلاستيكية', 'سكر وثلج', 'حديد والصخور'], correctAnswer: 'ماء وضوء شمس وتربة', explanation: 'النباتات الحية تحتاج للماء والشمس والتربة والغذاء لتنمو.' },
-  { id: 14, category: 'جغرافيا', emoji: '🗺️', question: 'ما هي عاصمة المملكة العربية السعودية؟', options: ['جدة', 'الرياض', 'مكة المكرمة', 'الدمام'], correctAnswer: 'الرياض', explanation: 'الرياض هي العاصمة الإدارية للمملكة العربية السعودية.' },
-  { id: 15, category: 'رياضيات', emoji: '➗', question: 'ما ناتج قسمة 20 على 4؟', options: ['4', '5', '6', '10'], correctAnswer: '5', explanation: 'لأن 5 × 4 يساوي 20.' },
-  { id: 16, category: 'حيوانات', emoji: '🐬', question: 'أي من هذه الكائنات يعيش في الماء ويعد من أذكى الحيوانات؟', options: ['الدلفين', 'القرش', 'قنديل البحر', 'الأخطبوط'], correctAnswer: 'الدلفين', explanation: 'الدلافين كائنات ذكية جداً واجتماعية تعيش في البحار والمحيطات.' },
-  { id: 17, category: 'علوم', emoji: '⚡', question: 'ما هي الطاقة التي تشغل الأجهزة الكهربائية في المنزل؟', options: ['الكهرباء', 'الرياح فقط', 'الصوت', 'الجاذبية'], correctAnswer: 'الكهرباء', explanation: 'الكهرباء هي الطاقة الأساسية لتشغيل المصابيح والأجهزة.' },
-  { id: 18, category: 'فضاء', emoji: '🚀', question: 'ماذا يسمى الشخص الذي يسافر إلى الفضاء بمركبة الفضاء؟', options: ['مهندس', 'رائد فضاء', 'بحار', 'طيار حربي'], correctAnswer: 'رائد فضاء', explanation: 'رائد الفضاء هو الشخص المدرب على استكشاف الفضاء الخارجي.' },
-  { id: 19, category: 'رياضة', emoji: '🏀', question: 'ما هي الكرة التي تُرمى داخل سلة عالية في الرياضة؟', options: ['كرة السلة', 'كرة القدم', 'كرة التنس', 'البيسبول'], correctAnswer: 'كرة السلة', explanation: 'في كرة السلة يهدف اللاعبون لتسجيل النقاط بإدخال الكرة في السلة.' },
-  { id: 20, category: 'حيوانات', emoji: '🐧', question: 'طائر بحري يعيش في الثلج ولا يستطيع الطيران ولكنه سباح ماهر:', options: ['النسر', 'البطريق', 'الحمامة', 'البجعة'], correctAnswer: 'البطريق', explanation: 'البطريق طائر قطبي مذهل يجيد السباحة ببراعة تحت الماء.' },
-  { id: 21, category: 'علوم', emoji: '🍎', question: 'ما هي القوة التي تجذب الأشياء نحو أرضنا؟', options: ['الجاذبية الأرضية', 'المغناطيسية الفضائية', 'الكهرباء الساتاتيكية', 'ضغط الهواء'], correctAnswer: 'الجاذبية الأرضية', explanation: 'قوة الجاذبية هي التي تبقينا على الأرض وتمنعنا من الطيران.' },
-  { id: 22, category: 'تاريخ', emoji: '✍️', question: 'من هو المخترع الشهير الذي اخترع المصباح الكهربائي؟', options: ['توماس أديسون', 'ألبرت أينشتاين', 'إسحاق نيوتن', 'غاليليو'], correctAnswer: 'توماس أديسون', explanation: 'المخترع العبقري توماس أديسون هو من اخترع المصباح الكهربائي العملي.' },
-  { id: 23, category: 'جغرافيا', emoji: '🏜️', question: 'ماذا تسمى الأرض الواسعة المغطاة بالرمال الحارة والقليلة الأمطار؟', options: ['الغابة', 'الصحراء', 'البحيرة', 'الجزيرة'], correctAnswer: 'الصحراء', explanation: 'الصحراء تتميز برمالها الواسعة وقلة أمطارها وحرارتها.' },
-  { id: 24, category: 'رياضيات', emoji: '✖️', question: 'ما ناتج ضرب 6 في 6؟', options: ['30', '36', '42', '48'], correctAnswer: '36', explanation: '6 ضرب 6 يساوي 36 تماماً.' },
-  { id: 25, category: 'حيوانات', emoji: '🐝', question: 'ما هي الحشرة النافعة التي تصنع لنا العسل اللذيذ؟', options: ['الذباب', 'النحلة', 'البعوضة', 'النملة'], correctAnswer: 'النحلة', explanation: 'النحلة تمتص رحيق الأزهار وتصنع عسلاً فيه شفاء للناس.' },
-  { id: 26, category: 'موسيقى', emoji: '🎸', question: 'آلة وتارية مشهورة يعزف عليها بالحركات والأوتار:', options: ['الجيتار', 'الطبلة', 'المزمار', 'الناي'], correctAnswer: 'الجيتار', explanation: 'الجيتار من أشهر الآلات الموسيقية المحبوبة.' },
-  { id: 27, category: 'علوم', emoji: '🦷', question: 'كم عدد الأسنان اللبنية لدى الأطفال الصغار؟', options: ['20 سنة', '32 سنة', '10 أسنان', '20 سناً'], correctAnswer: '20 سناً', explanation: 'يمتلك الأطفال 20 سناً لبنياً تتساقط لتنمو مكانها الأسنان الدائمة.' },
-  { id: 28, category: 'فضاء', emoji: '🌠', question: 'ماذا يسمى الشهاب الساقط في السماء أحياناً؟', options: ['نجم ساطع منطفئ', 'نجم السقوط أو الشهاب', 'كوكب صغير', 'سحابة غازية'], correctAnswer: 'نجم السقوط أو الشهاب', explanation: 'الشهاب هو صخرة فضائية تحترق عند دخولها الغلاف الجوي.' },
-  { id: 29, category: 'جغرافيا', emoji: '🗼', question: 'في أي عاصمة أوروبية يقع برج إيفل الشهير؟', options: ['لندن', 'باريس', 'روما', 'مدريد'], correctAnswer: 'باريس', explanation: 'يقع برج إيفل الشامخ في عاصمة فرنسا، باريس.' },
-  { id: 30, category: 'رياضة', emoji: '🏊', question: 'ما هي الرياضة التي تقام داخل حوض الماء وتتضمن العوم؟', options: ['السباحة', 'الجري', 'رفع الأثقال', 'ركوب الخيل'], correctAnswer: 'السباحة', explanation: 'السباحة رياضة ممتازة ومفيدة لصحة الجسم والقلب.' },
-  { id: 31, category: 'حيوانات', emoji: '🐒', question: 'حيوان يحب صعود الأشجار وأكل الموز بحماس:', options: ['القط', 'القرد', 'الكلب', 'الخروف'], correctAnswer: 'القرد', explanation: 'القردة تتميز بالذكاء وخفة الحركة والقفز بين الأشجار.' },
-  { id: 32, category: 'علوم', emoji: '🌡️', question: 'بماذا نقيس درجة حرارة جسم الإنسان عندما يصاب بالمرض؟', options: ['الميزان الحراري (الترمومتر)', 'المسطرة', 'الساعة', 'البوصلة'], correctAnswer: 'الميزان الحراري (الترمومتر)', explanation: 'ميزان الحرارة يقيس درجة الحرارة بدقة.' },
-  { id: 33, category: 'رياضيات', emoji: '➕', question: 'إذا كان لديك 50 تفاحة وأكلت 10 تفاحات، كم يبقى معك؟', options: ['30', '40', '50', '20'], correctAnswer: '40', explanation: '50 - 10 = 40 تفاحة.' },
-  { id: 34, category: 'تاريخ', emoji: '📜', question: 'أين تم اختراع الكتابة الأولى في تاريخ البشرية القديم؟', options: ['بلاد الرافدين (العراق ومصر القديمة)', 'أمريكا', 'أستراليا', 'القطب الشمالي'], correctAnswer: 'بلاد الرافدين (العراق ومصر القديمة)', explanation: 'نشأت الكتابة المسمارية والهيروغليفية في حضارات الشرق القديم.' },
-  { id: 35, category: 'علوم', emoji: '👁️', question: 'ما هو عضو الإبصار والرؤية في جسم الإنسان؟', options: ['العين', 'الأذن', 'الأنف', 'اللسان'], correctAnswer: 'العين', explanation: 'العينان هما نافذتا الإنسان لرؤية العالم الجميل.' },
-  { id: 36, category: 'حيوانات', emoji: '🐪', question: 'ماذا يسمى الحيوان الذي يعيش في الصحراء ويتحمل العطش ويسمى سفينة الصحراء؟', options: ['الجمل (الناقة)', 'الحصان', 'الفهد', 'السلحفاة'], correctAnswer: 'الجمل (الناقة)', explanation: 'الجمل يتحمل العطش والحرارة الشديدة في الصحراء.' },
-  { id: 37, category: 'فضاء', emoji: '🌌', question: 'ما اسم المجرة الكبيرة التي ينتمي إليها كوكبنا والأرض؟', options: ['مجرة درب التبانة (السكة الحليبية)', 'مجرة أندروميدا', 'مجرة الدب الأكبر', 'سديم الجبار'], correctAnswer: 'مجرة درب التبانة (السكة الحليبية)', explanation: 'نظامنا الشمسي يقع في مجرة درب التبانة الرائعة.' },
-  { id: 38, category: 'جغرافيا', emoji: '⛰️', question: 'ما هو أعلى جبل في العالم أجمع؟', options: ['جبل إيفرست', 'جبل طارق', 'جبل أوهود', 'جبل الهيمالايا'], correctAnswer: 'جبل إيفرست', explanation: 'قمة إيفرست هي أعلى قمة جبلية على وجه الأرض.' },
-  { id: 39, category: 'رياضة', emoji: '🥇', question: 'ما هي الميدالية التي تنالها المركز الأول في المسابقات؟', options: ['الميدالية الذهبية', 'الميدالية الفضية', 'الميدالية البرونزية', 'شهادة تقدير'], correctAnswer: 'الميدالية الذهبية', explanation: 'الميدالية الذهبية هي جائزة التفوق للمركز الأول.' },
-  { id: 40, category: 'حيوانات', emoji: '🦋', question: 'حشرة جميلة ذات أجنحة ملونة تبدأ حياتها كدودة ترابية:', options: ['الفراشة', 'الصرصور', 'البعوضة', 'النملة'], correctAnswer: 'الفراشة', explanation: 'الفراشة تمر بمرحلة الشرنقة لتتحول إلى كائن ساحر بألوان مذهلة.' },
-  { id: 41, category: 'علوم', emoji: '🧲', question: 'ما هي الخاصية التي تجعل المغناطيس يجذب الحديد إليه؟', options: ['القوة المغناطيسية', 'الجاذبية الكهربائية', 'الضغط الجوي', 'حرارة الشمس'], correctAnswer: 'القوة المغناطيسية', explanation: 'المغناطيس يمتلك مجالاً مغناطيسياً يجذب المواد المعدنية كالحديد.' },
-  { id: 42, category: 'رياضيات', emoji: '🧮', question: 'كم عدد زوايا المثلث الهندسية؟', options: ['3 زوايا', '4 زوايا', '5 زوايا', 'بلا زوايا'], correctAnswer: '3 زوايا', explanation: 'المثلث يتكون دائماً من 3 أضلاع و3 زوايا.' },
-  { id: 43, category: 'تاريخ', emoji: '🗺️', question: 'من هو الرحالة العربي المسلم الشهير الذي كتب تحفة النظار في غرائب الأمصار؟', options: ['ابن بطوطة', 'ابن سينا', 'الخوارزمي', 'الإدريسي'], correctAnswer: 'ابن بطوطة', explanation: 'ابن بطوطة رحالة زار معظم العالم الإسلامي ودوّن رحلاته العجيبة.' },
-  { id: 44, category: 'علوم', emoji: '👂', question: 'ما هو العضو المسؤول عن سماع الأصوات والنغمات؟', options: ['الأذن', 'الأنف', 'العين', 'الجلد'], correctAnswer: 'الأذن', explanation: 'الأذن تسمع الأصوات وتميز النغمات والكلمات.' },
-  { id: 45, category: 'حيوانات', emoji: '🐅', question: 'حيوان مفترس من فصيلة السنوريات يتميز بالفرو الأصفر المخطط بالأسود:', options: ['النمر (الببر)', 'الفهد', 'الذئب', 'الثعلب'], correctAnswer: 'النمر (الببر)', explanation: 'النمر الببر يتميز بخطوطه السوداء الفريدة وقوته الجبارة.' },
-  { id: 46, category: 'فضاء', emoji: '🪐', question: 'ما هو الكوكب المعروف بحلقاته الساحرة المحيطة به؟', options: ['زحل', 'المريخ', 'عطارد', 'الزهرة'], correctAnswer: 'زحل', explanation: 'كوكب زحل يحاط بحلقات مذهلة مكونة من الجليد والصخور.' },
-  { id: 47, category: 'جغرافيا', emoji: '🌉', question: 'في أي قارة تقع دولة اليابان الشهيرة بالشروق؟', options: ['قارة آسيا', 'قارة أفريقيا', 'قارة أوروبا', 'قارة أمريكا'], correctAnswer: 'قارة آسيا', explanation: 'تقع اليابان في أقصى شرق قارة آسيا في عاصمتها طوكيو.' },
-  { id: 48, category: 'رياضة', emoji: '🎾', question: 'ما هي الرياضة التي يُضرب فيها الكرة بالمضرب فوق شبكة صغيرة؟', options: ['التنس', 'كرة القدم', 'السباحة', 'الملاكمة'], correctAnswer: 'التنس', explanation: 'رياضة التنس تمارس بمضارب خفيفة وكرة صفراء فوق الشبكة.' },
-  { id: 49, category: 'علوم', emoji: '🦴', question: 'كم عدد العظام في جسم الإنسان البالغ تقريبا؟', options: ['206 عظمة', '100 عظمة', '500 عظمة', '50 عظمة'], correctAnswer: '206 عظمة', explanation: 'يحتوي جسم الإنسان البالغ على 206 عظمة تدعم الجسم وتحمي الأعضاء.' },
-  { id: 50, category: 'ذكاء', emoji: '🏆', question: 'ما هو الشيء الذي كلما أخذت منه كبر وكلما وضعت فيه صغر؟', options: ['الحفرة', 'الجبل', 'البحر', 'الكتاب'], correctAnswer: 'الحفرة', explanation: 'لغز ذكي: الحفرة كلما أخرجت منها تراباً كبرت واتسعت!' },
-];
+import { getRandom50DiverseQuestions, EnrichedSkillQuestion } from '../games/banks/skillTestBank';
 
 export const SkillTestPage: React.FC = () => {
   const { addSkillTestResult } = useSettings();
   const navigate = useNavigate();
 
-  const [questions, setQuestions] = useState<SkillQuestion[]>([]);
+  const [questions, setQuestions] = useState<EnrichedSkillQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -83,17 +20,25 @@ export const SkillTestPage: React.FC = () => {
   const [heroAge, setHeroAge] = useState('');
   const [heroCountry, setHeroCountry] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSavingResult, setIsSavingResult] = useState(false);
 
-  useEffect(() => {
-    // Shuffle the 50 questions randomly on mount
-    const shuffled = [...SKILL_TEST_QUESTIONS].sort(() => Math.random() - 0.5);
-    setQuestions(shuffled);
+  const startNewTest = () => {
+    // Generate fresh set of 50 authentic, diverse questions across all knowledge domains
+    const freshQuestions = getRandom50DiverseQuestions();
+    setQuestions(freshQuestions);
     setCurrentIndex(0);
     setScore(0);
     setSelectedAnswer(null);
     setFeedback(null);
     setIsCompleted(false);
     setIsSubmitted(false);
+    setHeroName('');
+    setHeroAge('');
+    setHeroCountry('');
+  };
+
+  useEffect(() => {
+    startNewTest();
   }, []);
 
   if (questions.length === 0) {
@@ -136,16 +81,23 @@ export const SkillTestPage: React.FC = () => {
       return;
     }
 
-    await addSkillTestResult({
-      name: heroName,
-      age: heroAge || 'غير محدد',
-      country: heroCountry || 'غير محدد',
-      score,
-      total,
-    });
-
-    setIsSubmitted(true);
-    playWinFanfare();
+    setIsSavingResult(true);
+    try {
+      await addSkillTestResult({
+        name: heroName,
+        age: heroAge || 'غير محدد',
+        country: heroCountry || 'غير محدد',
+        score,
+        total,
+      });
+      setIsSubmitted(true);
+      playWinFanfare();
+    } catch (e) {
+      console.error(e);
+      alert('حدث خطأ أثناء حفظ النتيجة، يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsSavingResult(false);
+    }
   };
 
   if (isCompleted) {
@@ -208,9 +160,12 @@ export const SkillTestPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white text-lg font-black py-3.5 px-6 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
+              disabled={isSavingResult}
+              className={`w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white text-lg font-black py-3.5 px-6 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer ${
+                isSavingResult ? 'opacity-70 cursor-wait' : ''
+              }`}
             >
-              🚀 إرسال النتيجة إلى لوحة شرف الأبطال العالمية 🏆
+              {isSavingResult ? '⏳ جاري إرسال النتيجة إلى لوحة الشرف...' : '🚀 إرسال النتيجة إلى لوحة شرف الأبطال العالمية 🏆'}
             </button>
           </form>
         ) : (
@@ -229,7 +184,7 @@ export const SkillTestPage: React.FC = () => {
 
         <div className="flex justify-center gap-3">
           <button
-            onClick={() => window.location.reload()}
+            onClick={startNewTest}
             className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 px-6 rounded-xl shadow cursor-pointer"
           >
             🔄 إعادة التحدي بأسئلة جديدة
@@ -280,7 +235,7 @@ export const SkillTestPage: React.FC = () => {
         <div className="text-xs bg-amber-200 text-amber-900 font-black px-3 py-1 rounded-full inline-block mb-3">
           التصنيف: {currentQ.category}
         </div>
-        <div className="text-6xl mb-3">{currentQ.emoji}</div>
+        <div className="text-5xl mb-3">❓</div>
         <h2 className="text-xl sm:text-2xl font-black text-gray-800 mb-6 leading-relaxed">
           {currentQ.question}
         </h2>

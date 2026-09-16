@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAudio } from '../contexts/AudioContext';
-import { SpeakerWaveIcon, PlayIcon, LockClosedIcon } from './Icons';
+import { SpeakerWaveIcon, SpeakerXMarkIcon, PlayIcon, LockClosedIcon } from './Icons';
 import AdPopup from './AdPopup';
 import AdminAuthModal from './AdminAuthModal';
 import WhatsNewModal from './WhatsNewModal';
@@ -188,11 +188,31 @@ const Header: React.FC = () => {
             )}
 
             <button
-              onClick={togglePlay}
-              className="p-2.5 rounded-full bg-sky-100 hover:bg-sky-200 text-sky-600 transition-colors shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              className={`px-3 py-1.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold active:scale-95 cursor-pointer ${
+                isPlaying
+                  ? 'bg-emerald-100 text-emerald-800 hover:bg-rose-100 hover:text-rose-700 border border-emerald-300 ring-2 ring-emerald-200'
+                  : 'bg-gray-100 text-gray-700 hover:bg-sky-100 hover:text-sky-700 border border-gray-200'
+              }`}
+              title={isPlaying ? 'انقر لكتم صوت الموسيقى' : 'انقر لتشغيل موسيقى الموقع'}
               aria-label={isPlaying ? 'كتم الصوت' : 'تشغيل الصوت'}
             >
-              {isPlaying ? <SpeakerWaveIcon /> : <PlayIcon />}
+              {isPlaying ? (
+                <>
+                  <span className="animate-pulse">🔊</span>
+                  <span className="hidden sm:inline font-black">كتم الموسيقى</span>
+                  <div className="w-4 h-4"><SpeakerWaveIcon /></div>
+                </>
+              ) : (
+                <>
+                  <span>🔇</span>
+                  <span className="hidden sm:inline font-black">تشغيل الموسيقى</span>
+                  <div className="w-4 h-4"><SpeakerXMarkIcon /></div>
+                </>
+              )}
             </button>
 
             <div className="md:hidden">
