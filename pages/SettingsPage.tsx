@@ -1603,10 +1603,10 @@ const SettingsPage: React.FC = () => {
               </div>
 
               {/* Price & Currency Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    💰 سعر الاشتراك (المبلغ الدقيق):
+                    💰 سعر الاشتراك العام (المبلغ الدقيق):
                   </label>
                   <input
                     type="number"
@@ -1624,13 +1624,13 @@ const SettingsPage: React.FC = () => {
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-black text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   />
                   <p className="text-[10px] text-gray-400 mt-1">
-                    * المستخدم لن يتمكن من إدخال أكثر أو أقل من هذا المبلغ عند الدفع.
+                    * المبلغ الدقيق المطلوب عند الدفع.
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    💵 العملة:
+                    💵 العملة العامة:
                   </label>
                   <input
                     type="text"
@@ -1644,7 +1644,28 @@ const SettingsPage: React.FC = () => {
                         },
                       }))
                     }
-                    placeholder="مثال: دولار أو ل.س"
+                    placeholder="مثال: دولار أو ليرة سورية"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    🔣 رمز العملة:
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.currencySymbol ?? '$'}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          currencySymbol: e.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="مثال: $ أو ل.س"
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
                   />
                 </div>
@@ -1811,6 +1832,81 @@ const SettingsPage: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Form Fields */}
                 <div className="lg:col-span-7 space-y-4">
+                  {/* Per-Method Price & Currency for Sham Cash */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-cyan-50/60 p-3.5 rounded-2xl border border-cyan-200">
+                    <div>
+                      <label className="block text-xs font-bold text-cyan-950 mb-1">
+                        💰 سعر شام كاش:
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={localSettings.paidSettings?.shamCash.price ?? (localSettings.paidSettings?.price ?? 3)}
+                        onChange={(e) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            paidSettings: {
+                              ...prev.paidSettings!,
+                              shamCash: {
+                                ...prev.paidSettings!.shamCash,
+                                price: parseFloat(e.target.value) || 0,
+                              },
+                            },
+                          }))
+                        }
+                        className="w-full px-3 py-2 bg-white border border-cyan-300 rounded-xl font-black text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-cyan-950 mb-1">
+                        💵 عملة شام كاش:
+                      </label>
+                      <input
+                        type="text"
+                        value={localSettings.paidSettings?.shamCash.currency ?? 'ليرة سورية'}
+                        onChange={(e) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            paidSettings: {
+                              ...prev.paidSettings!,
+                              shamCash: {
+                                ...prev.paidSettings!.shamCash,
+                                currency: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="مثال: ليرة سورية"
+                        className="w-full px-3 py-2 bg-white border border-cyan-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-cyan-950 mb-1">
+                        🔣 رمز العملة:
+                      </label>
+                      <input
+                        type="text"
+                        value={localSettings.paidSettings?.shamCash.currencySymbol ?? 'ل.س'}
+                        onChange={(e) =>
+                          setLocalSettings((prev) => ({
+                            ...prev,
+                            paidSettings: {
+                              ...prev.paidSettings!,
+                              shamCash: {
+                                ...prev.paidSettings!.shamCash,
+                                currencySymbol: e.target.value,
+                              },
+                            },
+                          }))
+                        }
+                        placeholder="مثال: ل.س"
+                        className="w-full px-3 py-2 bg-white border border-cyan-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">
                       👤 اسم المستلم في شام كاش (Account Name):
@@ -1898,8 +1994,8 @@ const SettingsPage: React.FC = () => {
                       localSettings.paidSettings?.shamCash.accountCode ||
                       'c08a30e9e1f27a4b0d98b215562a0dbc'
                     }
-                    amount={localSettings.paidSettings?.price || 3}
-                    currency={localSettings.paidSettings?.currency || 'دولار'}
+                    amount={localSettings.paidSettings?.shamCash.price ?? (localSettings.paidSettings?.price || 3)}
+                    currency={localSettings.paidSettings?.shamCash.currency || 'ليرة سورية'}
                   />
                 </div>
               </div>

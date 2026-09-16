@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { useSettings } from '../contexts/SettingsContext';
 import ShamCashQrCard, { ShamCashLogoSvg } from './ShamCashQrCard';
@@ -27,12 +27,73 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
   // Buy Flow States
   const [selectedMethod, setSelectedMethod] = useState<'sham_cash' | string>('sham_cash');
-  const targetPrice = settings.paidSettings?.price || 3;
-  const targetCurrency = settings.paidSettings?.currency || 'دولار';
 
-  const [enteredAmount, setEnteredAmount] = useState<string>(String(targetPrice));
+  // Compute method-specific pricing and currency
+  const methodConfig = useMemo(() => {
+    if (selectedMethod === 'sham_cash') {
+      const sc = settings.paidSettings?.shamCash;
+      const price = typeof sc?.price === 'number' ? sc.price : settings.paidSettings?.price || 3;
+      const currency = sc?.currency?.trim() || settings.paidSettings?.currency || 'ليرة سورية';
+      const symbol = sc?.currencySymbol?.trim() || settings.paidSettings?.currencySymbol || 'ل.س';
+      return {
+        id: 'sham_cash',
+        name: 'شام كاش (Sham Cash)',
+        price,
+        currency,
+        symbol,
+        instructions: sc?.instructions,
+        accountName: sc?.accountName,
+        accountCode: sc?.accountCode,
+      };
+    }
+
+    const custom = (settings.paidSettings?.otherMethods || []).find((m) => m.id === selectedMethod);
+    if (custom) {
+      const price = typeof custom.price === 'number' ? custom.price : settings.paidSettings?.price || 3;
+      const currency = custom.currency?.trim() || settings.paidSettings?.currency || 'دولار';
+      const symbol = custom.currencySymbol?.trim() || settings.paidSettings?.currencySymbol || '$';
+      return {
+        id: custom.id,
+        name: custom.name,
+        price,
+        currency,
+        symbol,
+        instructions: custom.instructions,
+        accountName: custom.accountInfo,
+        accountCode: custom.accountInfo,
+      };
+    }
+
+    // Default fallback
+    const price = settings.paidSettings?.price || 3;
+    const currency = settings.paidSettings?.currency || 'دولار';
+    const symbol = settings.paidSettings?.currencySymbol || '$';
+    return {
+      id: 'default',
+      name: 'طريقة الدفع',
+      price,
+      currency,
+      symbol,
+      instructions: '',
+      accountName: '',
+      accountCode: '',
+    };
+  }, [selectedMethod, settings.paidSettings]);
+
+  const targetPrice = methodConfig.price;
+  const targetCurrency = methodConfig.currency;
+  const targetSymbol = methodConfig.symbol;
+
+  const [enteredAmount, setEnteredAmount] = useState<string>(String(methodConfig.price));
   const [amountError, setAmountError] = useState<string | null>(null);
   const [isAmountConfirmed, setIsAmountConfirmed] = useState<boolean>(false);
+
+  // Update enteredAmount whenever selectedMethod / methodConfig changes
+  useEffect(() => {
+    setEnteredAmount(String(methodConfig.price));
+    setAmountError(null);
+    setIsAmountConfirmed(false);
+  }, [selectedMethod, methodConfig.price]);
 
   // Order Submission Form
   const [customerName, setCustomerName] = useState('');

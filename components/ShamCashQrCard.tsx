@@ -10,31 +10,59 @@ interface ShamCashQrCardProps {
 }
 
 export const ShamCashLogoSvg: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
-  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+  <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <defs>
-      <linearGradient id="shamGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#4de1c1" />
-        <stop offset="100%" stopColor="#2cb8a1" />
+      {/* Royal Blue / Indigo Gradient for Top Ribbon */}
+      <linearGradient id="shamBlueGradient" x1="60" y1="8" x2="176" y2="120" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#6380f9" />
+        <stop offset="35%" stopColor="#3b5ef2" />
+        <stop offset="70%" stopColor="#2543dd" />
+        <stop offset="100%" stopColor="#1a32b6" />
       </linearGradient>
-      <linearGradient id="shamGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#7d8df5" />
-        <stop offset="100%" stopColor="#5565cc" />
+
+      {/* Teal / Turquoise Gradient for Bottom Ribbon */}
+      <linearGradient id="shamTealGradient" x1="24" y1="80" x2="140" y2="192" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stopColor="#2ecdc4" />
+        <stop offset="35%" stopColor="#20acaf" />
+        <stop offset="70%" stopColor="#16858e" />
+        <stop offset="100%" stopColor="#1f9ea1" />
       </linearGradient>
     </defs>
-    {/* Stylized N / Diamond Logo for Sham Cash */}
+
+    {/* Top Blue Folded Ribbon */}
     <path
-      d="M26 62L48 24C50 20 56 20 58 24L74 52"
-      stroke="url(#shamGradient1)"
-      strokeWidth="14"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M 62 12
+         C 62 9.5 63.8 8.5 65.5 9.5
+         L 173.5 71.5
+         C 175.5 72.5 176.5 74.5 176.5 76.5
+         L 176.5 112
+         C 176.5 114.5 175 116 173 117.2
+         L 142.5 135
+         C 137.5 138 131 134.5 131 128.5
+         L 131 106
+         C 131 101.5 128.5 97.5 124.5 95.2
+         L 66 61.5
+         C 63.5 60 62 57.5 62 54.5
+         Z"
+      fill="url(#shamBlueGradient)"
     />
+
+    {/* Bottom Teal Folded Ribbon (180deg symmetric) */}
     <path
-      d="M74 38L52 76C50 80 44 80 42 76L26 48"
-      stroke="url(#shamGradient2)"
-      strokeWidth="14"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M 138 188
+         C 138 190.5 136.2 191.5 134.5 190.5
+         L 26.5 128.5
+         C 24.5 127.5 23.5 125.5 23.5 123.5
+         L 23.5 88
+         C 23.5 85.5 25 84 27 82.8
+         L 57.5 65
+         C 62.5 62 69 65.5 69 71.5
+         L 69 94
+         C 69 98.5 71.5 102.5 75.5 104.8
+         L 134 138.5
+         C 136.5 140 138 142.5 138 145.5
+         Z"
+      fill="url(#shamTealGradient)"
     />
   </svg>
 );

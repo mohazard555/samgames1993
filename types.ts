@@ -66,6 +66,9 @@ export interface ShamCashSettings {
   accountName: string; // e.g. "mohannad anis ahmad"
   accountCode: string; // e.g. "c08a30e9e1f27a4b0d98b215562a0dbc"
   instructions: string;
+  price?: number; // مخصص لشام كاش (إن وُجد) أو يستخدم السعر العام
+  currency?: string; // e.g. "ليرة سورية" أو "دولار"
+  currencySymbol?: string; // e.g. "ل.س" أو "$"
 }
 
 export interface OtherPaymentMethod {
@@ -74,12 +77,16 @@ export interface OtherPaymentMethod {
   enabled: boolean;
   accountInfo: string;
   instructions: string;
+  price?: number;
+  currency?: string;
+  currencySymbol?: string;
 }
 
 export interface PaidSettings {
   enabled: boolean; // تفعيل نظام النسخة المدفوعة VIP
-  price: number; // e.g. 3
-  currency: string; // e.g. "دولار" أو "USD"
+  price: number; // السعر الافتراضي العام e.g. 3
+  currency: string; // العملة الافتراضية العامة e.g. "دولار" أو "USD"
+  currencySymbol?: string; // رمز العملة e.g. "$" أو "ل.س"
   periodName: string; // e.g. "تفعيل دائم مدى الحياة"
   paidGameIds: number[]; // الألعاب التي تحتاج اشتراك مدفوع لتفتح
   questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين في ألعاب الـ 50 سؤال

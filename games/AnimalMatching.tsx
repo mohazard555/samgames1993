@@ -12,7 +12,16 @@ const ANIMALS = [
   { name: 'خروف', emoji: '🐑', soundKey: 'خروف', silhouetteEmoji: '🐑' },
   { name: 'بقرة', emoji: '🐮', soundKey: 'بقرة', silhouetteEmoji: '🐄' },
   { name: 'أسد', emoji: '🦁', soundKey: 'أسد', silhouetteEmoji: '🦁' },
+  { name: 'حصان', emoji: '🐴', soundKey: 'حصان', silhouetteEmoji: '🐎' },
+  { name: 'فيل', emoji: '🐘', soundKey: 'فيل', silhouetteEmoji: '🐘' },
+  { name: 'قرد', emoji: '🐒', soundKey: 'قرد', silhouetteEmoji: '🐵' },
   { name: 'بطة', emoji: '🦆', soundKey: 'بطة', silhouetteEmoji: '🦆' },
+  { name: 'أرنب', emoji: '🐰', soundKey: 'أرنب', silhouetteEmoji: '🐇' },
+  { name: 'ثعلب', emoji: '🦊', soundKey: 'ثعلب', silhouetteEmoji: '🦊' },
+  { name: 'ديك', emoji: '🐓', soundKey: 'ديك', silhouetteEmoji: '🐔' },
+  { name: 'بومة', emoji: '🦉', soundKey: 'بومة', silhouetteEmoji: '🦉' },
+  { name: 'ضفدع', emoji: '🐸', soundKey: 'ضفدع', silhouetteEmoji: '🐸' },
+  { name: 'دلفين', emoji: '🐬', soundKey: 'دلفين', silhouetteEmoji: '🐬' },
 ];
 
 const AnimalMatching: React.FC<GameProps> = ({ gameName }) => {

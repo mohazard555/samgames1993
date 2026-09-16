@@ -25,28 +25,38 @@ const ALL_ANIMALS: AnimalItem[] = [
   { id: 'goat', name: 'ماعز', emoji: '🐐', soundNameAr: 'ثغاء الماعز', soundText: 'ميع ميع', category: 'farm', color: 'from-lime-100 to-lime-200 border-lime-300', fact: 'الماعز رشيق جداً ويتسلق الجبال بسهولة.' },
   { id: 'dog', name: 'كلب', emoji: '🐶', soundNameAr: 'نباح', soundText: 'هوهو (نباح)', category: 'farm', color: 'from-blue-100 to-blue-200 border-blue-300', fact: 'الكلب صديق مخلص ويتمتع بحاسة شم قوية جداً.' },
   { id: 'cat', name: 'قطة', emoji: '🐱', soundNameAr: 'مواء', soundText: 'مياوو (مواء)', category: 'farm', color: 'from-pink-100 to-pink-200 border-pink-300', fact: 'القطط تحب النظافة وتقضي ساعات في تنظيف نفسها.' },
+  { id: 'rabbit', name: 'أرنب', emoji: '🐰', soundNameAr: 'خنين وخرخرة', soundText: 'خنين ناعم ولطيف', category: 'farm', color: 'from-rose-100 to-rose-200 border-rose-300', fact: 'الأرنب يأكل الجزر والخضروات وأسنانه تنمو باستمرار!' },
+  { id: 'chicken', name: 'دجاجة', emoji: '🐔', soundNameAr: 'نقنقة', soundText: 'بق بق بق (نقنقة)', category: 'farm', color: 'from-amber-100 to-yellow-200 border-yellow-300', fact: 'الدجاجة تعتني بفراخها الصغار وتبيض لنا البيض الصحي.' },
   { id: 'donkey', name: 'حمار', emoji: '🫏', soundNameAr: 'نهيق', soundText: 'نهيق الحمار', category: 'farm', color: 'from-stone-100 to-stone-200 border-stone-300', fact: 'الحمار صبور وله ذاكرة قوية جداً.' },
-  { id: 'rooster', name: 'ديك', emoji: '🐔', soundNameAr: 'صياح', soundText: 'كوكو كوكو (صياح)', category: 'farm', color: 'from-red-100 to-red-200 border-red-300', fact: 'الديك يوقظ المزرعة في الصباح الباكر.' },
-  { id: 'duck', name: 'بطة', emoji: '🦆', soundNameAr: 'بطبطة', soundText: 'واك واك', category: 'farm', color: 'from-teal-100 to-teal-200 border-teal-300', fact: 'ريش البط مضاد للماء ويساعدها على الطفو.' },
+  { id: 'rooster', name: 'ديك', emoji: '🐓', soundNameAr: 'صياح', soundText: 'كوكو كوكو (صياح)', category: 'farm', color: 'from-red-100 to-red-200 border-red-300', fact: 'الديك يوقظ المزرعة في الصباح الباكر.' },
+  { id: 'duck', name: 'بطة', emoji: '🦆', soundNameAr: 'بطبطة', soundText: 'واك واك (بطبطة)', category: 'farm', color: 'from-teal-100 to-teal-200 border-teal-300', fact: 'ريش البط مضاد للماء ويساعدها على الطفو.' },
 
   // Wild Animals
   { id: 'lion', name: 'أسد', emoji: '🦁', soundNameAr: 'زئير', soundText: 'غرااار (زئير)', category: 'wild', color: 'from-amber-200 to-yellow-300 border-yellow-400', fact: 'الأسد يُلقب بملك الغابة لمهابته وقوته.' },
-  { id: 'elephant', name: 'فيل', emoji: '🐘', soundNameAr: 'نفير', soundText: 'طوووت (نفير الفيل)', category: 'wild', color: 'from-slate-200 to-slate-300 border-slate-400', fact: 'الفيل أضخم حيوان بري على كوكب الأرض.' },
+  { id: 'cheetah', name: 'فهد / نمر', emoji: '🐆', soundNameAr: 'خرخرة وزمجرة', soundText: 'زمجرة الفهد الصياد', category: 'wild', color: 'from-yellow-200 to-amber-300 border-amber-400', fact: 'الفهد أسرع حيوان على وجه الأرض في الجري!' },
+  { id: 'fox', name: 'ثعلب', emoji: '🦊', soundNameAr: 'ضباح', soundText: 'ضباح الثعلب الذكي', category: 'wild', color: 'from-orange-200 to-amber-200 border-orange-300', fact: 'الثعلب مشهور بذكائه الحاد وحاستي السمع والشم.' },
+  { id: 'elephant', name: 'فيل', emoji: '🐘', soundNameAr: 'نفير', soundText: 'طوووت (نفير الفيل)', category: 'wild', color: 'from-slate-200 to-slate-300 border-slate-400', fact: 'الفيل أضخم حيوان بري على كوكب الأرض ويتميز بخرطومه.' },
   { id: 'wolf', name: 'ذئب', emoji: '🐺', soundNameAr: 'عواء', soundText: 'أووووو (عواء الذئب)', category: 'wild', color: 'from-indigo-100 to-indigo-200 border-indigo-300', fact: 'الذئاب تعيش وتصطاد في مجموعات منظمة تسمى قطيعاً.' },
-  { id: 'monkey', name: 'قرد', emoji: '🐒', soundNameAr: 'قهقهة', soundText: 'أوو أأ أأ (ضحك القرد)', category: 'wild', color: 'from-amber-100 to-stone-200 border-stone-300', fact: 'القرد يحب أكل الموز والتأرجح بين الأشجار.' },
+  { id: 'monkey', name: 'قرد', emoji: '🐒', soundNameAr: 'قهقهة', soundText: 'أوو أأ أأ (ضحك القرد)', category: 'wild', color: 'from-amber-100 to-stone-200 border-stone-300', fact: 'القرد يحب أكل الموز والتأرجح بمرونة بين الأشجار.' },
   { id: 'bear', name: 'دب', emoji: '🐻', soundNameAr: 'زمجرة', soundText: 'غروم غروم (زمجرة)', category: 'wild', color: 'from-amber-200 to-amber-300 border-amber-400', fact: 'الدب يدخل في بيات شتوي عميق طوال الشتاء.' },
   { id: 'camel', name: 'جمل', emoji: '🐪', soundNameAr: 'رغاء', soundText: 'رغاء الجمل 🏜️', category: 'wild', color: 'from-yellow-100 to-amber-200 border-yellow-300', fact: 'الجمل يُلقب بسفينة الصحراء ويتحمل العطش لأيام طويلة.' },
+  { id: 'giraffe', name: 'زرافة', emoji: '🦒', soundNameAr: 'همهمة', soundText: 'همهمة هادئة ورقيقة', category: 'wild', color: 'from-amber-100 to-yellow-200 border-yellow-400', fact: 'الزرافة أطول حيوان على الأرض ولها لسان طويل جداً.' },
 
   // Birds & Amphibians
   { id: 'bird', name: 'عصفور', emoji: '🐦', soundNameAr: 'تغريد', soundText: 'سوسو سوسو (تغريد)', category: 'birds', color: 'from-sky-100 to-sky-200 border-sky-300', fact: 'العصافير تغرد بألحان عذبة تبعث على البهجة.' },
+  { id: 'parrot', name: 'ببغاء', emoji: '🦜', soundNameAr: 'نعيب وتصفير', soundText: 'تصفير وتقليد الأصوات', category: 'birds', color: 'from-emerald-100 to-teal-200 border-teal-300', fact: 'الببغاء من أذكى الطيور ويستطيع تقليد كلام البشر!' },
   { id: 'owl', name: 'بومة', emoji: '🦉', soundNameAr: 'نعيق', soundText: 'هووهوو (نعيق البومة)', category: 'birds', color: 'from-purple-100 to-purple-200 border-purple-300', fact: 'البومة تستطيع تدوير رأسها بزاوية 270 درجة!' },
   { id: 'eagle', name: 'نسر / صقر', emoji: '🦅', soundNameAr: 'صرير الجارح', soundText: 'صرير حاد وقوي', category: 'birds', color: 'from-stone-200 to-amber-200 border-stone-400', fact: 'النسر يحلق على ارتفاعات شاهقة وله بصر حاد جداً.' },
   { id: 'pigeon', name: 'حمامة', emoji: '🕊️', soundNameAr: 'هديل', soundText: 'هديل الحمام الرقيق', category: 'birds', color: 'from-cyan-100 to-slate-200 border-slate-300', fact: 'الحمامة رمز السلام وكانت تُستخدم لنقل الرسائل.' },
+  { id: 'penguin', name: 'بطريق', emoji: '🐧', soundNameAr: 'صياح البطريق', soundText: 'أصوات مرحة في الجليد', category: 'birds', color: 'from-slate-100 to-blue-200 border-slate-300', fact: 'البطريق طائر سباح ماهر يعيش في القطب المتجمد.' },
   { id: 'frog', name: 'ضفدع', emoji: '🐸', soundNameAr: 'نقيق', soundText: 'نق نق (نقيق)', category: 'birds', color: 'from-emerald-100 to-green-200 border-green-300', fact: 'الضفدع يستطيع القفز لمسافات تصل إلى 20 ضعف طوله!' },
 
-  // Sea & Insects
+  // Sea, Insects & Small Creatures
   { id: 'dolphin', name: 'دلفين', emoji: '🐬', soundNameAr: 'تصفير ونقر', soundText: 'تصفير مرح تحت الماء', category: 'sea_insects', color: 'from-cyan-100 to-blue-200 border-blue-300', fact: 'الدلفين صديق الإنسان وهو من أذكى المخلوقات البحرية.' },
+  { id: 'whale', name: 'حوت أزرق', emoji: '🐋', soundNameAr: 'غناء الحوت', soundText: 'نغمات عميقة في المحيط', category: 'sea_insects', color: 'from-blue-200 to-indigo-300 border-indigo-400', fact: 'الحوت الأزرق هو أضخم كائن حي عاش في تاريخ الأرض!' },
   { id: 'bee', name: 'نحلة', emoji: '🐝', soundNameAr: 'طنين', soundText: 'بزززز (طنين النحلة)', category: 'sea_insects', color: 'from-yellow-100 to-amber-200 border-yellow-300', fact: 'النحلة تصنع لنا العسل الشافي من رحيق الأزهار.' },
+  { id: 'cricket', name: 'صرصور الليل', emoji: '🦗', soundNameAr: 'صرير', soundText: 'صرير هادئ في الليل', category: 'sea_insects', color: 'from-lime-100 to-emerald-200 border-lime-300', fact: 'صرصور الليل يصدر صوته بفرك جناحيه معاً!' },
+  { id: 'mouse', name: 'فأر صغير', emoji: '🐭', soundNameAr: 'صرير الفأر', soundText: 'صرير سريع وحاد', category: 'sea_insects', color: 'from-stone-100 to-pink-100 border-stone-300', fact: 'الفئران سريعة الحركة وفضولية جداً في استكشاف الأماكن.' },
 ];
 
 const DiscoverAnimalSounds: React.FC<GameProps> = ({ gameName }) => {

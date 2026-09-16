@@ -9,6 +9,7 @@ const defaultPaidSettings: Settings['paidSettings'] = {
   enabled: true,
   price: 3,
   currency: 'دولار',
+  currencySymbol: '$',
   periodName: 'تفعيل دائم مدى الحياة',
   paidGameIds: [1, 5, 12, 18, 25, 30, 40, 50], // Initial premium/VIP games
   questionGateEnabled: true, // تفعيل طلب الاشتراك عند الوصول لسؤال محدد
@@ -18,6 +19,9 @@ const defaultPaidSettings: Settings['paidSettings'] = {
     accountName: 'mohannad anis ahmad',
     accountCode: 'c08a30e9e1f27a4b0d98b215562a0dbc',
     instructions: 'افتح تطبيق شام كاش، امسح الباركود أو انسخ الرمز أدناه، ثم أرسل المبلغ المحدد وأرسل لنا رقم العملية لتفعيل نسختك فوراً.',
+    price: 3,
+    currency: 'ليرة سورية',
+    currencySymbol: 'ل.س',
   },
   otherMethods: [],
 };

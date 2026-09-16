@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import MusicAutoplayBanner from './MusicAutoplayBanner';
 
 const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -9,6 +10,7 @@ const PageLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <main className="flex-grow container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 max-w-7xl">
         {children}
       </main>
+      <MusicAutoplayBanner />
       <Footer />
     </div>
   );
