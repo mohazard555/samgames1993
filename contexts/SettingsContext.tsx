@@ -1,22 +1,40 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { Settings, FeedbackItem, ContactMessage, SkillTestResult } from '../types';
-import { saveAudioToCache, getAudioFromCache } from '../utils/audioStorage';
+import { saveAudioToCache, getAudioFromCache, clearAudioCache } from '../utils/audioStorage';
 
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
+
+const defaultPaidSettings: Settings['paidSettings'] = {
+  enabled: true,
+  price: 3,
+  currency: 'دولار',
+  periodName: 'تفعيل دائم مدى الحياة',
+  paidGameIds: [1, 5, 12, 18, 25, 30, 40, 50], // Initial premium/VIP games
+  shamCash: {
+    enabled: true,
+    accountName: 'mohannad anis ahmad',
+    accountCode: 'c08a30e9e1f27a4b0d98b215562a0dbc',
+    instructions: 'افتح تطبيق شام كاش، امسح الباركود أو انسخ الرمز أدناه، ثم أرسل المبلغ المحدد وأرسل لنا رقم العملية لتفعيل نسختك فوراً.',
+  },
+  otherMethods: [],
+};
 
 const defaultSettings: Settings = {
   siteName: 'ToysGame World',
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
   subscriptionUrl: 'https://www.youtube.com/@mkstudio_963',
   youtubeUrls: 'https://www.youtube.com/@mkstudio_963\nhttps://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
-  backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+  backgroundMusicUrl: 'https://grubby-plum-uukfa7rf.edgeone.dev/',
   backgroundMusicEnabled: true,
   contactEmail: 'contact@toysgameworld.com',
   feedbackEmail: 'feedback@toysgameworld.com',
   videoWaitTime: 15, // مهلة انتظار فتح الفيديو بالثواني
   videoRequiredGameIds: [1, 3, 7, 10, 22], // الألعاب المحددة التي تتطلب مشاهدة فيديو
   requireSubscriptionAndVideos: true, // عند التعطيل: تفتح جميع الألعاب فوراً بدون اشتراك ولا مشاهدة فيديو
+  paidSettings: defaultPaidSettings,
+  purchaseOrders: [],
+  approvedActivationCodes: ['VIP-TOYS-2026-PREMIUM', 'VIP-SHAM-8832-7719'],
   adSettings: {
     enabled: false,
     name: 'مفاجأة للأبطال!',
@@ -37,6 +55,7 @@ const defaultSettings: Settings = {
   feedbacks: [],
   contactMessages: [],
 };
+
 
 // Helper to extract Gist ID and file name from any Gist URL format
 export function extractGistInfo(url: string) {
@@ -62,6 +81,19 @@ interface SettingsContextType {
   isSubscribed: boolean;
   setIsSubscribed: (val: boolean) => void;
   resetSubscriptionStatus: () => void;
+  // VIP Paid state (Permanent local activation)
+  isVipActive: boolean;
+  vipActivationCode: string;
+  activateVip: (code: string) => { success: boolean; message: string };
+  deactivateVip: () => void;
+  // Subscription Orders & Activation Codes
+  addPurchaseOrder: (
+    order: Omit<SubscriptionOrder, 'id' | 'createdAt' | 'activationCode' | 'status'>
+  ) => Promise<SubscriptionOrder>;
+  updateOrderStatus: (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => void;
+  deletePurchaseOrder: (orderId: string) => void;
+  generateManualActivationCode: (note?: string) => string;
+  revokeActivationCode: (code: string) => void;
   // Video-unlocked games in session
   unlockedVideoGames: number[];
   unlockVideoGame: (gameId: number) => void;
@@ -93,6 +125,7 @@ interface SettingsContextType {
   addSkillTestResult: (item: { name: string; age: string; country: string; score: number; total: number }) => Promise<void>;
   deleteSkillTestResult: (id: string) => void;
 }
+
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -134,6 +167,18 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             typeof parsed.requireSubscriptionAndVideos === 'boolean'
               ? parsed.requireSubscriptionAndVideos
               : defaultSettings.requireSubscriptionAndVideos ?? true,
+          paidSettings: {
+            ...defaultPaidSettings,
+            ...(parsed.paidSettings || {}),
+            shamCash: {
+              ...defaultPaidSettings.shamCash,
+              ...(parsed.paidSettings?.shamCash || {}),
+            },
+          },
+          purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],
+          approvedActivationCodes: Array.isArray(parsed.approvedActivationCodes)
+            ? parsed.approvedActivationCodes
+            : defaultSettings.approvedActivationCodes,
           adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
           feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
@@ -147,12 +192,239 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   });
 
+  // VIP Paid state stored locally per browser/device
+  const [isVipActive, setIsVipActiveState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('toysGameVipActive') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [vipActivationCode, setVipActivationCodeState] = useState<string>(() => {
+    try {
+      return localStorage.getItem('toysGameVipCode') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const activateVip = (rawCode: string): { success: boolean; message: string } => {
+    const code = (rawCode || '').trim().toUpperCase();
+    if (!code) {
+      return { success: false, message: 'يرجى كتابة كود التفعيل أولاً.' };
+    }
+
+    // 1. Check if code exists in approved codes list
+    const isApprovedCode = settings.approvedActivationCodes?.some(
+      (c) => c.trim().toUpperCase() === code
+    );
+
+    // 2. Check if code exists in any purchase order that is approved or valid
+    const matchingOrder = settings.purchaseOrders?.find(
+      (o) => o.activationCode?.trim().toUpperCase() === code
+    );
+
+    // 3. Algorithmic fallback: codes starting with VIP- and having 3 parts
+    const isAlgorithmicValid = /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(code);
+
+    if (isApprovedCode || (matchingOrder && matchingOrder.status !== 'مرفوض') || isAlgorithmicValid) {
+      try {
+        localStorage.setItem('toysGameVipActive', 'true');
+        localStorage.setItem('toysGameVipCode', code);
+      } catch (e) {
+        console.error(e);
+      }
+      setIsVipActiveState(true);
+      setVipActivationCodeState(code);
+
+      // If matched an order and not approved yet, mark it approved with activation timestamp
+      if (matchingOrder && matchingOrder.status === 'معلق') {
+        updateOrderStatus(matchingOrder.id, 'موافق عليه');
+      }
+
+      return {
+        success: true,
+        message: 'تهانينا! تم تفعيل النسخة الكاملة (VIP) بنجاح على هذا الجهاز مدى الحياة 🎉',
+      };
+    }
+
+    return {
+      success: false,
+      message: 'كود التفعيل غير صحيح أو غير معتمد. يرجى مراجعة الإدارة أو التأكد من إدخال الرمز بشكل دقيق.',
+    };
+  };
+
+  const deactivateVip = () => {
+    try {
+      localStorage.removeItem('toysGameVipActive');
+      localStorage.removeItem('toysGameVipCode');
+    } catch (e) {
+      console.error(e);
+    }
+    setIsVipActiveState(false);
+    setVipActivationCodeState('');
+  };
+
+  // Subscription Orders Management
+  const addPurchaseOrder = async (
+    orderData: Omit<SubscriptionOrder, 'id' | 'createdAt' | 'activationCode' | 'status'>
+  ): Promise<SubscriptionOrder> => {
+    const randomHex1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const randomHex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const uniqueCode = `VIP-SHAM-${randomHex1}-${randomHex2}`;
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+
+    const newOrder: SubscriptionOrder = {
+      ...orderData,
+      id: orderId,
+      status: 'معلق',
+      createdAt: new Date().toLocaleString('ar-EG'),
+      activationCode: uniqueCode,
+      barcodeValue: uniqueCode,
+    };
+
+    const updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
+    const newSettings: Settings = {
+      ...settings,
+      purchaseOrders: updatedOrders,
+    };
+
+    saveSettings(newSettings);
+
+    if (gistToken) {
+      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
+    }
+
+    return newOrder;
+  };
+
+  const updateOrderStatus = (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => {
+    let orderActivationCode = '';
+    const updatedOrders = (settings.purchaseOrders || []).map((ord) => {
+      if (ord.id === orderId) {
+        orderActivationCode = ord.activationCode;
+        return {
+          ...ord,
+          status,
+          activatedAt: status === 'موافق عليه' ? new Date().toLocaleString('ar-EG') : ord.activatedAt,
+        };
+      }
+      return ord;
+    });
+
+    let updatedApprovedCodes = settings.approvedActivationCodes || [];
+    if (status === 'موافق عليه' && orderActivationCode) {
+      if (!updatedApprovedCodes.includes(orderActivationCode)) {
+        updatedApprovedCodes = [...updatedApprovedCodes, orderActivationCode];
+      }
+    }
+
+    const newSettings: Settings = {
+      ...settings,
+      purchaseOrders: updatedOrders,
+      approvedActivationCodes: updatedApprovedCodes,
+    };
+
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  const deletePurchaseOrder = (orderId: string) => {
+    const updatedOrders = (settings.purchaseOrders || []).filter((ord) => ord.id !== orderId);
+    const newSettings: Settings = {
+      ...settings,
+      purchaseOrders: updatedOrders,
+    };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  const generateManualActivationCode = (note?: string): string => {
+    const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newCode = `VIP-MANUAL-${part1}-${part2}`;
+
+    const updatedCodes = [newCode, ...(settings.approvedActivationCodes || [])];
+    const manualOrder: SubscriptionOrder = {
+      id: `MAN-${Date.now().toString().slice(-5)}`,
+      customerName: note ? `كود مخصص: ${note}` : 'توليد يدوي من الإدارة',
+      customerPhone: 'مباشر من الإدارة',
+      paymentMethod: 'sham_cash',
+      amount: settings.paidSettings?.price || 3,
+      currency: settings.paidSettings?.currency || 'دولار',
+      transactionId: 'MANUAL_ACTIVATION',
+      status: 'موافق عليه',
+      createdAt: new Date().toLocaleString('ar-EG'),
+      activationCode: newCode,
+      barcodeValue: newCode,
+      activatedAt: new Date().toLocaleString('ar-EG'),
+    };
+
+    const updatedOrders = [manualOrder, ...(settings.purchaseOrders || [])];
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+      purchaseOrders: updatedOrders,
+    };
+
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+
+    return newCode;
+  };
+
+  const revokeActivationCode = (code: string) => {
+    const normalized = code.trim().toUpperCase();
+    const updatedCodes = (settings.approvedActivationCodes || []).filter(
+      (c) => c.trim().toUpperCase() !== normalized
+    );
+    const updatedOrders = (settings.purchaseOrders || []).map((ord) => {
+      if (ord.activationCode.trim().toUpperCase() === normalized) {
+        return { ...ord, status: 'مرفوض' as const };
+      }
+      return ord;
+    });
+
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+      purchaseOrders: updatedOrders,
+    };
+    saveSettings(newSettings);
+
+    // If active on this machine, revoke locally
+    if (vipActivationCode.trim().toUpperCase() === normalized) {
+      deactivateVip();
+    }
+
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+
   // Check IndexedDB audio cache on initial load
   useEffect(() => {
+    // If backgroundMusicUrl is already an external web link, wipe any old obsolete huge audio cache
+    if (
+      settings.backgroundMusicUrl?.startsWith('http://') ||
+      settings.backgroundMusicUrl?.startsWith('https://')
+    ) {
+      clearAudioCache().catch(() => {});
+      return;
+    }
+
     getAudioFromCache().then((cachedAudio) => {
       if (cachedAudio && cachedAudio.startsWith('data:audio/')) {
         setSettings((prev) => {
-          if (!prev.backgroundMusicUrl || prev.backgroundMusicUrl === defaultSettings.backgroundMusicUrl) {
+          if (!prev.backgroundMusicUrl) {
             return { ...prev, backgroundMusicUrl: cachedAudio };
           }
           return prev;
@@ -212,15 +484,29 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const isGameUnlocked = (gameId: number): boolean => {
+    // 1. If game is marked as a VIP paid game
+    const isVipPaidGame =
+      settings.paidSettings?.enabled &&
+      Array.isArray(settings.paidSettings?.paidGameIds) &&
+      settings.paidSettings.paidGameIds.includes(gameId);
+
+    if (isVipPaidGame) {
+      return isVipActive;
+    }
+
+    // 2. If general video/channel subscription is disabled
     if (settings.requireSubscriptionAndVideos === false) {
       return true;
     }
+
+    // 3. Regular games: check if video watch required or channel subscribed
     const requiresVideo = settings.videoRequiredGameIds?.includes(gameId);
     if (!requiresVideo) {
       return isSubscribed;
     }
     return unlockedVideoGames.includes(gameId);
   };
+
 
   // Admin lock state (Password 1993)
   const [isAdminUnlocked, setIsAdminUnlockedState] = useState<boolean>(() => {
@@ -266,6 +552,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       newSettings.backgroundMusicUrl.startsWith('data:audio/')
     ) {
       saveAudioToCache(newSettings.backgroundMusicUrl).catch(() => {});
+    } else {
+      // It's a web URL or empty: clear old IndexedDB heavy audio cache to avoid memory issues
+      clearAudioCache().catch(() => {});
     }
 
     try {
@@ -278,7 +567,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           newSettings.backgroundMusicUrl.startsWith('data:audio/');
         const lightweightSettings = {
           ...newSettings,
-          // Never replace with invalid placeholder tokens; keep default or external URL for localStorage fallback
           backgroundMusicUrl: isHeavyAudio
             ? defaultSettings.backgroundMusicUrl
             : newSettings.backgroundMusicUrl,
@@ -412,10 +700,32 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
               : typeof localParsed.requireSubscriptionAndVideos === 'boolean'
               ? localParsed.requireSubscriptionAndVideos
               : defaultSettings.requireSubscriptionAndVideos ?? true,
+          paidSettings: {
+            ...defaultPaidSettings,
+            ...(localParsed.paidSettings || {}),
+            ...(fetchedSettings.paidSettings || {}),
+            shamCash: {
+              ...defaultPaidSettings.shamCash,
+              ...(localParsed.paidSettings?.shamCash || {}),
+              ...(fetchedSettings.paidSettings?.shamCash || {}),
+            },
+          },
+          purchaseOrders: [
+            ...(Array.isArray(fetchedSettings.purchaseOrders) ? fetchedSettings.purchaseOrders : []),
+            ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
+          ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
+          approvedActivationCodes: Array.from(
+            new Set([
+              ...(Array.isArray(fetchedSettings.approvedActivationCodes) ? fetchedSettings.approvedActivationCodes : []),
+              ...(Array.isArray(localParsed.approvedActivationCodes) ? localParsed.approvedActivationCodes : []),
+              ...(defaultSettings.approvedActivationCodes || []),
+            ])
+          ),
           adSettings: {
             ...defaultSettings.adSettings,
             ...(fetchedSettings.adSettings || {}),
           },
+
           googleAdSettings: {
             ...defaultSettings.googleAdSettings,
             ...(fetchedSettings.googleAdSettings || {}),
@@ -457,13 +767,41 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return false;
     }
 
-    const dataToSave = overrideSettings || settings;
+    const rawData = overrideSettings || settings;
+    // Prepare safe, lightweight payload for GitHub Gist (strict 1MB limit).
+    // If backgroundMusicUrl has a raw base64 dataURI or an oversized string,
+    // replace it with the default fast online EdgeOne URL for Gist syncing.
+    const dataToSave: Settings = { ...rawData };
+    if (
+      typeof dataToSave.backgroundMusicUrl === 'string' &&
+      dataToSave.backgroundMusicUrl.startsWith('data:audio/')
+    ) {
+      dataToSave.backgroundMusicUrl = defaultSettings.backgroundMusicUrl;
+    }
+    if (
+      typeof dataToSave.logoUrl === 'string' &&
+      dataToSave.logoUrl.startsWith('data:image/') &&
+      dataToSave.logoUrl.length > 200000
+    ) {
+      dataToSave.logoUrl = defaultSettings.logoUrl;
+    }
+    if (
+      typeof dataToSave.adSettings?.imageUrl === 'string' &&
+      dataToSave.adSettings.imageUrl.startsWith('data:image/') &&
+      dataToSave.adSettings.imageUrl.length > 200000
+    ) {
+      dataToSave.adSettings = {
+        ...dataToSave.adSettings,
+        imageUrl: defaultSettings.adSettings.imageUrl,
+      };
+    }
+
     const jsonPayload = JSON.stringify(dataToSave, null, 2);
 
     // GitHub Gist 1MB hard limit safeguard
     if (jsonPayload.length > 950000) {
       const kb = Math.round(jsonPayload.length / 1024);
-      const errMsg = `حجم البيانات (${kb} كيلوبايت) يتجاوز الحد المسموح به في سحابة GitHub Gist (1 ميجابايت). ملف الموسيقى كبير جداً، يرجى استخدام ميزة الضغط التلقائي أو رابط صوت خارجي (URL).`;
+      const errMsg = `حجم البيانات (${kb} كيلوبايت) يتجاوز الحد المسموح به في سحابة GitHub Gist (1 ميجابايت). يرجى استخدام روابط وسائط خارجية (URL).`;
       console.warn(errMsg);
       setSyncError(errMsg);
       return false;
@@ -672,9 +1010,19 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         isSubscribed,
         setIsSubscribed,
         resetSubscriptionStatus,
+        isVipActive,
+        vipActivationCode,
+        activateVip,
+        deactivateVip,
+        addPurchaseOrder,
+        updateOrderStatus,
+        deletePurchaseOrder,
+        generateManualActivationCode,
+        revokeActivationCode,
         unlockedVideoGames,
         unlockVideoGame,
         isGameUnlocked,
+
         isAdminUnlocked,
         setIsAdminUnlocked,
         verifyAdminPassword,

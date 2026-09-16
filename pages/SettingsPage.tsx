@@ -3,6 +3,8 @@ import { useSettings } from '../contexts/SettingsContext';
 import { Settings, FeedbackItem, ContactMessage } from '../types';
 import { GAMES } from '../constants';
 import { LockClosedIcon, VideoCameraIcon, CheckCircleIcon, KeyIcon } from '../components/Icons';
+import ShamCashQrCard, { ShamCashLogoSvg } from '../components/ShamCashQrCard';
+import SubscriptionOrdersManager from '../components/SubscriptionOrdersManager';
 
 const SettingsPage: React.FC = () => {
   const {
@@ -34,13 +36,18 @@ const SettingsPage: React.FC = () => {
     setLocalSettings(settings);
   }, [settings]);
 
-  const [activeTab, setActiveTab] = useState<'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'ads' | 'sync' | 'skillResults'>('general');
+  const [activeTab, setActiveTab] = useState<
+    'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'paid' | 'orders' | 'ads' | 'sync' | 'skillResults'
+  >('general');
   const [saveMessage, setSaveMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [gameSearch, setGameSearch] = useState('');
   const [gameCategoryFilter, setGameCategoryFilter] = useState('الكل');
+  const [paidGameSearch, setPaidGameSearch] = useState('');
+  const [paidGameCategoryFilter, setPaidGameCategoryFilter] = useState('الكل');
+
 
   // Filters for Feedback & Messages
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل'>('all');
@@ -90,6 +97,22 @@ const SettingsPage: React.FC = () => {
     if (messageFilter === 'all') return list;
     return list.filter((m) => m.status === messageFilter);
   }, [localSettings.contactMessages, messageFilter]);
+
+  // Filtered games for VIP Paid selector
+  const filteredPaidGames = useMemo(() => {
+    return GAMES.filter((game) => {
+      const matchSearch =
+        !paidGameSearch ||
+        game.name.toLowerCase().includes(paidGameSearch.toLowerCase()) ||
+        game.category.toLowerCase().includes(paidGameSearch.toLowerCase());
+      const matchCat = paidGameCategoryFilter === 'الكل' || game.category === paidGameCategoryFilter;
+      return matchSearch && matchCat;
+    });
+  }, [paidGameSearch, paidGameCategoryFilter]);
+
+  const pendingOrdersCount =
+    localSettings.purchaseOrders?.filter((o) => o.status === 'معلق').length || 0;
+
 
   // Handle password entry
   const handleAuthSubmit = (e: React.FormEvent) => {
@@ -260,6 +283,60 @@ const SettingsPage: React.FC = () => {
       return { ...prev, videoRequiredGameIds: Array.from(current) };
     });
   };
+
+  // Paid VIP games toggling
+  const toggleGamePaidRequirement = (gameId: number) => {
+    setLocalSettings((prev) => {
+      const current = prev.paidSettings?.paidGameIds || [];
+      const updated = current.includes(gameId)
+        ? current.filter((id) => id !== gameId)
+        : [...current, gameId];
+      return {
+        ...prev,
+        paidSettings: {
+          ...prev.paidSettings!,
+          paidGameIds: updated,
+        },
+      };
+    });
+  };
+
+  const selectAllPaidGames = () => {
+    const allIds = GAMES.map((g) => g.id);
+    setLocalSettings((prev) => ({
+      ...prev,
+      paidSettings: {
+        ...prev.paidSettings!,
+        paidGameIds: allIds,
+      },
+    }));
+  };
+
+  const clearAllPaidGames = () => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      paidSettings: {
+        ...prev.paidSettings!,
+        paidGameIds: [],
+      },
+    }));
+  };
+
+  const selectCategoryPaidGames = (cat: string) => {
+    const catIds = GAMES.filter((g) => g.category === cat).map((g) => g.id);
+    setLocalSettings((prev) => {
+      const current = new Set(prev.paidSettings?.paidGameIds || []);
+      catIds.forEach((id) => current.add(id));
+      return {
+        ...prev,
+        paidSettings: {
+          ...prev.paidSettings!,
+          paidGameIds: Array.from(current),
+        },
+      };
+    });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -436,6 +513,43 @@ const SettingsPage: React.FC = () => {
           <span>⏳</span>
           <span>الاشتراك والفيديوهات</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('paid')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'paid'
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-md font-black ring-2 ring-amber-400'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>👑</span>
+          <span>النسخة المدفوعة والدفع (VIP)</span>
+          {localSettings.paidSettings?.enabled && (
+            <span className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">
+              مفعّل
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('orders')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'orders'
+              ? 'bg-indigo-600 text-white shadow-md'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <span>📦</span>
+          <span>طلبات الشراء والأكواد</span>
+          {pendingOrdersCount > 0 && (
+            <span className="bg-amber-400 text-amber-950 text-[10px] px-2 py-0.5 rounded-full font-black animate-pulse">
+              {pendingOrdersCount} معلق
+            </span>
+          )}
+        </button>
+
 
         <button
           type="button"
@@ -636,7 +750,7 @@ const SettingsPage: React.FC = () => {
             {/* Direct Music URL input */}
             <div>
               <label htmlFor="backgroundMusicUrl" className="block text-sm font-black text-gray-700 mb-1">
-                أو أدخل رابط الموسيقى المباشر (URL):
+                رابط الموسيقى المباشر (URL):
               </label>
               <input
                 type="text"
@@ -644,15 +758,42 @@ const SettingsPage: React.FC = () => {
                 name="backgroundMusicUrl"
                 value={localSettings.backgroundMusicUrl}
                 onChange={handleLocalChange}
-                placeholder="https://example.com/song.mp3 أو data:audio/mp3;base64,..."
+                placeholder="https://grubby-plum-uukfa7rf.edgeone.dev/ أو رابط صوت خارجي"
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 font-mono text-xs text-gray-800"
               />
             </div>
 
             {/* Presets */}
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-              <span className="block text-xs font-black text-gray-700 mb-2">نغمات مقترحة سريعة:</span>
+            <div className="bg-purple-50/60 p-4 rounded-2xl border border-purple-200">
+              <span className="block text-xs font-black text-purple-900 mb-2">النغمات السريعة والمقترحة:</span>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLocalSettings((prev) => ({
+                      ...prev,
+                      backgroundMusicUrl: 'https://grubby-plum-uukfa7rf.edgeone.dev/',
+                      backgroundMusicEnabled: true,
+                    }))
+                  }
+                  className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-black py-2 px-3.5 rounded-xl cursor-pointer shadow-sm flex items-center gap-1.5 transition-transform active:scale-95"
+                >
+                  <span>⭐</span>
+                  <span>نغمة الموقع الافتراضية (سيرفر EdgeOne فائق السرعة)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLocalSettings((prev) => ({
+                      ...prev,
+                      backgroundMusicUrl: '/audio/default-music.mp3',
+                      backgroundMusicEnabled: true,
+                    }))
+                  }
+                  className="bg-white hover:bg-purple-50 text-purple-800 text-xs font-bold py-1.5 px-3 rounded-xl border border-purple-200 cursor-pointer shadow-sm"
+                >
+                  🎵 النسخة المحلية المخزنة
+                </button>
                 <button
                   type="button"
                   onClick={() =>
@@ -662,22 +803,9 @@ const SettingsPage: React.FC = () => {
                       backgroundMusicEnabled: true,
                     }))
                   }
-                  className="bg-white hover:bg-purple-50 text-purple-700 text-xs font-bold py-1.5 px-3 rounded-lg border border-purple-200 cursor-pointer shadow-sm"
+                  className="bg-white hover:bg-purple-50 text-purple-700 text-xs font-bold py-1.5 px-3 rounded-xl border border-purple-200 cursor-pointer shadow-sm"
                 >
                   🎶 نغمة أطفال كلاسيكية 1
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setLocalSettings((prev) => ({
-                      ...prev,
-                      backgroundMusicUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-                      backgroundMusicEnabled: true,
-                    }))
-                  }
-                  className="bg-white hover:bg-purple-50 text-purple-700 text-xs font-bold py-1.5 px-3 rounded-lg border border-purple-200 cursor-pointer shadow-sm"
-                >
-                  🎶 نغمة مرحة 2
                 </button>
                 <button
                   type="button"
@@ -688,9 +816,9 @@ const SettingsPage: React.FC = () => {
                       backgroundMusicEnabled: false,
                     }))
                   }
-                  className="bg-white hover:bg-red-50 text-red-600 text-xs font-bold py-1.5 px-3 rounded-lg border border-red-200 cursor-pointer shadow-sm"
+                  className="bg-white hover:bg-red-50 text-red-600 text-xs font-bold py-1.5 px-3 rounded-xl border border-red-200 cursor-pointer shadow-sm"
                 >
-                  🔇 إيقاف وحذف الموسيقى
+                  🔇 إيقاف وكتم الموسيقى
                 </button>
               </div>
             </div>
@@ -1434,7 +1562,376 @@ const SettingsPage: React.FC = () => {
           </div>
         )}
 
+        {/* TAB: VIP PAID SYSTEM SETTINGS */}
+        {activeTab === 'paid' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Master Toggle & Pricing */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-amber-300 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">👑</span>
+                  <div>
+                    <h2 className="text-xl font-black text-amber-950">
+                      إعدادات النسخة المدفوعة والاشتراك (VIP)
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                      حدد سعر الاشتراك وطرق الدفع والألعاب المخصصة للمشتركين فقط
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          enabled: e.target.checked,
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-12 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  <span className="ms-3 text-xs sm:text-sm font-black text-gray-800">
+                    {localSettings.paidSettings?.enabled ? 'النظام مفعّل' : 'النظام معطل'}
+                  </span>
+                </label>
+              </div>
+
+              {/* Price & Currency Settings */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    💰 سعر الاشتراك (المبلغ الدقيق):
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={localSettings.paidSettings?.price ?? 3}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          price: parseFloat(e.target.value) || 0,
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-black text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    * المستخدم لن يتمكن من إدخال أكثر أو أقل من هذا المبلغ عند الدفع.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    💵 العملة:
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.currency ?? 'دولار'}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          currency: e.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="مثال: دولار أو ل.س"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    ⏳ اسم ونوع الباقة:
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.periodName ?? 'تفعيل دائم مدى الحياة'}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          periodName: e.target.value,
+                        },
+                      }))
+                    }
+                    placeholder="مثال: تفعيل دائم مدى الحياة"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sham Cash Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-cyan-300 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gray-900 rounded-2xl shadow">
+                    <ShamCashLogoSvg className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">
+                      إعدادات بوابة الدفع (شام كاش - Sham Cash)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      بيانات حسابك ورمز التحويل والباركود الخاص بالاستلام
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.shamCash.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          shamCash: {
+                            ...prev.paidSettings!.shamCash,
+                            enabled: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                  <span className="ms-2 text-xs font-bold text-gray-700">تفعيل شام كاش</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Form Fields */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      👤 اسم المستلم في شام كاش (Account Name):
+                    </label>
+                    <input
+                      type="text"
+                      value={localSettings.paidSettings?.shamCash.accountName ?? 'mohannad anis ahmad'}
+                      onChange={(e) =>
+                        setLocalSettings((prev) => ({
+                          ...prev,
+                          paidSettings: {
+                            ...prev.paidSettings!,
+                            shamCash: {
+                              ...prev.paidSettings!.shamCash,
+                              accountName: e.target.value,
+                            },
+                          },
+                        }))
+                      }
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      🔑 كود الحساب / الرمز (Account Code):
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        localSettings.paidSettings?.shamCash.accountCode ??
+                        'c08a30e9e1f27a4b0d98b215562a0dbc'
+                      }
+                      onChange={(e) =>
+                        setLocalSettings((prev) => ({
+                          ...prev,
+                          paidSettings: {
+                            ...prev.paidSettings!,
+                            shamCash: {
+                              ...prev.paidSettings!.shamCash,
+                              accountCode: e.target.value,
+                            },
+                          },
+                        }))
+                      }
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-mono text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                      📝 تعليمات الدفع المعروضة للزبون:
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={
+                        localSettings.paidSettings?.shamCash.instructions ??
+                        'قم بمسح الباركود أو تحويل المبلغ إلى الحساب أعلاه عبر تطبيق شام كاش، ثم أرسل رقم عملية التحويل لتفعيل نسختك فوراً.'
+                      }
+                      onChange={(e) =>
+                        setLocalSettings((prev) => ({
+                          ...prev,
+                          paidSettings: {
+                            ...prev.paidSettings!,
+                            shamCash: {
+                              ...prev.paidSettings!.shamCash,
+                              instructions: e.target.value,
+                            },
+                          },
+                        }))
+                      }
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Live QR Preview */}
+                <div className="lg:col-span-5 bg-gray-950 p-4 rounded-3xl text-center space-y-2 border border-gray-800">
+                  <span className="text-[11px] font-bold text-cyan-400 block">
+                    معاينة بطاقة الباركود الحية (كما يراها الزبون):
+                  </span>
+                  <ShamCashQrCard
+                    accountName={localSettings.paidSettings?.shamCash.accountName || 'mohannad anis ahmad'}
+                    accountCode={
+                      localSettings.paidSettings?.shamCash.accountCode ||
+                      'c08a30e9e1f27a4b0d98b215562a0dbc'
+                    }
+                    amount={localSettings.paidSettings?.price || 3}
+                    currency={localSettings.paidSettings?.currency || 'دولار'}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Paid Games Selection */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <span>🔒 تحديد الألعاب التي تتطلب اشتراك VIP لتفتح:</span>
+                    <span className="text-xs bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                      {localSettings.paidSettings?.paidGameIds?.length || 0} لعبة مدفوعة
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    الألعاب المحددة هنا لن يتمكن الزائر من تشغيلها إلا بعد شراء النسخة المدفوعة وتفعيل الكود.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAllPaidGames}
+                    className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-300 transition-colors"
+                  >
+                    تحديد كل الألعاب 🔒
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearAllPaidGames}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+                  >
+                    إلغاء التحديد (مجانية) 🔓
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters for Games */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={paidGameSearch}
+                  onChange={(e) => setPaidGameSearch(e.target.value)}
+                  placeholder="🔍 ابحث عن لعبة بالاسم أو القسم..."
+                  className="flex-1 px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setPaidGameCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                        paidGameCategoryFilter === cat
+                          ? 'bg-amber-500 text-gray-950 font-black'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Games Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+                {filteredPaidGames.map((game) => {
+                  const isPaid = localSettings.paidSettings?.paidGameIds?.includes(game.id) || false;
+                  return (
+                    <div
+                      key={game.id}
+                      onClick={() => toggleGamePaidRequirement(game.id)}
+                      className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-2 select-none ${
+                        isPaid
+                          ? 'bg-amber-50/80 border-amber-400 shadow-sm'
+                          : 'bg-white border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-2xl shrink-0">{game.icon}</span>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-xs text-gray-900 truncate">{game.name}</h4>
+                          <span className="text-[10px] text-gray-400">{game.category}</span>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-1">
+                        {isPaid ? (
+                          <span className="bg-amber-500 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <span>🔒 مدفوعة VIP</span>
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-gray-400 font-bold px-2 py-0.5">
+                            مجانية
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: PURCHASE ORDERS & ACTIVATION CODES */}
+        {activeTab === 'orders' && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-indigo-200 space-y-6 animate-fade-in">
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <span className="text-3xl">📦</span>
+              <div>
+                <h2 className="text-xl font-black text-indigo-950">
+                  إدارة طلبات شراء النسخة المدفوعة وأكواد التفعيل
+                </h2>
+                <p className="text-xs text-gray-500">
+                  عرض تحويلات الزبائن، اعتماد الأكواد، مشاركة باركود التفعيل عبر واتساب، وتوليد أكواد يدوية
+                </p>
+              </div>
+            </div>
+
+            <SubscriptionOrdersManager />
+          </div>
+        )}
+
         {/* TAB 8: SKILL TEST RESULTS MANAGEMENT */}
+
         {activeTab === 'skillResults' && (
           <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-amber-200 space-y-6 animate-fade-in">
             <div className="flex items-center gap-3 pb-3 border-b border-gray-100">

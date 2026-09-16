@@ -4,16 +4,27 @@ import { GAMES } from '../constants';
 import GameGrid from '../components/GameGrid';
 import SubscriptionPopup from '../components/SubscriptionPopup';
 import GoogleAdBanner from '../components/GoogleAdBanner';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
+import { ShamCashLogoSvg } from '../components/ShamCashQrCard';
 import { Game } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 
 const HomePage: React.FC = () => {
-  const { settings, isSubscribed, isGameUnlocked, unlockVideoGame, setIsSubscribed } = useSettings();
+  const {
+    settings,
+    isSubscribed,
+    isVipActive,
+    isGameUnlocked,
+    unlockVideoGame,
+    setIsSubscribed,
+  } = useSettings();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
 
   // Recovery for Android WebView if activity was recreated upon returning from YouTube
   useEffect(() => {
@@ -52,7 +63,23 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleGameSelect = (game: Game) => {
-    // If channel subscription & video watch requirements are disabled in settings:
+    // 1. VIP Paid Game Check:
+    const isVipPaidGame =
+      settings.paidSettings?.enabled &&
+      Array.isArray(settings.paidSettings?.paidGameIds) &&
+      settings.paidSettings.paidGameIds.includes(game.id);
+
+    if (isVipPaidGame) {
+      if (isVipActive) {
+        navigate(`/game/${game.id}`);
+      } else {
+        setSelectedGame(game);
+        setIsVipModalOpen(true);
+      }
+      return;
+    }
+
+    // 2. If channel subscription & video watch requirements are disabled in settings:
     if (settings.requireSubscriptionAndVideos === false) {
       navigate(`/game/${game.id}`);
       return;
@@ -60,7 +87,7 @@ const HomePage: React.FC = () => {
 
     const requiresVideo = settings.videoRequiredGameIds?.includes(game.id);
 
-    // If game requires video and is not yet unlocked in this session
+    // 3. If game requires video and is not yet unlocked in this session
     if (requiresVideo) {
       if (isGameUnlocked(game.id)) {
         navigate(`/game/${game.id}`);
@@ -71,7 +98,7 @@ const HomePage: React.FC = () => {
       return;
     }
 
-    // If game does not require video:
+    // 4. If game does not require video:
     // If user already subscribed, open directly!
     if (isSubscribed) {
       navigate(`/game/${game.id}`);
@@ -80,6 +107,7 @@ const HomePage: React.FC = () => {
       setIsPopupOpen(true);
     }
   };
+
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
@@ -127,7 +155,42 @@ const HomePage: React.FC = () => {
             <span>✓ أنت مشترك بالقناة — استمتع باللعب المباشر!</span>
           </div>
         )}
+
+        {/* VIP Promotion Banner */}
+        {settings.paidSettings?.enabled && !isVipActive && (
+          <div className="mt-4 max-w-2xl mx-auto bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-0.5 rounded-2xl shadow-lg animate-pulse-slow">
+            <div className="bg-gray-950 px-4 py-3 sm:px-6 sm:py-3.5 rounded-[14px] flex flex-col sm:flex-row items-center justify-between gap-3 text-right">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-900 rounded-xl border border-amber-400/40 shrink-0">
+                  <ShamCashLogoSvg className="w-7 h-7" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm sm:text-base font-black text-amber-300">
+                      👑 النسخة الكاملة (VIP) متوفرة الآن!
+                    </span>
+                    <span className="bg-amber-500 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+                      {settings.paidSettings.price} {settings.paidSettings.currency} فقط
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-300">
+                    افتح جميع الألعاب المدفوعة وتخلص من قيود المشاهدة عبر الدفع السريع بـ Sham Cash.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsVipModalOpen(true)}
+                className="w-full sm:w-auto shrink-0 px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-gray-950 text-xs font-black rounded-xl shadow active:scale-95 transition-all"
+              >
+                شراء وتفعيل النسخة 🚀
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
 
       {/* Search & Category Filter */}
       <div className="mb-6 max-w-4xl mx-auto space-y-3 sm:space-y-4">
@@ -200,8 +263,15 @@ const HomePage: React.FC = () => {
         game={selectedGame}
         isVideoRequiredGame={isVideoReq}
       />
+
+      {/* VIP Full Version Subscription / Activation Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+      />
     </div>
   );
 };
+
 
 export default HomePage;

@@ -6,17 +6,20 @@ import { SpeakerWaveIcon, SpeakerXMarkIcon, PlayIcon, LockClosedIcon } from './I
 import AdPopup from './AdPopup';
 import AdminAuthModal from './AdminAuthModal';
 import WhatsNewModal from './WhatsNewModal';
+import VipSubscriptionModal from './VipSubscriptionModal';
 import { GAMES } from '../constants';
 import { Game } from '../types';
 
 const Header: React.FC = () => {
-  const { settings, isAdminUnlocked, lockAdmin } = useSettings();
+  const { settings, isVipActive, isAdminUnlocked, lockAdmin } = useSettings();
   const { isPlaying, togglePlay } = useAudio();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAdPopupOpen, setIsAdPopupOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
   const navigate = useNavigate();
+
 
   // Highlight the newest games added to the platform
   const newGames: Game[] = useMemo(() => {
@@ -107,6 +110,29 @@ const Header: React.FC = () => {
       <NavLink to="/feedback" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>
         شاركنا رأيك
       </NavLink>
+      {/* VIP Upgrade Button in Nav */}
+      {settings.paidSettings?.enabled && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsMenuOpen(false);
+            setIsVipModalOpen(true);
+          }}
+          className={
+            mobile
+              ? `${mobileNavLinkClass({ isActive: false })} bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-950 font-black flex items-center justify-between`
+              : 'px-3 py-1.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-gray-950 border border-amber-500/40 ring-2 ring-amber-300/50'
+          }
+        >
+          <span className="text-sm animate-bounce">👑</span>
+          <span>{isVipActive ? 'عضوية VIP مفعّلة' : 'النسخة الكاملة VIP'}</span>
+          {!isVipActive && (
+            <span className="bg-amber-950 text-amber-300 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+              {settings.paidSettings?.price || 3} $
+            </span>
+          )}
+        </button>
+      )}
       {/* If admin already entered password, show quick access link */}
       {isAdminUnlocked && (
         <NavLink
@@ -117,6 +143,7 @@ const Header: React.FC = () => {
           ⚙️ لوحة الإعدادات
         </NavLink>
       )}
+
     </>
   );
 
@@ -254,6 +281,13 @@ const Header: React.FC = () => {
         newGames={newGames}
         hasUnread={hasUnreadNotifications}
       />
+
+      {/* VIP Full Version Subscription Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+      />
+
 
       <style>{`
         @keyframes wiggle {

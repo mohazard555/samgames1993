@@ -46,3 +46,14 @@ export async function getAudioFromCache(): Promise<string | null> {
     return null;
   }
 }
+
+export async function clearAudioCache(): Promise<void> {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.delete('backgroundMusic');
+  } catch (e) {
+    console.warn('Failed to clear audio cache in IndexedDB:', e);
+  }
+}

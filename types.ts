@@ -61,6 +61,48 @@ export interface SkillTestResult {
   createdAt: string;
 }
 
+export interface ShamCashSettings {
+  enabled: boolean;
+  accountName: string; // e.g. "mohannad anis ahmad"
+  accountCode: string; // e.g. "c08a30e9e1f27a4b0d98b215562a0dbc"
+  instructions: string;
+}
+
+export interface OtherPaymentMethod {
+  id: string;
+  name: string;
+  enabled: boolean;
+  accountInfo: string;
+  instructions: string;
+}
+
+export interface PaidSettings {
+  enabled: boolean; // تفعيل نظام النسخة المدفوعة VIP
+  price: number; // e.g. 3
+  currency: string; // e.g. "دولار" أو "USD"
+  periodName: string; // e.g. "تفعيل دائم مدى الحياة"
+  paidGameIds: number[]; // الألعاب التي تحتاج اشتراك مدفوع لتفتح
+  shamCash: ShamCashSettings;
+  otherMethods?: OtherPaymentMethod[];
+}
+
+export interface SubscriptionOrder {
+  id: string; // e.g. "ORD-93821"
+  customerName: string;
+  customerPhone: string;
+  paymentMethod: 'sham_cash' | string;
+  amount: number;
+  currency: string;
+  transactionId: string; // رقم عملية التحويل
+  senderAccount?: string; // رقم حساب المحول (اختياري)
+  notes?: string;
+  status: 'معلق' | 'موافق عليه' | 'مرفوض';
+  createdAt: string;
+  activationCode: string; // Unique generated activation code (e.g. "VIP-SHAM-8942-7719")
+  barcodeValue?: string;
+  activatedAt?: string;
+}
+
 export interface Settings {
   siteName: string;
   logoUrl: string;
@@ -73,9 +115,13 @@ export interface Settings {
   videoWaitTime: number; // Waiting duration in seconds for video watch countdown
   videoRequiredGameIds: number[]; // IDs of games that require watching a video
   requireSubscriptionAndVideos?: boolean; // When false: visitors can play all games directly without needing channel subscription or video watch
+  paidSettings?: PaidSettings;
+  purchaseOrders?: SubscriptionOrder[];
+  approvedActivationCodes?: string[];
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;
   feedbacks?: FeedbackItem[];
   contactMessages?: ContactMessage[];
   skillTestResults?: SkillTestResult[];
 }
+
