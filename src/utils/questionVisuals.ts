@@ -362,3 +362,89 @@ export function getQuestionVisual(
     badgeBorder: 'border-amber-300',
   };
 }
+
+const OPTION_EMOJIS: { keywords: string[]; emoji: string }[] = [
+  // Fruits & Veg
+  { keywords: ['تفاح', 'تفاحة', 'apple', 'apples'], emoji: '🍎' },
+  { keywords: ['موز', 'banana', 'bananas'], emoji: '🍌' },
+  { keywords: ['برتقال', 'orange', 'oranges'], emoji: '🍊' },
+  { keywords: ['عنب', 'grape', 'grapes'], emoji: '🍇' },
+  { keywords: ['بطيخ', 'watermelon'], emoji: '🍉' },
+  { keywords: ['فراولة', 'strawberry'], emoji: '🍓' },
+  { keywords: ['ليمون', 'lemon'], emoji: '🍋' },
+  { keywords: ['خوخ', 'peach'], emoji: '🍑' },
+  { keywords: ['أناناس', 'pineapple'], emoji: '🍍' },
+  { keywords: ['مانجو', 'mango'], emoji: '🥭' },
+  { keywords: ['كرز', 'cherry'], emoji: '🍒' },
+  { keywords: ['كمثرى', 'pear'], emoji: '🍐' },
+  { keywords: ['كيوي', 'kiwi'], emoji: '🥝' },
+  { keywords: ['جزر', 'carrot', 'carrots'], emoji: '🥕' },
+  { keywords: ['طماطم', 'tomato', 'tomatoes'], emoji: '🍅' },
+  { keywords: ['خيار', 'cucumber'], emoji: '🥒' },
+  { keywords: ['بطاطس', 'potato', 'potatoes'], emoji: '🥔' },
+  { keywords: ['بصل', 'onion', 'onions'], emoji: '🧅' },
+  { keywords: ['ثوم', 'garlic'], emoji: '🧄' },
+  { keywords: ['ذرة', 'corn'], emoji: '🌽' },
+  { keywords: ['بروكلي', 'broccoli', 'قرنبيط'], emoji: '🥦' },
+  { keywords: ['فلفل', 'pepper', 'peppers'], emoji: '🫑' },
+  { keywords: ['باذنجان', 'eggplant'], emoji: '🍆' },
+  { keywords: ['فطر', 'mushroom'], emoji: '🍄' },
+  { keywords: ['خس', 'lettuce', 'سبانخ', 'spinach'], emoji: '🥬' },
+
+  // Animals
+  { keywords: ['أسد', 'lion', 'lions'], emoji: '🦁' },
+  { keywords: ['نمر', 'tiger', 'tigers'], emoji: '🐯' },
+  { keywords: ['فيل', 'elephant', 'elephants'], emoji: '🐘' },
+  { keywords: ['زرافة', 'giraffe'], emoji: '🦒' },
+  { keywords: ['قرد', 'monkey'], emoji: '🐵' },
+  { keywords: ['حمار', 'donkey'], emoji: '🫏' },
+  { keywords: ['بقرة', 'cow', 'cows'], emoji: '🐮' },
+  { keywords: ['خروف', 'sheep', 'غنم'], emoji: '🐑' },
+  { keywords: ['حصان', 'horse', 'horses'], emoji: '🐎' },
+  { keywords: ['دجاجة', 'chicken', 'chickens', 'دجاج'], emoji: '🐔' },
+  { keywords: ['بطة', 'duck', 'ducks'], emoji: '🦆' },
+  { keywords: ['قطة', 'cat', 'cats', 'قط'], emoji: '🐱' },
+  { keywords: ['كلب', 'dog', 'dogs'], emoji: '🐶' },
+  { keywords: ['أرنب', 'rabbit', 'rabbits'], emoji: '🐰' },
+  { keywords: ['سمكة', 'fish', 'حوت', 'whale', 'قرش', 'shark'], emoji: '🐟' },
+  { keywords: ['عصفور', 'bird', 'birds', 'طائر'], emoji: '🐦' },
+
+  // Colors
+  { keywords: ['أحمر', 'red'], emoji: '🔴' },
+  { keywords: ['أزرق', 'blue'], emoji: '🔵' },
+  { keywords: ['أخضر', 'green'], emoji: '🟢' },
+  { keywords: ['أصفر', 'yellow'], emoji: '🟡' },
+  { keywords: ['برتقالي', 'orange'], emoji: '🟠' },
+  { keywords: ['بنفسجي', 'purple'], emoji: '🟣' },
+  { keywords: ['زهري', 'وردي', 'pink'], emoji: '🩷' },
+  { keywords: ['أسود', 'black'], emoji: '⬛' },
+  { keywords: ['أبيض', 'white'], emoji: '⬜' },
+  { keywords: ['بني', 'brown'], emoji: '🟫' },
+  { keywords: ['رمادي', 'gray'], emoji: '🔘' },
+
+  // Shapes & Numbers
+  { keywords: ['دائرة', 'circle'], emoji: '⭕' },
+  { keywords: ['مربع', 'square'], emoji: '⬛' },
+  { keywords: ['مستطيل', 'rectangle'], emoji: '🧊' },
+  { keywords: ['مثلث', 'triangle'], emoji: '🔺' },
+  { keywords: ['نجمة', 'star'], emoji: '⭐' },
+  { keywords: ['قلب', 'heart'], emoji: '❤️' },
+];
+
+export function getOptionEmoji(optionText: string): string {
+  if (!optionText) return '⭐';
+  const hasEmoji = optionText.match(EMOJI_REGEX);
+  if (hasEmoji && hasEmoji.length > 0) {
+    return hasEmoji[0];
+  }
+
+  const lower = optionText.toLowerCase();
+  for (const item of OPTION_EMOJIS) {
+    for (const kw of item.keywords) {
+      if (lower.includes(kw.toLowerCase())) {
+        return item.emoji;
+      }
+    }
+  }
+  return '✨';
+}

@@ -290,7 +290,28 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       barcodeValue: uniqueCode,
     };
 
-    const updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
+    let updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
+    
+    // Post to server API
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({ ...newOrder, gistToken, gistUrl }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.purchaseOrders)) {
+          updatedOrders = data.purchaseOrders;
+        }
+      }
+    } catch (e) {
+      console.warn('API post order failed, using local:', e);
+    }
+
     const newSettings: Settings = {
       ...settings,
       purchaseOrders: updatedOrders,
@@ -665,6 +686,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
       }
 
+      // Method 3: Also fetch from server API to include any visitor submissions stored on server disk
+      let serverSubmissions: { purchaseOrders?: any[]; contactMessages?: any[]; feedbacks?: any[] } = {};
+      try {
+        const serverRes = await fetch('/api/data');
+        if (serverRes.ok) {
+          const serverData = await serverRes.json();
+          if (serverData.success) {
+            serverSubmissions = serverData;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch server submissions:', err);
+      }
+
       if (fetchedSettings && typeof fetchedSettings === 'object') {
         const parsedWaitTime =
           typeof fetchedSettings.videoWaitTime === 'number'
@@ -677,11 +712,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
         const mergedFeedbacks: FeedbackItem[] = [
           ...(Array.isArray(fetchedSettings.feedbacks) ? fetchedSettings.feedbacks : []),
+          ...(Array.isArray(serverSubmissions.feedbacks) ? serverSubmissions.feedbacks : []),
           ...(Array.isArray(localParsed.feedbacks) ? localParsed.feedbacks : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         const mergedMessages: ContactMessage[] = [
           ...(Array.isArray(fetchedSettings.contactMessages) ? fetchedSettings.contactMessages : []),
+          ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : []),
           ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
@@ -718,6 +755,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           },
           purchaseOrders: [
             ...(Array.isArray(fetchedSettings.purchaseOrders) ? fetchedSettings.purchaseOrders : []),
+            ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : []),
             ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
           ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
           approvedActivationCodes: Array.from(
@@ -882,7 +920,27 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    const updatedFeedbacks = [newFeedback, ...(settings.feedbacks || [])];
+    let updatedFeedbacks = [newFeedback, ...(settings.feedbacks || [])];
+
+    try {
+      const res = await fetch('/api/feedbacks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({ ...newFeedback, gistToken, gistUrl }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.feedbacks)) {
+          updatedFeedbacks = data.feedbacks;
+        }
+      }
+    } catch (e) {
+      console.warn('API post feedback failed, using local:', e);
+    }
+
     const newSettings: Settings = {
       ...settings,
       feedbacks: updatedFeedbacks,
@@ -925,7 +983,27 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    const updatedMessages = [newMsg, ...(settings.contactMessages || [])];
+    let updatedMessages = [newMsg, ...(settings.contactMessages || [])];
+
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({ ...newMsg, gistToken, gistUrl }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.contactMessages)) {
+          updatedMessages = data.contactMessages;
+        }
+      }
+    } catch (e) {
+      console.warn('API post message failed, using local:', e);
+    }
+
     const newSettings: Settings = {
       ...settings,
       contactMessages: updatedMessages,

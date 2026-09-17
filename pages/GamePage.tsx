@@ -79,6 +79,8 @@ import MathCandyShop from '../games/MathCandyShop';
 import HiddenObjectGame from '../games/HiddenObjectGame';
 import TicTacToe from '../games/TicTacToe';
 import DailyRoutine from '../games/DailyRoutine';
+import FlashcardsGame from '../games/FlashcardsGame';
+import MissingPartPuzzle from '../games/MissingPartPuzzle';
 
 // Define a type for game components for better type safety
 interface GameComponentProps {
@@ -86,6 +88,24 @@ interface GameComponentProps {
 }
 
 const gameComponents: { [key: string]: React.ComponentType<GameComponentProps> } = {
+  // === Educational Games ===
+  'ابحث عن الجزء المفقود للصورة': MissingPartPuzzle,
+
+  // === Flashcards Games ===
+  'البطاقات المصورة: الفواكه الطازجة': FlashcardsGame,
+  'البطاقات المصورة: الخضروات المفيدة': FlashcardsGame,
+  'البطاقات المصورة: حيوانات المزرعة والغابة': FlashcardsGame,
+  'البطاقات المصورة: وسائل النقل والمركبات': FlashcardsGame,
+  'البطاقات المصورة: الألوان الجميلة': FlashcardsGame,
+  'البطاقات المصورة: الأرقام والحساب': FlashcardsGame,
+  'البطاقات المصورة: الأحرف العربية': FlashcardsGame,
+  'البطاقات المصورة: الأحرف الإنجليزية': FlashcardsGame,
+  'البطاقات المصورة: أفراد العائلة والمنزل': FlashcardsGame,
+  'البطاقات المصورة: المهن والأدوات': FlashcardsGame,
+  'البطاقات المصورة: الأشكال الهندسية': FlashcardsGame,
+  'البطاقات المصورة: الملابس والأزياء': FlashcardsGame,
+  'البطاقات المصورة: أدوات المدرسة': FlashcardsGame,
+
   // === Existing Games ===
   'مغامرات العقل الصغير': MindAdventures,
   'لغز الألوان السحرية': MagicColorPuzzle,
@@ -183,11 +203,11 @@ const GamePage: React.FC = () => {
     );
   }
 
-  // If game is in the 40 new interactive games registry, use InteractiveNewGame
+  // If game is in the new interactive games registry or not in legacy components, use InteractiveNewGame
   const isNewInteractiveGame = Boolean(NEW_GAMES_REGISTRY[game.name]);
   const GameComponent = isNewInteractiveGame
     ? InteractiveNewGame
-    : (gameComponents[game.name] || PlaceholderGame);
+    : (gameComponents[game.name] || InteractiveNewGame);
 
   return (
     <div className="space-y-4">

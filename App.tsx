@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AudioProvider } from './contexts/AudioContext';
@@ -13,10 +13,15 @@ import FeedbackPage from './pages/FeedbackPage';
 import SkillTestPage from './pages/SkillTestPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ChildSplashScreen from './components/ChildSplashScreen';
+import { runContentValidation } from './validationReport';
 
 const MainRoutes: React.FC = () => {
   const { isInitialLoading } = useSettings();
   const [forceDismissSplash, setForceDismissSplash] = useState(false);
+
+  useEffect(() => {
+    runContentValidation();
+  }, []);
 
   return (
     <>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
 import { getAuthentic50Items } from './banks/allBanks';
-import { getQuestionVisual } from '../src/utils/questionVisuals';
+import { getQuestionVisual, getOptionEmoji } from '../src/utils/questionVisuals';
 import { useSettings } from '../contexts/SettingsContext';
 import QuestionGateModal from '../components/QuestionGateModal';
 import VipSubscriptionModal from '../components/VipSubscriptionModal';
@@ -38,7 +38,16 @@ interface InteractiveNewGameProps {
 }
 
 export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName }) => {
-  const gameDef: GameDefinition | undefined = NEW_GAMES_REGISTRY[gameName];
+  const fallbackDef: GameDefinition = {
+    id: `game-${gameName}`,
+    title: gameName,
+    category: 'ألعاب تفاعلية وتعليمية',
+    type: 'quiz',
+    themeColor: 'from-sky-500 to-indigo-600',
+    iconEmoji: '🎮',
+    description: `العب وتعلم مع لعبة ${gameName} الممتعة للأبطال الصغار!`,
+  };
+  const gameDef: GameDefinition = NEW_GAMES_REGISTRY[gameName] || fallbackDef;
   const { settings, isVipActive } = useSettings();
   const [isVipModalOpen, setIsVipModalOpen] = useState(false);
 
@@ -330,7 +339,12 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
                     disabled={feedback !== null}
                     className={`p-4 sm:p-5 rounded-2xl text-lg sm:text-xl font-black transition-all transform active:scale-95 flex items-center justify-between text-right cursor-pointer ${btnStyle}`}
                   >
-                    <span>{option}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-2xl shadow-sm">
+                        {getOptionEmoji(option)}
+                      </span>
+                      <span>{option}</span>
+                    </div>
                     {feedback !== null && isCorrectOpt && <span className="text-2xl">✅</span>}
                     {feedback !== null && isChosen && !isCorrectOpt && (
                       <span className="text-2xl">❌</span>
