@@ -45,51 +45,54 @@ export const SHAPES_COLORS_TITLES = [
 
 export const SHAPES_COLORS_BANK: Record<string, QuizQuestion[]> = {};
 
-const categoryIcons = ['🔷', '🔴', '⭐', '🍎', '🟩', '🔵', '🟡', '🟣', '🟠', '🔺', '🎨', '🧩', '🧸', '🚗', '🏠', '🌟', '🌈', '💎', '🎯', '🍀', '🍓', '🍌', '🍉', '🍇', '🍒', '🍍', '🥝', '🍑', '🥥', '🥑'];
+const shapeColorItems = [
+  { icon: '🔷', name: 'معين أزرق', color: 'أزرق', shape: 'معين' },
+  { icon: '🔴', name: 'دائرة حمراء', color: 'أحمر', shape: 'دائرة' },
+  { icon: '⭐', name: 'نجمة صفراء', color: 'أصفر', shape: 'نجمة' },
+  { icon: '🍎', name: 'تفاحة حمراء', color: 'أحمر', shape: 'دائري' },
+  { icon: '🟩', name: 'مربع أخضر', color: 'أخضر', shape: 'مربع' },
+  { icon: '🔵', name: 'دائرة زرقاء', color: 'أزرق', shape: 'دائرة' },
+  { icon: '🟡', name: 'دائرة صفراء', color: 'أصفر', shape: 'دائرة' },
+  { icon: '🟣', name: 'دائرة بنفسجية', color: 'بنفسجي', shape: 'دائرة' },
+  { icon: '🟠', name: 'دائرة برتقالية', color: 'برتقالي', shape: 'دائرة' },
+  { icon: '🔺', name: 'مثلث أحمر', color: 'أحمر', shape: 'مثلث' },
+  { icon: '🍓', name: 'توت أحمر', color: 'أحمر', shape: 'محبب' },
+  { icon: '🍌', name: 'موزة صفراء', color: 'أصفر', shape: 'منحني' },
+  { icon: '🍉', name: 'بطيخة خضراء', color: 'أخضر', shape: 'بيضاوي' },
+  { icon: '🍇', name: 'عنب أرجواني', color: 'أرجواني', shape: 'عناقيد' },
+  { icon: '🍒', name: 'كرز أحمر', color: 'أحمر', shape: 'مزدوج' },
+  { icon: '🍍', name: 'أناناس أصفر', color: 'أصفر', shape: 'بيضاوي' },
+  { icon: '🥝', name: 'كيوي أخضر', color: 'أخضر', shape: 'بيضاوي' },
+  { icon: '🍑', name: 'خوخ برتقالي', color: 'برتقالي', shape: 'دائري' },
+  { icon: '💎', name: 'جوهرة براقة', color: 'أزرق فواتح', shape: 'هندسي مضلع' },
+  { icon: '🌈', name: 'قوس قزح ملون', color: 'ألوان متعددة', shape: 'قوس' }
+];
 
 SHAPES_COLORS_TITLES.forEach((title, gameIdx) => {
   const questions: QuizQuestion[] = [];
   for (let i = 1; i <= 50; i++) {
-    const icon = categoryIcons[(gameIdx * 7 + i) % categoryIcons.length];
-    let qText = '';
-    let opts: string[] = [];
-    let correct = '';
-    let expl = '';
+    const item = shapeColorItems[(gameIdx * 3 + i - 1) % shapeColorItems.length];
+    const otherItems = shapeColorItems.filter(p => p.name !== item.name);
+    const shuffledOthers = [...otherItems].sort(() => Math.random() - 0.5);
+    const d1 = shuffledOthers[0]?.name || 'شكل آخر';
+    const d2 = shuffledOthers[1]?.name || 'لون آخر';
+    const d3 = shuffledOthers[2]?.name || 'رمز مميز';
 
-    if (i % 5 === 1) {
-      qText = `ما هو عدد أضلاع الشكل الهندسي المنتظم رقم (${i})؟`;
-      opts = ['3 أضلاع', '4 أضلاع', '5 أضلاع', '6 أضلاع'];
-      correct = '4 أضلاع';
-      expl = 'المربع والمستطيل لهما 4 أضلاع متقابلة أو متساوية.';
-    } else if (i % 5 === 2) {
-      qText = `ما هو اللون الناتج عن دمج اللونين الأساسيين في التجربة رقم (${i})؟`;
-      opts = ['الأخضر', 'البرتقالي', 'البنفسجي', 'الأسود'];
-      correct = 'البرتقالي';
-      expl = 'دمج الأحمر مع الأصفر ينتج اللون البرتقالي الجميل.';
-    } else if (i % 5 === 3) {
-      qText = `اختر الشكل الذي لا يحتوي على زوايا حادة في اختبار الشكل (${i}):`;
-      opts = ['الدائرة', 'المثلث', 'المربع', 'المستطيل'];
-      correct = 'الدائرة';
-      expl = 'الدائرة منحنى مغلق متصل وليس لها زوايا.';
-    } else if (i % 5 === 4) {
-      qText = `أي من هذه الألوان يعتبر لوناً أساسياً في الطبيعة والفن (رقم ${i})؟`;
-      opts = ['الأحمر', 'الوردي', 'الفيروزي', 'البنفسجي الفاتح'];
-      correct = 'الأحمر';
-      expl = 'الألوان الأساسية هي الأحمر والأصفر والأزرق.';
-    } else {
-      qText = `ما هو التطابق الصحيح للأشكال والألوان في السؤال (${i})؟`;
-      opts = ['مطابقة تامة صحيحة', 'اختلاف في الشكل', 'اختلاف في اللون', 'غير متطابق'];
-      correct = 'مطابقة تامة صحيحة';
-      expl = 'المطابقة الصحيحة تعتمد على تشابه الأبعاد والخصائص اللونية.';
+    const optionsSet = new Set([item.name, d1, d2, d3]);
+    while (optionsSet.size < 4 && otherItems.length >= optionsSet.size) {
+      const randItem = otherItems[Math.floor(Math.random() * otherItems.length)];
+      if (randItem) optionsSet.add(randItem.name);
+      else break;
     }
+    const options = Array.from(optionsSet).sort(() => Math.random() - 0.5);
 
     questions.push({
       id: i,
-      question: qText,
-      image: icon,
-      options: opts,
-      correctAnswer: correct,
-      explanation: expl
+      question: `ما هو الوصف الصحيح للشكل واللون في هذه الصورة؟`,
+      image: item.icon,
+      options: options,
+      correctAnswer: item.name,
+      explanation: `الإجابة الصحيحة هي (${item.name}). الشكل واللون متطابقان تماماً مع الصورة المعروضة.`
     });
   }
   SHAPES_COLORS_BANK[title] = questions;

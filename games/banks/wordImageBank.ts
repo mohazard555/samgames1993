@@ -808,15 +808,29 @@ WORD_IMAGE_TITLES.forEach((title) => {
   const questions: QuizQuestion[] = [];
   for (let i = 0; i < 50; i++) {
     const item = pool[i % pool.length];
-    // Ensure 2 options: correct and distractor
-    const options = [item.name, item.distractor].sort(() => Math.random() - 0.5);
+    
+    // Pick 3 distinct distractors from the same pool
+    const otherItems = pool.filter(p => p.name !== item.name);
+    const shuffledOthers = [...otherItems].sort(() => Math.random() - 0.5);
+    const d1 = shuffledOthers[0]?.name || item.distractor;
+    const d2 = shuffledOthers[1]?.name || (otherItems[0]?.name ?? item.name);
+    const d3 = shuffledOthers[2]?.name || (otherItems[1]?.name ?? item.distractor);
+
+    const optionsSet = new Set([item.name, d1, d2, d3]);
+    while (optionsSet.size < 4 && otherItems.length >= optionsSet.size) {
+      const randItem = otherItems[Math.floor(Math.random() * otherItems.length)];
+      if (randItem) optionsSet.add(randItem.name);
+      else break;
+    }
+    const options = Array.from(optionsSet).sort(() => Math.random() - 0.5);
+
     questions.push({
       id: i + 1,
-      question: `ما هذه الصورة؟ (What is this?)`,
+      question: `ما هو الاسم الصحيح لهذه الصورة؟ (Choose the correct name:)`,
       image: item.emoji,
       options: options,
       correctAnswer: item.name,
-      explanation: `الصورة تمثل (${item.name}) باللغة الإنجليزية.`
+      explanation: `الإجابة الصحيحة هي (${item.name}). الصورة مطابقة تماماً لهذا العنصر.`
     });
   }
   WORD_IMAGE_BANK[title] = questions;

@@ -1250,6 +1250,22 @@ const SettingsPage: React.FC = () => {
                 />
               </div>
 
+              {/* WhatsApp Orders URL */}
+              <div>
+                <label htmlFor="whatsappUrl" className="block text-sm font-black text-gray-700 mb-1">
+                  رابط أو رقم واتساب لاستقبال طلبات الشراء
+                </label>
+                <input
+                  type="text"
+                  id="whatsappUrl"
+                  name="whatsappUrl"
+                  value={localSettings.whatsappUrl || ''}
+                  onChange={handleLocalChange}
+                  placeholder="https://wa.me/9639xxxxxxxx أو رقم الهاتف"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-400 font-mono text-xs"
+                />
+              </div>
+
               {/* Multi YouTube URLs */}
               <div className="md:col-span-2">
                 <label htmlFor="youtubeUrls" className="block text-sm font-black text-gray-700 mb-1">

@@ -198,6 +198,13 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
       )
     : '';
 
+  const customWa = settings.whatsappUrl?.trim();
+  const whatsappHref = customWa
+    ? (customWa.startsWith('http')
+        ? `${customWa.includes('?') ? customWa + '&' : customWa + '?'}text=${whatsappMessage}`
+        : `https://wa.me/${customWa}?text=${whatsappMessage}`)
+    : `https://wa.me/?text=${whatsappMessage}`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto animate-fade-in select-none">
       <div className="relative w-full max-w-2xl bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white rounded-3xl shadow-2xl border border-amber-500/30 overflow-hidden my-auto">
@@ -292,7 +299,7 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
                   <div className="flex flex-col sm:flex-row gap-2.5 justify-center pt-2">
                     <a
-                      href={`https://wa.me/?text=${whatsappMessage}`}
+                      href={whatsappHref}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg"

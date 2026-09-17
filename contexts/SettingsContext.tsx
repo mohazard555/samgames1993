@@ -30,6 +30,7 @@ const defaultSettings: Settings = {
   siteName: 'ToysGame World',
   logoUrl: 'https://img.icons8.com/plasticine/100/controller.png',
   subscriptionUrl: 'https://www.youtube.com/@mkstudio_963',
+  whatsappUrl: 'https://wa.me/',
   youtubeUrls: 'https://www.youtube.com/@mkstudio_963\nhttps://www.youtube.com/channel/UC-xUFz2i5-2j4o27sK6l3-A',
   backgroundMusicUrl: '/audio/default-music.mp3',
   backgroundMusicEnabled: true,

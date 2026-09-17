@@ -116,6 +116,7 @@ export interface Settings {
   siteName: string;
   logoUrl: string;
   subscriptionUrl: string;
+  whatsappUrl?: string; // رابط أو رقم واتساب لاستقبال طلبات الشراء
   youtubeUrls: string;
   backgroundMusicUrl: string;
   backgroundMusicEnabled?: boolean;
