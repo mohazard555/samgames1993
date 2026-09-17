@@ -216,10 +216,34 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   });
 
+  const getDeviceId = (): string => {
+    try {
+      let id = localStorage.getItem('toys_game_device_fingerprint');
+      if (!id) {
+        id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        localStorage.setItem('toys_game_device_fingerprint', id);
+      }
+      return id;
+    } catch {
+      return 'default_device';
+    }
+  };
+
   const activateVip = (rawCode: string): { success: boolean; message: string } => {
     const code = (rawCode || '').trim().toUpperCase();
     if (!code) {
       return { success: false, message: 'يرجى كتابة كود التفعيل أولاً.' };
+    }
+
+    const deviceId = getDeviceId();
+    const bindings = settings.codeDeviceBindings || {};
+    const boundDevice = bindings[code];
+
+    if (boundDevice && boundDevice !== deviceId) {
+      return {
+        success: false,
+        message: 'عذراً، هذا الكود مستخدم بالفعل على جهاز آخر ولا يمكن استخدامه على جهاز متعدد لمنع التلاعب والتداول.',
+      };
     }
 
     // 1. Check if code exists in approved codes list
@@ -236,6 +260,17 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const isAlgorithmicValid = /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(code);
 
     if (isApprovedCode || (matchingOrder && matchingOrder.status !== 'مرفوض') || isAlgorithmicValid) {
+      // Bind code to device
+      const updatedBindings = { ...bindings, [code]: deviceId };
+      const newSettings: Settings = {
+        ...settings,
+        codeDeviceBindings: updatedBindings,
+      };
+      saveSettings(newSettings);
+      if (gistToken) {
+        saveToGist(newSettings).catch(() => {});
+      }
+
       try {
         localStorage.setItem('toysGameVipActive', 'true');
         localStorage.setItem('toysGameVipCode', code);

@@ -122,7 +122,10 @@ const HomePage: React.FC = () => {
   };
 
   const filteredGames = useMemo(() => {
+    const hiddenNames = settings.hiddenGameNames || [];
     return GAMES.filter((game) => {
+      if (hiddenNames.includes(game.name)) return false;
+
       const matchesSearch =
         !searchQuery ||
         game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -132,7 +135,7 @@ const HomePage: React.FC = () => {
 
       return matchesSearch && matchesCat;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, settings.hiddenGameNames]);
 
   const isVideoReq = selectedGame ? settings.videoRequiredGameIds?.includes(selectedGame.id) : false;
 

@@ -9,6 +9,7 @@ import { SPORTS_MUSIC_PUZZLES_BANK } from './sportsMusicPuzzlesBank';
 import { SHAPES_COLORS_BANK } from './shapesColorsBank';
 import { ENGLISH_LEARNING_BANK } from './englishLearningBank';
 import { WORD_IMAGE_BANK } from './wordImageBank';
+import { ISLAMIC_RELIGION_BANK } from './islamicReligionBank';
 
 export function getAuthentic50Items(gameDef: GameDefinition): {
   type: 'quiz' | 'comparison';
@@ -37,7 +38,8 @@ export function getAuthentic50Items(gameDef: GameDefinition): {
     MATH_NUMBERS_BANK,
     ARABIC_LANGUAGE_BANK,
     CULTURE_GEOGRAPHY_BANK,
-    SPORTS_MUSIC_PUZZLES_BANK
+    SPORTS_MUSIC_PUZZLES_BANK,
+    ISLAMIC_RELIGION_BANK
   ];
 
   for (const bank of allBanksList) {

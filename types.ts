@@ -128,6 +128,8 @@ export interface Settings {
   paidSettings?: PaidSettings;
   purchaseOrders?: SubscriptionOrder[];
   approvedActivationCodes?: string[];
+  codeDeviceBindings?: Record<string, string>;
+  hiddenGameNames?: string[];
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;
   feedbacks?: FeedbackItem[];
