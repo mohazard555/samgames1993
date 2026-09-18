@@ -16,6 +16,8 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
     settings.paidSettings?.enabled &&
     settings.paidSettings.paidGameIds?.includes(game.id);
 
+  const isNewGame = settings.newGameIds?.includes(game.id);
+
   return (
     <div
       onClick={onClick}
@@ -28,6 +30,15 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
       }}
       className={`relative bg-gradient-to-br ${game.color} rounded-2xl md:rounded-3xl shadow-sm hover:shadow-lg active:scale-95 p-3.5 sm:p-4 md:p-5 text-white flex flex-col items-center justify-between text-center cursor-pointer transform hover:-translate-y-1 transition-all duration-200 ease-out select-none min-h-[140px] sm:min-h-[160px] touch-manipulation overflow-hidden`}
     >
+      {/* NEW Badge */}
+      {isNewGame && (
+        <div className="absolute top-2 left-2 z-10">
+          <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg border border-white/60 flex items-center gap-0.5 animate-pulse">
+            <span>NEW 🔥</span>
+          </span>
+        </div>
+      )}
+
       {/* VIP Badge */}
       {isPaidGame && (
         <div className="absolute top-2 right-2 z-10">

@@ -329,7 +329,16 @@ const colors = [
 ];
 
 let gameCounter = 1;
-const list: Game[] = [];
+const list: Game[] = [
+  {
+    id: 9999,
+    name: 'لعبة مطابقة الصور الذكية',
+    description: 'اختبر ذكاءك واكتشف الصور المتطابقة عبر 8 مجموعات ممتعة (200 سؤال)',
+    category: 'ذكاء',
+    color: 'from-purple-600 via-pink-600 to-amber-500',
+    customRoute: '/visual-quiz',
+  }
+];
 
 Object.entries(gameNamesByCategory).forEach(([category, names]) => {
   names.forEach((name) => {

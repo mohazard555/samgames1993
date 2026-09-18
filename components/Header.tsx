@@ -23,9 +23,14 @@ const Header: React.FC = () => {
 
   // Highlight the newest games added to the platform
   const newGames: Game[] = useMemo(() => {
-    // Select the last 10 games as newly added
-    return GAMES.slice(-10).reverse();
-  }, []);
+    const customNewIds = settings.newGameIds || [9999];
+    const explicitNewGames = GAMES.filter(g => customNewIds.includes(g.id));
+    const recentGames = GAMES.slice(-10).reverse();
+    const combined = [...explicitNewGames, ...recentGames];
+    const uniqueMap = new Map<number, Game>();
+    combined.forEach(g => uniqueMap.set(g.id, g));
+    return Array.from(uniqueMap.values());
+  }, [settings.newGameIds]);
 
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(() => {
     try {
@@ -45,7 +50,11 @@ const Header: React.FC = () => {
   };
 
   const handleSelectNewGame = (game: Game) => {
-    navigate(`/game/${game.id}`);
+    if (game.customRoute) {
+      navigate(game.customRoute);
+    } else {
+      navigate(`/game/${game.id}`);
+    }
   };
 
   // 5-click detection state

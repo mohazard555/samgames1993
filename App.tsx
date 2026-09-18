@@ -12,6 +12,8 @@ import GamePage from './pages/GamePage';
 import FeedbackPage from './pages/FeedbackPage';
 import SkillTestPage from './pages/SkillTestPage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import VisualQuizHomePage from './pages/VisualQuizHomePage';
+import VisualQuizGamePage from './pages/VisualQuizGamePage';
 import ChildSplashScreen from './components/ChildSplashScreen';
 import { runContentValidation } from './validationReport';
 
@@ -39,6 +41,8 @@ const MainRoutes: React.FC = () => {
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/feedback" element={<FeedbackPage />} />
+          <Route path="/visual-quiz" element={<VisualQuizHomePage />} />
+          <Route path="/visual-quiz/:categoryId" element={<VisualQuizGamePage />} />
         </Routes>
       </PageLayout>
     </>

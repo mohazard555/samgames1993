@@ -8,6 +8,7 @@ export interface Game {
   icon?: ReactNode;
   iconName?: string;
   color: string;
+  customRoute?: string;
 }
 
 export interface AdSettings {
@@ -164,6 +165,7 @@ export interface Settings {
   codeDeviceBindings?: Record<string, string>;
   codeCustomerBindings?: Record<string, string>;
   hiddenGameNames?: string[];
+  newGameIds?: number[];
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;
   feedbacks?: FeedbackItem[];

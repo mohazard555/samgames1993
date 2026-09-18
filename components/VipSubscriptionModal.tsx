@@ -252,7 +252,7 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
   const whatsappMessage = submittedOrder
     ? encodeURIComponent(
-        `مرحباً، قمت بتحويل مبلغ ${targetPrice} ${targetCurrency} عبر شام كاش لشراء النسخة الكاملة لتطبيق الألعاب.\nرقم الطلب: ${submittedOrder.id}\nالاسم: ${submittedOrder.customerName}\nرقم العملية: ${submittedOrder.transactionId}\nيرجى تزويدي بكود التفعيل.`
+        `مرحباً، قمت بتحويل مبلغ ${targetPrice} ${targetCurrency} عبر ${methodConfig.name} لشراء النسخة الكاملة لتطبيق الألعاب.\nرقم الطلب: ${submittedOrder.id}\nالاسم: ${submittedOrder.customerName}\nرقم عملية التحويل: ${submittedOrder.transactionId}\nيرجى تزويدي بكود التفعيل.`
       )
     : '';
 
@@ -561,7 +561,7 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                       type="submit"
                       className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-gray-950 font-black text-sm sm:text-base rounded-2xl shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
                     >
-                      <span>متابعة للدفع وعرض الباركود (QR) ➡️</span>
+                      <span>متابعة الدفع ➡️</span>
                     </button>
                   </form>
                 </div>
@@ -690,7 +690,7 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-[11px] font-bold text-gray-300 mb-1">
-                          رقم عملية التحويل (في شام كاش) <span className="text-red-400">*</span>:
+                          رقم عملية التحويل <span className="text-red-400">*</span>:
                         </label>
                         <input
                           type="text"

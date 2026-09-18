@@ -63,6 +63,11 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleGameSelect = (game: Game) => {
+    if (game.customRoute) {
+      navigate(game.customRoute);
+      return;
+    }
+
     // 1. VIP Paid Game Check:
     const isVipPaidGame =
       settings.paidSettings?.enabled &&
@@ -153,6 +158,8 @@ const HomePage: React.FC = () => {
             <span>✓ أنت مشترك بالقناة — استمتع باللعب المباشر!</span>
           </div>
         )}
+
+
 
         {/* VIP Promotion Banner */}
         {settings.paidSettings?.enabled && !isVipActive && (() => {

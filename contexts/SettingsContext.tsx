@@ -90,6 +90,7 @@ const defaultSettings: Settings = {
   purchaseOrders: [],
   approvedActivationCodes: generate100DefaultCodes(),
   codeCustomerBindings: {},
+  newGameIds: [9999],
   adSettings: {
     enabled: false,
     name: 'مفاجأة للأبطال!',
