@@ -91,6 +91,7 @@ export interface PaidSettings {
   paidGameIds: number[]; // الألعاب التي تحتاج اشتراك مدفوع لتفتح
   questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين في ألعاب الـ 50 سؤال
   questionGateNumber?: number; // رقم السؤال الذي يتطلب اشتراك لمتابعة اللعب (افتراضي: 15)
+  vipTrialDurationSeconds?: number; // مدة التجربة المجانية لألعاب VIP بالثواني قبل طلب الاشتراك (افتراضي 60)
   shamCash: ShamCashSettings;
   otherMethods?: OtherPaymentMethod[];
 }
@@ -129,6 +130,7 @@ export interface Settings {
   purchaseOrders?: SubscriptionOrder[];
   approvedActivationCodes?: string[];
   codeDeviceBindings?: Record<string, string>;
+  codeCustomerBindings?: Record<string, string>;
   hiddenGameNames?: string[];
   adSettings: AdSettings;
   googleAdSettings: GoogleAdSettings;

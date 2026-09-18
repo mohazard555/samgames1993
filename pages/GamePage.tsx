@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { GAMES } from '../constants';
 import { NEW_GAMES_REGISTRY } from '../games/newGamesData';
 import InteractiveNewGame from '../games/InteractiveNewGame';
+import { useSettings } from '../contexts/SettingsContext';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
 
 // Import existing working game components
 import MagicColorPuzzle from '../games/MagicColorPuzzle';
@@ -191,6 +193,39 @@ const GamePage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const game = GAMES.find(g => g.id.toString() === gameId);
 
+  const { settings, isVipActive } = useSettings();
+  const isVipPaidGame =
+    settings.paidSettings?.enabled &&
+    Array.isArray(settings.paidSettings?.paidGameIds) &&
+    settings.paidSettings.paidGameIds.includes(game ? game.id : 0);
+
+  const trialDuration = settings.paidSettings?.vipTrialDurationSeconds || 60;
+  const [timeLeft, setTimeLeft] = useState<number>(trialDuration);
+  const [showVipModal, setShowVipModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isVipPaidGame || isVipActive) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setShowVipModal(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isVipPaidGame, isVipActive]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (!game) {
     return (
       <div className="text-center bg-white p-8 rounded-2xl shadow-2xl">
@@ -224,7 +259,35 @@ const GamePage: React.FC = () => {
         </span>
       </div>
 
+      {isVipPaidGame && !isVipActive && (
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3.5 rounded-2xl shadow-md flex items-center justify-between flex-wrap gap-2 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">⏰</span>
+            <div>
+              <span className="font-black text-xs sm:text-sm block">تجربة مجانية مؤقتة لألعاب VIP:</span>
+              <span className="text-xs opacity-95">متبقي {formatTime(timeLeft)} قبل طلب تفعيل النسخة المدفوعة</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowVipModal(true)}
+            className="px-4 py-2 bg-white text-amber-900 font-black text-xs rounded-xl shadow-sm hover:bg-amber-50 transition-colors cursor-pointer"
+          >
+            تفعيل الآن 🔑
+          </button>
+        </div>
+      )}
+
       <GameComponent gameName={game.name} />
+
+      <VipSubscriptionModal
+        isOpen={showVipModal || (isVipPaidGame && !isVipActive && timeLeft <= 0)}
+        onClose={() => {
+          if (isVipActive) {
+            setShowVipModal(false);
+          }
+        }}
+      />
 
       {/* Google Ad Banner in game page */}
       <GoogleAdBanner position="game" />

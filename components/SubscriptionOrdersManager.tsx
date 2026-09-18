@@ -46,6 +46,10 @@ const SubscriptionOrdersManager: React.FC = () => {
   const [generatedCodeResult, setGeneratedCodeResult] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  // Friend / customer code generator modal states
+  const [showFriendModal, setShowFriendModal] = useState(false);
+  const [friendNameInput, setFriendNameInput] = useState('');
+
   const orders = settings.purchaseOrders || [];
   const approvedCodes = settings.approvedActivationCodes || [];
 
@@ -68,6 +72,16 @@ const SubscriptionOrdersManager: React.FC = () => {
     const code = generateManualActivationCode(manualNote);
     setGeneratedCodeResult(code);
     setManualNote('');
+  };
+
+  const handleGenerateForFriend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!friendNameInput.trim()) return;
+    const code = generateManualActivationCode(friendNameInput);
+    handleCopy(code);
+    // Automatically close modal upon completion
+    setShowFriendModal(false);
+    setFriendNameInput('');
   };
 
   const getWhatsAppShareUrl = (order: SubscriptionOrder) => {
@@ -102,31 +116,40 @@ const SubscriptionOrdersManager: React.FC = () => {
 
       {/* Manual Code Generator Tool */}
       <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-300 p-4 sm:p-5 rounded-3xl shadow-sm space-y-3">
-        <div className="flex items-center gap-2 text-amber-900">
-          <span className="text-2xl">⚡</span>
-          <div>
-            <h4 className="font-black text-sm sm:text-base">
-              توليد كود تفعيل VIP يدوي فوري:
-            </h4>
-            <p className="text-xs text-amber-800">
-              توليد كود تفعيل جديد مباشرة وإعطاؤه لأي زبون أو صديق (مثلاً لمن يدفع نقداً أو للترويج).
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-amber-900">
+            <span className="text-2xl">⚡</span>
+            <div>
+              <h4 className="font-black text-sm sm:text-base">
+                توليد أكواد تفعيل VIP (100 كود متاح):
+              </h4>
+              <p className="text-xs text-amber-800">
+                توليد كود تفعيل جديد مخصص لصديق أو زبون وربطه باسمه فوراً.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowFriendModal(true)}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <span>🎁 توليد كود لصديق / زبون جديد</span>
+          </button>
         </div>
 
-        <form onSubmit={handleCreateManual} className="flex flex-col sm:flex-row gap-2">
+        <form onSubmit={handleCreateManual} className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-amber-200/60">
           <input
             type="text"
             value={manualNote}
             onChange={(e) => setManualNote(e.target.value)}
-            placeholder="ملاحظة أو اسم الزبون (اختياري)"
+            placeholder="ملاحظة أو اسم الزبون اليدوي (اختياري)"
             className="flex-1 bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
           <button
             type="submit"
             className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
           >
-            توليد كود VIP جديد 🔑
+            توليد كود VIP عشوائي 🔑
           </button>
         </form>
 
@@ -150,6 +173,60 @@ const SubscriptionOrdersManager: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Friend Code Generator Modal with Auto-Close */}
+      {showFriendModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-blue-100 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-black text-base text-blue-900 flex items-center gap-2">
+                <span>🎁</span>
+                <span>توليد كود تفعيل عشوائي لصديق / زبون</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowFriendModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg font-black"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleGenerateForFriend} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  اسم الصديق أو الزبون المستفيد:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={friendNameInput}
+                  onChange={(e) => setFriendNameInput(e.target.value)}
+                  placeholder="مثلاً: أحمد محمد / صديق الغالي"
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  سيتم توليد كود عشوائي فوري، ربطه باسم الصديق، ونسخه تلقائياً مع إغلاق النافذة.
+                </p>
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFriendModal(false)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  توليد ونسخ وإغلاق 🔑
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2 items-center justify-between border-b border-gray-200 pb-3">
@@ -322,38 +399,55 @@ const SubscriptionOrdersManager: React.FC = () => {
       {/* Approved Codes Registry */}
       <div className="bg-gray-50 border border-gray-200 p-4 sm:p-5 rounded-3xl space-y-3">
         <h4 className="font-black text-sm text-gray-800 flex items-center gap-2">
-          <span>🔑 سجل أكواد التفعيل المعتمدة في النظام:</span>
+          <span>🔑 سجل أكواد التفعيل المعتمدة (100 كود):</span>
           <span className="text-xs text-gray-500 font-normal">({approvedCodes.length} كود)</span>
         </h4>
-        <div className="flex flex-wrap gap-2">
-          {approvedCodes.map((code) => (
-            <div
-              key={code}
-              className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-300 shadow-sm text-xs font-mono font-bold text-gray-800"
-            >
-              <span>{code}</span>
-              <button
-                type="button"
-                onClick={() => handleCopy(code)}
-                className="text-gray-400 hover:text-gray-700 text-[11px]"
-                title="نسخ"
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-y-auto p-1">
+          {approvedCodes.map((code) => {
+            const customerName = settings.codeCustomerBindings?.[code];
+            const isBoundToCustomer = Boolean(customerName);
+            return (
+              <div
+                key={code}
+                className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border shadow-sm text-xs font-mono font-bold ${
+                  isBoundToCustomer
+                    ? 'bg-blue-50 text-blue-900 border-blue-200 ring-1 ring-blue-300'
+                    : 'bg-white text-gray-800 border-gray-300'
+                }`}
               >
-                📋
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(`هل أنت متأكد من إلغاء وحظر الكود: ${code}؟`)) {
-                    revokeActivationCode(code);
-                  }
-                }}
-                className="text-red-400 hover:text-red-600 text-[11px]"
-                title="إلغاء وحظر الكود"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate">{code}</div>
+                  {isBoundToCustomer && (
+                    <div className="text-[10px] text-blue-700 font-sans font-semibold mt-0.5 truncate">
+                      👤 {customerName}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(code)}
+                    className="p-1 hover:bg-gray-200/60 rounded text-gray-600"
+                    title="نسخ"
+                  >
+                    📋
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`هل أنت متأكد من إلغاء وحظر الكود: ${code}؟`)) {
+                        revokeActivationCode(code);
+                      }
+                    }}
+                    className="p-1 hover:bg-red-100 rounded text-red-500"
+                    title="حذف/إلغاء"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

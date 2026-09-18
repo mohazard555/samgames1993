@@ -5,6 +5,19 @@ import { saveAudioToCache, getAudioFromCache, clearAudioCache } from '../utils/a
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
 
+function generate100DefaultCodes(): string[] {
+  const codes: string[] = ['VIP-TOYS-2026-PREMIUM', 'VIP-SHAM-8832-7719'];
+  while (codes.length < 100) {
+    const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const code = `VIP-CODE-${p1}-${p2}`;
+    if (!codes.includes(code)) {
+      codes.push(code);
+    }
+  }
+  return codes;
+}
+
 const defaultPaidSettings: Settings['paidSettings'] = {
   enabled: true,
   price: 3,
@@ -14,6 +27,7 @@ const defaultPaidSettings: Settings['paidSettings'] = {
   paidGameIds: [1, 5, 12, 18, 25, 30, 40, 50], // Initial premium/VIP games
   questionGateEnabled: true, // تفعيل طلب الاشتراك عند الوصول لسؤال محدد
   questionGateNumber: 15, // السؤال رقم 15
+  vipTrialDurationSeconds: 60, // دقيقة واحدة تجربة مجانية لألعاب VIP
   shamCash: {
     enabled: true,
     accountName: 'mohannad anis ahmad',
@@ -41,7 +55,8 @@ const defaultSettings: Settings = {
   requireSubscriptionAndVideos: true, // عند التعطيل: تفتح جميع الألعاب فوراً بدون اشتراك ولا مشاهدة فيديو
   paidSettings: defaultPaidSettings,
   purchaseOrders: [],
-  approvedActivationCodes: ['VIP-TOYS-2026-PREMIUM', 'VIP-SHAM-8832-7719'],
+  approvedActivationCodes: generate100DefaultCodes(),
+  codeCustomerBindings: {},
   adSettings: {
     enabled: false,
     name: 'مفاجأة للأبطال!',
@@ -407,20 +422,26 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const generateManualActivationCode = (note?: string): string => {
+  const generateManualActivationCode = (customerName?: string): string => {
     const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
     const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const newCode = `VIP-MANUAL-${part1}-${part2}`;
+    const newCode = `VIP-FRIEND-${part1}-${part2}`;
 
     const updatedCodes = [newCode, ...(settings.approvedActivationCodes || [])];
+    const customerKey = customerName ? customerName.trim() : 'صديق مجهول';
+    const updatedBindings = {
+      ...(settings.codeCustomerBindings || {}),
+      [newCode]: customerKey,
+    };
+
     const manualOrder: SubscriptionOrder = {
       id: `MAN-${Date.now().toString().slice(-5)}`,
-      customerName: note ? `كود مخصص: ${note}` : 'توليد يدوي من الإدارة',
+      customerName: customerName ? `كود صديق: ${customerName}` : 'توليد يدوي لصديق',
       customerPhone: 'مباشر من الإدارة',
       paymentMethod: 'sham_cash',
       amount: settings.paidSettings?.price || 3,
       currency: settings.paidSettings?.currency || 'دولار',
-      transactionId: 'MANUAL_ACTIVATION',
+      transactionId: 'FRIEND_ACTIVATION',
       status: 'موافق عليه',
       createdAt: new Date().toLocaleString('ar-EG'),
       activationCode: newCode,
@@ -432,6 +453,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const newSettings: Settings = {
       ...settings,
       approvedActivationCodes: updatedCodes,
+      codeCustomerBindings: updatedBindings,
       purchaseOrders: updatedOrders,
     };
 
