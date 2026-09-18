@@ -16,7 +16,9 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
     settings.paidSettings?.enabled &&
     settings.paidSettings.paidGameIds?.includes(game.id);
 
-  const isNewGame = settings.newGameIds?.includes(game.id);
+  const isNewGame = settings.newGameIds
+    ? settings.newGameIds.includes(game.id)
+    : [8888, 9999].includes(game.id);
 
   return (
     <div

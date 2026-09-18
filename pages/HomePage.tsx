@@ -116,7 +116,11 @@ const HomePage: React.FC = () => {
 
   const proceedToGame = () => {
     if (selectedGame) {
-      navigate(`/game/${selectedGame.id}`);
+      if (selectedGame.customRoute) {
+        navigate(selectedGame.customRoute);
+      } else {
+        navigate(`/game/${selectedGame.id}`);
+      }
     }
     handleClosePopup();
   };

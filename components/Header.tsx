@@ -23,7 +23,7 @@ const Header: React.FC = () => {
 
   // Highlight the newest games added to the platform
   const newGames: Game[] = useMemo(() => {
-    const customNewIds = settings.newGameIds || [9999];
+    const customNewIds = settings.newGameIds || [8888, 9999];
     const explicitNewGames = GAMES.filter(g => customNewIds.includes(g.id));
     const recentGames = GAMES.slice(-10).reverse();
     const combined = [...explicitNewGames, ...recentGames];
@@ -92,6 +92,20 @@ const Header: React.FC = () => {
     <>
       <NavLink to="/" className={mobile ? mobileNavLinkClass : navLinkClass} onClick={() => setIsMenuOpen(false)}>
         الألعاب
+      </NavLink>
+      <NavLink
+        to="/my-child-skills"
+        className={
+          mobile
+            ? `${mobileNavLinkClass({ isActive: false })} text-pink-700 bg-pink-50 hover:bg-pink-100 flex items-center justify-between`
+            : `${navLinkClass({ isActive: false })} flex items-center gap-1.5 text-pink-700 bg-pink-50 hover:bg-pink-100 border border-pink-200`
+        }
+        onClick={() => setIsMenuOpen(false)}
+      >
+        <span>🌟 مهارات طفلي</span>
+        <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full animate-pulse">
+          NEW
+        </span>
       </NavLink>
       <NavLink to="/skill-test" className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} text-amber-700 bg-amber-50 hover:bg-amber-100`} onClick={() => setIsMenuOpen(false)}>
         🧠 اختبر مهاراتك

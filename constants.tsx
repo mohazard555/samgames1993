@@ -331,6 +331,14 @@ const colors = [
 let gameCounter = 1;
 const list: Game[] = [
   {
+    id: 8888,
+    name: 'مهارات طفلي الصغير',
+    description: '40 لعبة تفاعلية تعليمية تنمي الذكاء والملاحظة والتركيز للأطفال ⭐',
+    category: 'تنمية مهارات',
+    color: 'from-amber-400 via-pink-500 to-sky-500',
+    customRoute: '/my-child-skills',
+  },
+  {
     id: 9999,
     name: 'لعبة مطابقة الصور الذكية',
     description: 'اختبر ذكاءك واكتشف الصور المتطابقة عبر 8 مجموعات ممتعة (200 سؤال)',
