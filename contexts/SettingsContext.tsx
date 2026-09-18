@@ -37,6 +37,39 @@ const defaultPaidSettings: Settings['paidSettings'] = {
     currency: 'ليرة سورية',
     currencySymbol: 'ل.س',
   },
+  paypal: {
+    enabled: true,
+    email: 'payments@toysgameworld.com',
+    instructions: 'قم بتحويل المبلغ عبر PayPal إلى البريد الإلكتروني أعلاه، ثم أرسل رقم المعاملة (Transaction ID) هنا لتفعيل حسابك.',
+    price: 3,
+    currency: 'دولار',
+    currencySymbol: '$',
+  },
+  binancePay: {
+    enabled: true,
+    payId: '839210492',
+    emailOrPhone: 'binance@toysgameworld.com',
+    instructions: 'حول المبلغ عبر Binance Pay باستخدام الـ Pay ID أو البريد الإلكتروني، ثم أدخل رقم معاملة التحويل للتأكيد.',
+    price: 3,
+    currency: 'دولار',
+    currencySymbol: '$',
+  },
+  usdtTrc20: {
+    enabled: true,
+    walletAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    instructions: 'أرسل عملات USDT حصرياً عبر شبكة TRC20 إلى عنوان المحفظة أعلاه، ثم أدخل هاش المعاملة (TxID) للتفعيل الفوري.',
+    price: 3,
+    currency: 'دولار',
+    currencySymbol: '$',
+  },
+  usdtErc20: {
+    enabled: true,
+    walletAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    instructions: 'أرسل عملات USDT حصرياً عبر شبكة ERC20 (إيثريوم) إلى عنوان المحفظة أعلاه، ثم أدخل هاش المعاملة للتفعيل.',
+    price: 3,
+    currency: 'دولار',
+    currencySymbol: '$',
+  },
   otherMethods: [],
 };
 
@@ -195,6 +228,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             shamCash: {
               ...defaultPaidSettings.shamCash,
               ...(parsed.paidSettings?.shamCash || {}),
+            },
+            paypal: {
+              ...defaultPaidSettings.paypal,
+              ...(parsed.paidSettings?.paypal || {}),
+            },
+            binancePay: {
+              ...defaultPaidSettings.binancePay,
+              ...(parsed.paidSettings?.binancePay || {}),
+            },
+            usdtTrc20: {
+              ...defaultPaidSettings.usdtTrc20,
+              ...(parsed.paidSettings?.usdtTrc20 || {}),
+            },
+            usdtErc20: {
+              ...defaultPaidSettings.usdtErc20,
+              ...(parsed.paidSettings?.usdtErc20 || {}),
             },
           },
           purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],

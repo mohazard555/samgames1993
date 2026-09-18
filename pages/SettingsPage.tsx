@@ -1805,6 +1805,72 @@ const SettingsPage: React.FC = () => {
               </div>
             </div>
 
+            {/* VIP Trial Duration Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-amber-300 space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                <div className="p-2.5 bg-amber-100 text-amber-900 rounded-2xl">
+                  <span className="text-xl">⏱️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900">
+                    مدة التجربة المجانية لألعاب VIP (بالثواني):
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    حدد المدة الزمنية المسموح بها لتجربة ألعاب VIP قبل أن تتوقف وتطلب اشتراك التفعيل (افتراضي: 60 ثانية / دقيقة واحدة).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="10"
+                    max="600"
+                    value={localSettings.paidSettings?.vipTrialDurationSeconds ?? 60}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          vipTrialDurationSeconds: Math.max(10, parseInt(e.target.value) || 60),
+                        },
+                      }))
+                    }
+                    className="w-32 px-3.5 py-2.5 bg-gray-50 border border-amber-300 rounded-xl font-black text-center text-lg text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
+                  />
+                  <span className="text-xs font-bold text-gray-700">ثانية ({(localSettings.paidSettings?.vipTrialDurationSeconds ?? 60) / 60} دقيقة تقريباً)</span>
+                </div>
+
+                {/* Presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-gray-500">نماذج سريعة:</span>
+                  {[30, 60, 120, 300].map((presetSeconds) => (
+                    <button
+                      key={presetSeconds}
+                      type="button"
+                      onClick={() =>
+                        setLocalSettings((prev) => ({
+                          ...prev,
+                          paidSettings: {
+                            ...prev.paidSettings!,
+                            vipTrialDurationSeconds: presetSeconds,
+                          },
+                        }))
+                      }
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        (localSettings.paidSettings?.vipTrialDurationSeconds ?? 60) === presetSeconds
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'bg-gray-100 text-gray-700 hover:bg-amber-100 border border-amber-200'
+                      }`}
+                    >
+                      {presetSeconds >= 60 ? `${presetSeconds / 60} دقيقة` : `${presetSeconds} ثانية`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Sham Cash Settings */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-cyan-300 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
@@ -2012,6 +2078,399 @@ const SettingsPage: React.FC = () => {
                     }
                     amount={localSettings.paidSettings?.shamCash.price ?? (localSettings.paidSettings?.price || 3)}
                     currency={localSettings.paidSettings?.shamCash.currency || 'ليرة سورية'}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* PayPal Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-blue-200 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow font-black text-lg">
+                    🅿️
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">
+                      إعدادات بوابة الدفع (PayPal)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      بريد حساب باي بال الخاص باستلام المدفوعات
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.paypal?.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          paypal: {
+                            ...prev.paidSettings!.paypal,
+                            enabled: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    ✉️ البريد الإلكتروني (PayPal Email):
+                  </label>
+                  <input
+                    type="email"
+                    value={localSettings.paidSettings?.paypal?.email ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          paypal: {
+                            ...prev.paidSettings!.paypal,
+                            email: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    💵 السعر (اختياري):
+                  </label>
+                  <input
+                    type="number"
+                    value={localSettings.paidSettings?.paypal?.price ?? ''}
+                    placeholder="3"
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          paypal: {
+                            ...prev.paidSettings!.paypal,
+                            price: e.target.value ? parseFloat(e.target.value) : undefined,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    📝 تعليمات الدفع:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={localSettings.paidSettings?.paypal?.instructions ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          paypal: {
+                            ...prev.paidSettings!.paypal,
+                            instructions: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Binance Pay Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-amber-200 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-amber-500 text-gray-950 rounded-2xl shadow font-black text-lg">
+                    🟡
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">
+                      إعدادات بوابة الدفع (Binance Pay)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      معرف بينانس باي (Pay ID) أو البريد/الهاتف للتحويل
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.binancePay?.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          binancePay: {
+                            ...prev.paidSettings!.binancePay,
+                            enabled: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    🆔 معرف بينانس (Binance Pay ID):
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.binancePay?.payId ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          binancePay: {
+                            ...prev.paidSettings!.binancePay,
+                            payId: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    📱 البريد أو الهاتف المرتبط:
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.binancePay?.emailOrPhone ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          binancePay: {
+                            ...prev.paidSettings!.binancePay,
+                            emailOrPhone: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    📝 تعليمات الدفع:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={localSettings.paidSettings?.binancePay?.instructions ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          binancePay: {
+                            ...prev.paidSettings!.binancePay,
+                            instructions: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* USDT TRC20 Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-emerald-200 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-600 text-white rounded-2xl shadow font-black text-lg">
+                    💎
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">
+                      إعدادات شبكة USDT (TRC20)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      عنوان محفظة التيذر عبر شبكة ترون TRC20
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.usdtTrc20?.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtTrc20: {
+                            ...prev.paidSettings!.usdtTrc20,
+                            enabled: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    🪙 عنوان المحفظة (Wallet Address - TRC20):
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.usdtTrc20?.walletAddress ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtTrc20: {
+                            ...prev.paidSettings!.usdtTrc20,
+                            walletAddress: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-mono text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    📝 تعليمات الدفع:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={localSettings.paidSettings?.usdtTrc20?.instructions ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtTrc20: {
+                            ...prev.paidSettings!.usdtTrc20,
+                            instructions: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* USDT ERC20 Settings */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-2 border-indigo-200 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-indigo-600 text-white rounded-2xl shadow font-black text-lg">
+                    🔷
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">
+                      إعدادات شبكة USDT (ERC20)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      عنوان محفظة التيذر عبر شبكة إيثريوم ERC20
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={localSettings.paidSettings?.usdtErc20?.enabled ?? true}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtErc20: {
+                            ...prev.paidSettings!.usdtErc20,
+                            enabled: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    🪙 عنوان المحفظة (Wallet Address - ERC20):
+                  </label>
+                  <input
+                    type="text"
+                    value={localSettings.paidSettings?.usdtErc20?.walletAddress ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtErc20: {
+                            ...prev.paidSettings!.usdtErc20,
+                            walletAddress: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl font-mono text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    📝 تعليمات الدفع:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={localSettings.paidSettings?.usdtErc20?.instructions ?? ''}
+                    onChange={(e) =>
+                      setLocalSettings((prev) => ({
+                        ...prev,
+                        paidSettings: {
+                          ...prev.paidSettings!,
+                          usdtErc20: {
+                            ...prev.paidSettings!.usdtErc20,
+                            instructions: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                    className="w-full px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   />
                 </div>
               </div>

@@ -70,12 +70,7 @@ const HomePage: React.FC = () => {
       settings.paidSettings.paidGameIds.includes(game.id);
 
     if (isVipPaidGame) {
-      if (isVipActive) {
-        navigate(`/game/${game.id}`);
-      } else {
-        setSelectedGame(game);
-        setIsVipModalOpen(true);
-      }
+      navigate(`/game/${game.id}`);
       return;
     }
 

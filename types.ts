@@ -71,6 +71,34 @@ export interface ShamCashSettings {
   currencySymbol?: string; // e.g. "ل.س" أو "$"
 }
 
+export interface PaypalSettings {
+  enabled: boolean;
+  email: string;
+  instructions: string;
+  price?: number;
+  currency?: string;
+  currencySymbol?: string;
+}
+
+export interface BinancePaySettings {
+  enabled: boolean;
+  payId: string;
+  emailOrPhone: string;
+  instructions: string;
+  price?: number;
+  currency?: string;
+  currencySymbol?: string;
+}
+
+export interface UsdtSettings {
+  enabled: boolean;
+  walletAddress: string;
+  instructions: string;
+  price?: number;
+  currency?: string;
+  currencySymbol?: string;
+}
+
 export interface OtherPaymentMethod {
   id: string;
   name: string;
@@ -93,6 +121,10 @@ export interface PaidSettings {
   questionGateNumber?: number; // رقم السؤال الذي يتطلب اشتراك لمتابعة اللعب (افتراضي: 15)
   vipTrialDurationSeconds?: number; // مدة التجربة المجانية لألعاب VIP بالثواني قبل طلب الاشتراك (افتراضي 60)
   shamCash: ShamCashSettings;
+  paypal: PaypalSettings;
+  binancePay: BinancePaySettings;
+  usdtTrc20: UsdtSettings;
+  usdtErc20: UsdtSettings;
   otherMethods?: OtherPaymentMethod[];
 }
 

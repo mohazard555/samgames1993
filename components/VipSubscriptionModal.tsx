@@ -30,11 +30,12 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
   // Compute method-specific pricing and currency
   const methodConfig = useMemo(() => {
+    const paid = settings.paidSettings;
     if (selectedMethod === 'sham_cash') {
-      const sc = settings.paidSettings?.shamCash;
-      const price = typeof sc?.price === 'number' ? sc.price : settings.paidSettings?.price || 3;
-      const currency = sc?.currency?.trim() || settings.paidSettings?.currency || 'ليرة سورية';
-      const symbol = sc?.currencySymbol?.trim() || settings.paidSettings?.currencySymbol || 'ل.س';
+      const sc = paid?.shamCash;
+      const price = typeof sc?.price === 'number' ? sc.price : paid?.price || 3;
+      const currency = sc?.currency?.trim() || paid?.currency || 'ليرة سورية';
+      const symbol = sc?.currencySymbol?.trim() || paid?.currencySymbol || 'ل.س';
       return {
         id: 'sham_cash',
         name: 'شام كاش (Sham Cash)',
@@ -42,16 +43,75 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
         currency,
         symbol,
         instructions: sc?.instructions,
-        accountName: sc?.accountName,
-        accountCode: sc?.accountCode,
+        accountInfo: sc?.accountCode,
+      };
+    }
+    if (selectedMethod === 'paypal') {
+      const pp = paid?.paypal;
+      const price = typeof pp?.price === 'number' ? pp.price : paid?.price || 3;
+      const currency = pp?.currency?.trim() || paid?.currency || 'دولار';
+      const symbol = pp?.currencySymbol?.trim() || paid?.currencySymbol || '$';
+      return {
+        id: 'paypal',
+        name: 'PayPal',
+        price,
+        currency,
+        symbol,
+        instructions: pp?.instructions,
+        accountInfo: pp?.email,
+      };
+    }
+    if (selectedMethod === 'binance_pay') {
+      const bp = paid?.binancePay;
+      const price = typeof bp?.price === 'number' ? bp.price : paid?.price || 3;
+      const currency = bp?.currency?.trim() || paid?.currency || 'دولار';
+      const symbol = bp?.currencySymbol?.trim() || paid?.currencySymbol || '$';
+      return {
+        id: 'binance_pay',
+        name: 'Binance Pay',
+        price,
+        currency,
+        symbol,
+        instructions: bp?.instructions,
+        accountInfo: `Pay ID: ${bp?.payId || ''} (${bp?.emailOrPhone || ''})`,
+      };
+    }
+    if (selectedMethod === 'usdt_trc20') {
+      const trc = paid?.usdtTrc20;
+      const price = typeof trc?.price === 'number' ? trc.price : paid?.price || 3;
+      const currency = trc?.currency?.trim() || paid?.currency || 'دولار';
+      const symbol = trc?.currencySymbol?.trim() || paid?.currencySymbol || '$';
+      return {
+        id: 'usdt_trc20',
+        name: 'USDT (TRC20)',
+        price,
+        currency,
+        symbol,
+        instructions: trc?.instructions,
+        accountInfo: trc?.walletAddress,
+      };
+    }
+    if (selectedMethod === 'usdt_erc20') {
+      const erc = paid?.usdtErc20;
+      const price = typeof erc?.price === 'number' ? erc.price : paid?.price || 3;
+      const currency = erc?.currency?.trim() || paid?.currency || 'دولار';
+      const symbol = erc?.currencySymbol?.trim() || paid?.currencySymbol || '$';
+      return {
+        id: 'usdt_erc20',
+        name: 'USDT (ERC20)',
+        price,
+        currency,
+        symbol,
+        instructions: erc?.instructions,
+        accountInfo: erc?.walletAddress,
       };
     }
 
-    const custom = (settings.paidSettings?.otherMethods || []).find((m) => m.id === selectedMethod);
+    const custom = (paid?.otherMethods || []).find((m) => m.id === selectedMethod);
     if (custom) {
-      const price = typeof custom.price === 'number' ? custom.price : settings.paidSettings?.price || 3;
-      const currency = custom.currency?.trim() || settings.paidSettings?.currency || 'دولار';
-      const symbol = custom.currencySymbol?.trim() || settings.paidSettings?.currencySymbol || '$';
+      const price = typeof custom.price === 'number' ? custom.price : paid?.price || 3;
+      const currency = custom.currency?.trim() || paid?.currency || 'دولار';
+      const symbol = custom.currencySymbol?.trim() || paid?.currencySymbol || '$';
       return {
         id: custom.id,
         name: custom.name,
@@ -59,15 +119,14 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
         currency,
         symbol,
         instructions: custom.instructions,
-        accountName: custom.accountInfo,
-        accountCode: custom.accountInfo,
+        accountInfo: custom.accountInfo,
       };
     }
 
     // Default fallback
-    const price = settings.paidSettings?.price || 3;
-    const currency = settings.paidSettings?.currency || 'دولار';
-    const symbol = settings.paidSettings?.currencySymbol || '$';
+    const price = paid?.price || 3;
+    const currency = paid?.currency || 'دولار';
+    const symbol = paid?.currencySymbol || '$';
     return {
       id: 'default',
       name: 'طريقة الدفع',
@@ -75,8 +134,7 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
       currency,
       symbol,
       instructions: '',
-      accountName: '',
-      accountCode: '',
+      accountInfo: '',
     };
   }, [selectedMethod, settings.paidSettings]);
 
@@ -338,33 +396,121 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                     <label className="text-xs font-bold text-gray-300 block">
                       اختر طريقة الدفع:
                     </label>
-                    <div
-                      onClick={() => setSelectedMethod('sham_cash')}
-                      className={`cursor-pointer p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between ${
-                        selectedMethod === 'sham_cash'
-                          ? 'border-cyan-400 bg-cyan-950/30 shadow-lg ring-1 ring-cyan-400/50'
-                          : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white rounded-xl shadow-sm">
-                          <ShamCashLogoSvg className="w-8 h-8" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
-                            <span>شام كاش (Sham Cash)</span>
-                            <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-bold">
-                              متاح وموصى به ⭐
-                            </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Sham Cash */}
+                      {(settings.paidSettings?.shamCash?.enabled ?? true) && (
+                        <div
+                          onClick={() => setSelectedMethod('sham_cash')}
+                          className={`cursor-pointer p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                            selectedMethod === 'sham_cash'
+                              ? 'border-cyan-400 bg-cyan-950/35 shadow-md ring-1 ring-cyan-400/50'
+                              : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 bg-white rounded-xl shadow-sm">
+                              <ShamCashLogoSvg className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs">شام كاش</div>
+                              <div className="text-[10px] text-gray-400">Sham Cash</div>
+                            </div>
                           </div>
-                          <p className="text-[11px] text-gray-400">
-                            تحويل مباشر عبر مسح الباركود أو رمز الحساب
-                          </p>
+                          <div className={`w-4 h-4 rounded-full border-2 ${selectedMethod === 'sham_cash' ? 'border-cyan-400 bg-cyan-400' : 'border-gray-700'}`} />
                         </div>
-                      </div>
-                      <div className="w-5 h-5 rounded-full border-2 border-cyan-400 flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full" />
-                      </div>
+                      )}
+
+                      {/* PayPal */}
+                      {(settings.paidSettings?.paypal?.enabled ?? true) && (
+                        <div
+                          onClick={() => setSelectedMethod('paypal')}
+                          className={`cursor-pointer p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                            selectedMethod === 'paypal'
+                              ? 'border-blue-400 bg-blue-950/35 shadow-md ring-1 ring-blue-400/50'
+                              : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xs">
+                              🅿️
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs">PayPal</div>
+                              <div className="text-[10px] text-gray-400">باي بال</div>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${selectedMethod === 'paypal' ? 'border-blue-400 bg-blue-400' : 'border-gray-700'}`} />
+                        </div>
+                      )}
+
+                      {/* Binance Pay */}
+                      {(settings.paidSettings?.binancePay?.enabled ?? true) && (
+                        <div
+                          onClick={() => setSelectedMethod('binance_pay')}
+                          className={`cursor-pointer p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                            selectedMethod === 'binance_pay'
+                              ? 'border-amber-400 bg-amber-950/35 shadow-md ring-1 ring-amber-400/50'
+                              : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-amber-500 text-gray-950 rounded-xl flex items-center justify-center font-bold text-xs">
+                              🟡
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs">Binance Pay</div>
+                              <div className="text-[10px] text-gray-400">بينانس باي</div>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${selectedMethod === 'binance_pay' ? 'border-amber-400 bg-amber-400' : 'border-gray-700'}`} />
+                        </div>
+                      )}
+
+                      {/* USDT TRC20 */}
+                      {(settings.paidSettings?.usdtTrc20?.enabled ?? true) && (
+                        <div
+                          onClick={() => setSelectedMethod('usdt_trc20')}
+                          className={`cursor-pointer p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                            selectedMethod === 'usdt_trc20'
+                              ? 'border-emerald-400 bg-emerald-950/35 shadow-md ring-1 ring-emerald-400/50'
+                              : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-xs">
+                              💎
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs">USDT (TRC20)</div>
+                              <div className="text-[10px] text-gray-400">شبكة ترون</div>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${selectedMethod === 'usdt_trc20' ? 'border-emerald-400 bg-emerald-400' : 'border-gray-700'}`} />
+                        </div>
+                      )}
+
+                      {/* USDT ERC20 */}
+                      {(settings.paidSettings?.usdtErc20?.enabled ?? true) && (
+                        <div
+                          onClick={() => setSelectedMethod('usdt_erc20')}
+                          className={`cursor-pointer p-3 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                            selectedMethod === 'usdt_erc20'
+                              ? 'border-indigo-400 bg-indigo-950/35 shadow-md ring-1 ring-indigo-400/50'
+                              : 'border-gray-800 bg-gray-900/60 hover:border-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xs">
+                              🔷
+                            </div>
+                            <div>
+                              <div className="font-bold text-white text-xs">USDT (ERC20)</div>
+                              <div className="text-[10px] text-gray-400">شبكة إيثريوم</div>
+                            </div>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 ${selectedMethod === 'usdt_erc20' ? 'border-indigo-400 bg-indigo-400' : 'border-gray-700'}`} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -438,27 +584,70 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Sham Cash QR Card */}
-                  <ShamCashQrCard
-                    accountName={settings.paidSettings?.shamCash.accountName || 'mohannad anis ahmad'}
-                    accountCode={
-                      settings.paidSettings?.shamCash.accountCode ||
-                      'c08a30e9e1f27a4b0d98b215562a0dbc'
-                    }
-                    amount={targetPrice}
-                    currency={targetCurrency}
-                  />
+                  {/* Payment Card / Details */}
+                  {selectedMethod === 'sham_cash' ? (
+                    <ShamCashQrCard
+                      accountName={settings.paidSettings?.shamCash.accountName || 'mohannad anis ahmad'}
+                      accountCode={
+                        settings.paidSettings?.shamCash.accountCode ||
+                        'c08a30e9e1f27a4b0d98b215562a0dbc'
+                      }
+                      amount={targetPrice}
+                      currency={targetCurrency}
+                    />
+                  ) : (
+                    <div className="bg-gray-900 p-5 rounded-2xl border border-gray-800 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+                        <span className="text-xs font-bold text-amber-400">
+                          طريقة الدفع: {methodConfig.name}
+                        </span>
+                        <span className="text-xs font-bold text-emerald-400">
+                          المطلوب تحويله: {targetPrice} {targetCurrency}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-gray-400 block">
+                          بيانات الحساب / المحفظة للتحويل:
+                        </label>
+                        <div className="bg-black/60 p-3 rounded-xl border border-gray-800 flex items-center justify-between gap-3">
+                          <span className="text-xs font-mono text-cyan-300 break-all select-all font-bold">
+                            {methodConfig.accountInfo || 'غير محدد'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(methodConfig.accountInfo || '');
+                              alert('تم نسخ تفاصيل الحساب إلى الحافظة!');
+                            }}
+                            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black text-xs rounded-lg shrink-0 transition-colors"
+                          >
+                            نسخ 📋
+                          </button>
+                        </div>
+                      </div>
+                      {methodConfig.instructions && (
+                        <div className="bg-cyan-950/40 p-3.5 rounded-xl border border-cyan-800/50 text-xs text-cyan-200 leading-relaxed">
+                          <span className="font-bold block mb-1">تعليمات الدفع:</span>
+                          {methodConfig.instructions}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Instructions */}
-                  <div className="bg-cyan-950/30 border border-cyan-500/30 p-3.5 rounded-2xl text-xs text-cyan-200 leading-relaxed space-y-1">
-                    <div className="font-bold text-cyan-300">📌 خطوات الدفع السهلة:</div>
+                  <div className="bg-cyan-950/30 border border-cyan-500/30 p-3.5 rounded-2xl text-xs text-cyan-200 leading-relaxed space-y-1.5">
+                    <div className="font-bold text-cyan-300 flex items-center gap-1.5">
+                      <span>💡</span>
+                      <span>ملاحظة هامة (تحويل مباشر يدوي):</span>
+                    </div>
+                    <p className="text-[11px] sm:text-xs text-cyan-100 leading-relaxed">
+                      هذا النظام يعتمد على التحويل المباشر اليدوي. يرجى تحويل المبلغ بالتمام إلى الحساب/المحفظة المذكورة أعلاه عبر {methodConfig.name}، ثم إرسال معلومات التحويل أدناه ليتم التحقق منها وتفعيل اشتراكك في أقرب وقت.
+                    </p>
+                    <div className="font-bold text-cyan-300 pt-1">📌 خطوات الدفع:</div>
                     <ol className="list-decimal list-inside space-y-1 text-[11px] sm:text-xs">
-                      <li>افتح تطبيق شام كاش على هاتفك.</li>
-                      <li>امسح الباركود أعلاه أو انسخ رمز الحساب.</li>
-                      <li>
-                        حوّل مبلغ <strong className="text-white">{targetPrice} {targetCurrency}</strong>.
-                      </li>
-                      <li>أدخل بياناتك ورقم عملية التحويل في النموذج أدناه واضغط إرسال.</li>
+                      <li>قم بالتحويل عبر {methodConfig.name} إلى الحساب الموضح أعلاه.</li>
+                      <li>تأكد من إرسال المبلغ المطلوب ({targetPrice} {targetCurrency}).</li>
+                      <li>أدخل رقم المعاملة أو هاش التحويل (TxID) في الأسفل واضغط على إرسال طلب التفعيل.</li>
                     </ol>
                   </div>
 
