@@ -297,7 +297,7 @@ const TOPIC_KEYWORDS: { keywords: string[]; emoji: string; bg: string; border: s
   },
 ];
 
-const EMOJI_REGEX = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}]/gu;
+const EMOJI_REGEX = /[\p{Extended_Pictographic}\u{1F300}-\u{1F9FF}]/u;
 
 /**
  * Derives a vivid, contextual visual representation for any question
@@ -308,27 +308,26 @@ export function getQuestionVisual(
   providedImage?: string,
   correctAnswer?: string
 ): QuestionVisual {
-  // 1. If an image URL is explicitly provided
-  if (providedImage && (providedImage.startsWith('http') || providedImage.startsWith('data:'))) {
-    return {
-      type: 'image',
-      value: providedImage,
-      badgeBg: 'bg-sky-50',
-      badgeBorder: 'border-sky-300',
-    };
-  }
-
-  // 2. If provided image is already an emoji
-  if (providedImage && EMOJI_REGEX.test(providedImage)) {
+  // 1. If an image or emoji is explicitly provided, ALWAYS respect it directly!
+  if (providedImage && providedImage.trim().length > 0) {
+    const trimmed = providedImage.trim();
+    if (trimmed.startsWith('http') || trimmed.startsWith('data:') || trimmed.startsWith('/')) {
+      return {
+        type: 'image',
+        value: trimmed,
+        badgeBg: 'bg-sky-50',
+        badgeBorder: 'border-sky-300',
+      };
+    }
     return {
       type: 'emoji',
-      value: providedImage,
+      value: trimmed,
       badgeBg: 'bg-sky-100',
       badgeBorder: 'border-sky-300',
     };
   }
 
-  // 3. If question text itself contains an emoji
+  // 2. If question text itself contains an emoji
   const foundInQuestion = questionText.match(EMOJI_REGEX);
   if (foundInQuestion && foundInQuestion.length > 0) {
     return {
@@ -339,7 +338,7 @@ export function getQuestionVisual(
     };
   }
 
-  // 4. Check keyword match against combined context
+  // 3. Check keyword match against combined context
   const fullText = `${questionText} ${badge || ''} ${correctAnswer || ''}`.toLowerCase();
   for (const item of TOPIC_KEYWORDS) {
     for (const kw of item.keywords) {
@@ -354,7 +353,7 @@ export function getQuestionVisual(
     }
   }
 
-  // 5. Default fallback based on category/badge
+  // 4. Default fallback based on category/badge
   return {
     type: 'emoji',
     value: '💡',

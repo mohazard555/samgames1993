@@ -1,5 +1,6 @@
 import React from 'react';
 import { Game } from './types';
+import { CHILDREN_STORIES } from './data/childrenStoriesData';
 import {
   PuzzlePieceIcon,
   RocketLaunchIcon,
@@ -311,7 +312,7 @@ const gameNamesByCategory: { [key: string]: string[] } = {
   ],
   'موسيقى': [
     'بيانو الأطفال السحري',
-    'تعرف على صوت الآلات الموسيقية',
+    'تعرف على نوع الآلة الموسيقية',
     'إيقاعات وأصوات النغمات السحرية',
   ],
   'ألوان': [
@@ -330,6 +331,14 @@ const colors = [
 
 let gameCounter = 1;
 const list: Game[] = [
+  {
+    id: 7777,
+    name: 'قصص الأطفال المصورة',
+    description: `${CHILDREN_STORIES.length} قصص مصورة تفاعلية للأطفال (${CHILDREN_STORIES.reduce((sum, s) => sum + (s.scenes?.length || 0), 0)} مشهداً مصوراً هادفاً) 📚✨`,
+    category: 'قصص تفاعلية',
+    color: 'from-purple-500 via-pink-500 to-rose-400',
+    customRoute: '/stories',
+  },
   {
     id: 8888,
     name: 'مهارات طفلي الصغير',

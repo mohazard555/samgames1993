@@ -107,6 +107,20 @@ const Header: React.FC = () => {
           NEW
         </span>
       </NavLink>
+      <NavLink
+        to="/stories"
+        className={
+          mobile
+            ? `${mobileNavLinkClass({ isActive: false })} text-purple-700 bg-purple-50 hover:bg-purple-100 flex items-center justify-between`
+            : `${navLinkClass({ isActive: false })} flex items-center gap-1.5 text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200`
+        }
+        onClick={() => setIsMenuOpen(false)}
+      >
+        <span>📚 قصص الأطفال</span>
+        <span className="bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">
+          5 قصص
+        </span>
+      </NavLink>
       <NavLink to="/skill-test" className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} text-amber-700 bg-amber-50 hover:bg-amber-100`} onClick={() => setIsMenuOpen(false)}>
         🧠 اختبر مهاراتك
       </NavLink>

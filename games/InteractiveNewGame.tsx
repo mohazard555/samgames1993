@@ -301,18 +301,6 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
               {currentQ.question}
             </h2>
 
-            {gameDef.category === 'موسيقى' && (
-              <div className="text-center mb-6">
-                <button
-                  onClick={() => playObjectSound(currentQ.correctAnswer || currentQ.question)}
-                  className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black px-5 py-2.5 rounded-2xl shadow-lg transition-transform active:scale-95 cursor-pointer text-base animate-bounce"
-                >
-                  <span>🔊</span>
-                  <span>استمع لصوت الآلة والنغمة</span>
-                </button>
-              </div>
-            )}
-
             {/* Options Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
               {currentQ.options.map((option, idx) => {

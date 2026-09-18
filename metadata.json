@@ -1,6 +1,6 @@
 {
   "name": "ToysGame World",
-  "description": "A fun and engaging interactive game world for kids with multiple-choice quizzes, comparisons, puzzles, and educational challenges with cheerful sound effects.",
+  "description": "A fun and engaging interactive game and stories world for kids with quizzes, 40 skill games, 5 interactive illustrated stories, puzzles, and educational challenges.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

@@ -44,9 +44,28 @@ export function getAuthentic50Items(gameDef: GameDefinition): {
     GENERAL_KNOWLEDGE_BANK
   ];
 
+  // Check direct title match
   for (const bank of allBanksList) {
     if (bank[title] && bank[title].length > 0) {
       return { type: 'quiz', questions: bank[title] };
+    }
+  }
+
+  // Normalized title lookup for variations and user queries
+  let normalizedTitle = title.trim();
+  if (normalizedTitle.includes('خضار') || normalizedTitle.includes('خضروات') || normalizedTitle.includes('خضراوات')) {
+    normalizedTitle = 'الخضروات الطازجة المفيدة';
+  } else if (normalizedTitle.includes('فواكه') || normalizedTitle.includes('فاكهة')) {
+    normalizedTitle = 'فواكه مشكلة وكلماتها';
+  } else if (normalizedTitle.includes('طقس') || normalizedTitle.includes('مواسم')) {
+    normalizedTitle = 'الطقس والمواسم والسماء';
+  } else if (normalizedTitle.includes('موسيق') || normalizedTitle.includes('آلة') || normalizedTitle.includes('اله')) {
+    normalizedTitle = 'تعرف على نوع الآلة الموسيقية';
+  }
+
+  for (const bank of allBanksList) {
+    if (bank[normalizedTitle] && bank[normalizedTitle].length > 0) {
+      return { type: 'quiz', questions: bank[normalizedTitle] };
     }
   }
 

@@ -8,6 +8,7 @@ import VipSubscriptionModal from '../components/VipSubscriptionModal';
 import { ShamCashLogoSvg } from '../components/ShamCashQrCard';
 import { Game } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
+import { CHILDREN_STORIES } from '../data/childrenStoriesData';
 
 const HomePage: React.FC = () => {
   const {
@@ -204,6 +205,49 @@ const HomePage: React.FC = () => {
             </div>
           );
         })()}
+
+        {/* Featured Special Sections Badges */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5 max-w-2xl mx-auto px-2">
+          <button
+            type="button"
+            onClick={() => navigate('/my-child-skills')}
+            className="flex-1 min-w-[240px] p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-pink-50 border border-pink-200/80 hover:border-pink-400 shadow-xs hover:shadow-sm transition-all flex items-center justify-between gap-3 text-right group active:scale-98"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl group-hover:scale-110 transition-transform">🌟</span>
+              <div>
+                <div className="text-xs font-black text-gray-900 group-hover:text-pink-600 transition-colors">
+                  مهارات طفلي الصغير
+                </div>
+                <div className="text-[10px] text-gray-500 font-medium">40 لعبة بـ 50 مرحلة تفاعلية</div>
+              </div>
+            </div>
+            <span className="text-xs font-black text-pink-600 bg-pink-100 px-2 py-0.5 rounded-full">
+              دخول ➜
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/stories')}
+            className="flex-1 min-w-[240px] p-3 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/80 hover:border-purple-400 shadow-xs hover:shadow-sm transition-all flex items-center justify-between gap-3 text-right group active:scale-98"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl group-hover:scale-110 transition-transform">📚</span>
+              <div>
+                <div className="text-xs font-black text-gray-900 group-hover:text-purple-600 transition-colors">
+                  قصص الأطفال المصورة
+                </div>
+                <div className="text-[10px] text-gray-500 font-medium">
+                  {CHILDREN_STORIES.length} قصص بـ {CHILDREN_STORIES.reduce((sum, s) => sum + (s.scenes?.length || 0), 0)} مشهداً ممتعاً
+                </div>
+              </div>
+            </div>
+            <span className="text-xs font-black text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+              اقرأ الآن ➜
+            </span>
+          </button>
+        </div>
       </div>
 
 
