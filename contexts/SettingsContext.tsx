@@ -153,6 +153,8 @@ interface SettingsContextType {
   generateFriendCode: (friendName: string) => string;
   revokeActivationCode: (code: string) => void;
   revokeFreeActivationCode: () => void;
+  // Reset all settings data to original defaults
+  resetAllSettingsData: () => Settings;
   // JSON Backup / Restore / Cross-Device Sync
   exportAllDataAsJSON: () => void;
   importAllDataFromJSON: (jsonInput: string | object) => Promise<{
@@ -175,7 +177,7 @@ interface SettingsContextType {
   setGistUrl: (url: string) => void;
   gistToken: string;
   setGistToken: (token: string) => void;
-  loadFromGist: (customUrl?: string) => Promise<boolean>;
+  loadFromGist: (customUrlOrSilent?: string | boolean, isSilent?: boolean) => Promise<boolean>;
   saveToGist: (overrideSettings?: Settings) => Promise<boolean>;
   isSyncing: boolean;
   isInitialLoading: boolean;
@@ -824,20 +826,35 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const clean = url.trim() || DEFAULT_GIST_URL;
     localStorage.setItem('gistUrl', clean);
     setGistUrlState(clean);
+    fetch('/api/gist-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gistUrl: clean }),
+    }).catch((e) => console.warn('Failed to sync gistUrl to server:', e));
   };
 
   const setGistToken = (token: string) => {
     const clean = token.trim();
     localStorage.setItem('gistToken', clean);
     setGistTokenState(clean);
+    fetch('/api/gist-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gistToken: clean }),
+    }).catch((e) => console.warn('Failed to sync gistToken to server:', e));
   };
 
   // Load latest settings from Gist with real-time GitHub API and cache-busting fallback
-  const loadFromGist = useCallback(async (customUrl?: string): Promise<boolean> => {
+  const loadFromGist = useCallback(async (customUrlOrSilent?: string | boolean, isSilentParam?: boolean): Promise<boolean> => {
+    const customUrl = typeof customUrlOrSilent === 'string' ? customUrlOrSilent : undefined;
+    const isSilent = typeof customUrlOrSilent === 'boolean' ? customUrlOrSilent : Boolean(isSilentParam);
+
     const targetUrl = (customUrl || gistUrl || DEFAULT_GIST_URL).trim();
     if (!targetUrl) return false;
 
-    setIsSyncing(true);
+    if (!isSilent) {
+      setIsSyncing(true);
+    }
     const { gistId, filename, unpinnedRawUrl } = extractGistInfo(targetUrl);
     const activeToken = gistToken || localStorage.getItem('gistToken') || '';
 
@@ -915,29 +932,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         console.warn('Could not fetch server submissions:', err);
       }
 
-      if (fetchedSettings && typeof fetchedSettings === 'object') {
-        const parsedWaitTime =
-          typeof fetchedSettings.videoWaitTime === 'number'
-            ? fetchedSettings.videoWaitTime
-            : Number(fetchedSettings.videoWaitTime) || defaultSettings.videoWaitTime;
+      const localSettingsRaw = localStorage.getItem('toysGameSettings');
+      const localParsed = localSettingsRaw ? JSON.parse(localSettingsRaw) : {};
 
-        // Preserve local feedbacks and messages if remote doesn't have them yet or merge them
-        const localSettingsRaw = localStorage.getItem('toysGameSettings');
-        const localParsed = localSettingsRaw ? JSON.parse(localSettingsRaw) : {};
+      if ((fetchedSettings && typeof fetchedSettings === 'object') || (serverSubmissions.purchaseOrders && serverSubmissions.purchaseOrders.length > 0)) {
+        const effectiveRemote = fetchedSettings || {};
+
+        const parsedWaitTime =
+          typeof effectiveRemote.videoWaitTime === 'number'
+            ? effectiveRemote.videoWaitTime
+            : Number(effectiveRemote.videoWaitTime) || defaultSettings.videoWaitTime;
 
         const mergedFeedbacks: FeedbackItem[] = [
-          ...(Array.isArray(fetchedSettings.feedbacks) ? fetchedSettings.feedbacks : []),
+          ...(Array.isArray(effectiveRemote.feedbacks) ? effectiveRemote.feedbacks : []),
           ...(Array.isArray(serverSubmissions.feedbacks) ? serverSubmissions.feedbacks : []),
           ...(Array.isArray(localParsed.feedbacks) ? localParsed.feedbacks : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         const mergedMessages: ContactMessage[] = [
-          ...(Array.isArray(fetchedSettings.contactMessages) ? fetchedSettings.contactMessages : []),
+          ...(Array.isArray(effectiveRemote.contactMessages) ? effectiveRemote.contactMessages : []),
           ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : []),
           ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
-        let safeMusicUrl = fetchedSettings.backgroundMusicUrl;
+        let safeMusicUrl = effectiveRemote.backgroundMusicUrl || localParsed.backgroundMusicUrl || defaultSettings.backgroundMusicUrl;
         if (!safeMusicUrl || safeMusicUrl === 'SAVED_IN_CLOUD_BASE64') {
           safeMusicUrl = defaultSettings.backgroundMusicUrl;
         } else if (safeMusicUrl.startsWith('data:audio/')) {
@@ -946,56 +964,56 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
         const merged: Settings = {
           ...defaultSettings,
-          ...fetchedSettings,
+          ...localParsed,
+          ...effectiveRemote,
           backgroundMusicUrl: safeMusicUrl,
           videoWaitTime: parsedWaitTime,
-          videoRequiredGameIds: Array.isArray(fetchedSettings.videoRequiredGameIds)
-            ? fetchedSettings.videoRequiredGameIds
+          videoRequiredGameIds: Array.isArray(effectiveRemote.videoRequiredGameIds)
+            ? effectiveRemote.videoRequiredGameIds
             : defaultSettings.videoRequiredGameIds,
           requireSubscriptionAndVideos:
-            typeof fetchedSettings.requireSubscriptionAndVideos === 'boolean'
-              ? fetchedSettings.requireSubscriptionAndVideos
+            typeof effectiveRemote.requireSubscriptionAndVideos === 'boolean'
+              ? effectiveRemote.requireSubscriptionAndVideos
               : typeof localParsed.requireSubscriptionAndVideos === 'boolean'
               ? localParsed.requireSubscriptionAndVideos
               : defaultSettings.requireSubscriptionAndVideos ?? true,
           paidSettings: {
             ...defaultPaidSettings,
             ...(localParsed.paidSettings || {}),
-            ...(fetchedSettings.paidSettings || {}),
+            ...(effectiveRemote.paidSettings || {}),
             shamCash: {
               ...defaultPaidSettings.shamCash,
               ...(localParsed.paidSettings?.shamCash || {}),
-              ...(fetchedSettings.paidSettings?.shamCash || {}),
+              ...(effectiveRemote.paidSettings?.shamCash || {}),
             },
           },
           purchaseOrders: [
-            ...(Array.isArray(fetchedSettings.purchaseOrders) ? fetchedSettings.purchaseOrders : []),
+            ...(Array.isArray(effectiveRemote.purchaseOrders) ? effectiveRemote.purchaseOrders : []),
             ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : []),
             ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
           ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
           approvedActivationCodes: Array.from(
             new Set([
-              ...(Array.isArray(fetchedSettings.approvedActivationCodes) ? fetchedSettings.approvedActivationCodes : []),
+              ...(Array.isArray(effectiveRemote.approvedActivationCodes) ? effectiveRemote.approvedActivationCodes : []),
               ...(Array.isArray(localParsed.approvedActivationCodes) ? localParsed.approvedActivationCodes : []),
               ...(defaultSettings.approvedActivationCodes || []),
             ])
           ),
           freeActivationCode:
-            fetchedSettings.freeActivationCode ||
+            effectiveRemote.freeActivationCode ||
             localParsed.freeActivationCode ||
             settings.freeActivationCode,
           codeCustomerBindings: {
             ...(localParsed.codeCustomerBindings || {}),
-            ...(fetchedSettings.codeCustomerBindings || {}),
+            ...(effectiveRemote.codeCustomerBindings || {}),
           },
           adSettings: {
             ...defaultSettings.adSettings,
-            ...(fetchedSettings.adSettings || {}),
+            ...(effectiveRemote.adSettings || {}),
           },
-
           googleAdSettings: {
             ...defaultSettings.googleAdSettings,
-            ...(fetchedSettings.googleAdSettings || {}),
+            ...(effectiveRemote.googleAdSettings || {}),
           },
           feedbacks: mergedFeedbacks,
           contactMessages: mergedMessages,
@@ -1005,14 +1023,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
         setLastSyncTime(syncTimeStr);
         localStorage.setItem('toysGameLastGistSync', syncTimeStr);
-        setIsSyncing(false);
+        if (!isSilent) setIsSyncing(false);
         return true;
       }
-      setIsSyncing(false);
+      if (!isSilent) setIsSyncing(false);
       return false;
     } catch (error) {
       console.error('Failed to load settings from Gist:', error);
-      setIsSyncing(false);
+      if (!isSilent) setIsSyncing(false);
       return false;
     }
   }, [gistUrl, gistToken]);
@@ -1379,54 +1397,82 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       const freeCode = incoming.freeActivationCode || data.freeActivationCode || settings.freeActivationCode;
 
-      // Smart merge
-      const mergedOrders = [
-        ...incomingOrders,
-        ...(settings.purchaseOrders || []),
-      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id || (t.activationCode && t.activationCode === item.activationCode)));
+      // Clean incoming settings object
+      const incomingRaw = data.allSettings || data;
+      const { ...extractedSettings } = incomingRaw;
 
-      const mergedCodes = Array.from(
-        new Set([
-          ...incomingCodes,
-          ...(settings.approvedActivationCodes || []),
-        ])
-      );
+      // Ensure orders, codes, messages, feedbacks take full authoritative precedence
+      const finalOrders: SubscriptionOrder[] = incomingOrders.length > 0
+        ? [
+            ...incomingOrders,
+            ...(settings.purchaseOrders || []).filter(
+              (localItem) => !incomingOrders.some((inc) => inc.id === localItem.id)
+            ),
+          ]
+        : (settings.purchaseOrders || []);
 
-      const mergedBindings = {
-        ...(settings.codeCustomerBindings || {}),
-        ...incomingBindings,
-      };
+      const finalCodes = incomingCodes.length > 0
+        ? incomingCodes
+        : (settings.approvedActivationCodes || defaultSettings.approvedActivationCodes || []);
 
-      const mergedFeedbacks = [
-        ...incomingFeedbacks,
-        ...(settings.feedbacks || []),
-      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+      const finalBindings = incomingBindings && Object.keys(incomingBindings).length > 0
+        ? { ...(settings.codeCustomerBindings || {}), ...incomingBindings }
+        : (settings.codeCustomerBindings || {});
 
-      const mergedMessages = [
-        ...incomingMessages,
-        ...(settings.contactMessages || []),
-      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+      const finalFeedbacks = incomingFeedbacks.length > 0
+        ? [
+            ...incomingFeedbacks,
+            ...(settings.feedbacks || []).filter(
+              (localItem) => !incomingFeedbacks.some((inc) => inc.id === localItem.id)
+            ),
+          ]
+        : (settings.feedbacks || []);
 
-      const mergedSkillResults = [
-        ...incomingSkillResults,
-        ...(settings.skillTestResults || []),
-      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+      const finalMessages = incomingMessages.length > 0
+        ? [
+            ...incomingMessages,
+            ...(settings.contactMessages || []).filter(
+              (localItem) => !incomingMessages.some((inc) => inc.id === localItem.id)
+            ),
+          ]
+        : (settings.contactMessages || []);
+
+      const finalSkillResults = incomingSkillResults.length > 0
+        ? [
+            ...incomingSkillResults,
+            ...(settings.skillTestResults || []).filter(
+              (localItem) => !incomingSkillResults.some((inc) => inc.id === localItem.id)
+            ),
+          ]
+        : (settings.skillTestResults || []);
 
       const newSettings: Settings = {
+        ...defaultSettings,
         ...settings,
-        ...(incoming.siteName ? { siteName: incoming.siteName } : {}),
-        ...(incoming.paidSettings ? { paidSettings: incoming.paidSettings } : {}),
-        ...(incoming.adSettings ? { adSettings: incoming.adSettings } : {}),
-        purchaseOrders: mergedOrders,
-        approvedActivationCodes: mergedCodes,
-        freeActivationCode: freeCode,
-        codeCustomerBindings: mergedBindings,
-        feedbacks: mergedFeedbacks,
-        contactMessages: mergedMessages,
-        skillTestResults: mergedSkillResults,
+        ...extractedSettings,
+        purchaseOrders: finalOrders,
+        approvedActivationCodes: finalCodes,
+        freeActivationCode: freeCode !== undefined ? freeCode : settings.freeActivationCode,
+        codeCustomerBindings: finalBindings,
+        feedbacks: finalFeedbacks,
+        contactMessages: finalMessages,
+        skillTestResults: finalSkillResults,
       };
 
       saveSettings(newSettings);
+
+      // Sync with server API
+      fetch('/api/sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          purchaseOrders: finalOrders,
+          contactMessages: finalMessages,
+          feedbacks: finalFeedbacks,
+          gistToken,
+          gistUrl,
+        }),
+      }).catch((e) => console.warn('Server sync after JSON import failed:', e));
 
       // Auto-sync to Gist if token is set
       if (gistToken) {
@@ -1435,18 +1481,41 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       return {
         success: true,
-        message: 'تم استيراد ودمج البيانات بنجاح في هذا الجهاز!',
+        message: `تم تطبيق أحدث الإعدادات واستيراد ${finalOrders.length} طلب شراء و ${finalCodes.length} كود تفعيل بنجاح!`,
         summary: {
-          orders: mergedOrders.length,
-          codes: mergedCodes.length,
-          feedbacks: mergedFeedbacks.length,
-          messages: mergedMessages.length,
+          orders: finalOrders.length,
+          codes: finalCodes.length,
+          feedbacks: finalFeedbacks.length,
+          messages: finalMessages.length,
         },
       };
     } catch (err: any) {
       console.error('Import error:', err);
       return { success: false, message: `فشل قراءة الملف: ${err.message || 'تنسيق غير معروف'}` };
     }
+  };
+
+  const resetAllSettingsData = (): Settings => {
+    const freshDefaults: Settings = {
+      ...defaultSettings,
+      approvedActivationCodes: generate100DefaultCodes(),
+      purchaseOrders: [],
+      feedbacks: [],
+      contactMessages: [],
+      codeCustomerBindings: {},
+      freeActivationCode: undefined,
+    };
+    saveSettings(freshDefaults);
+    try {
+      localStorage.removeItem('toysGameSettings');
+      localStorage.setItem('toysGameSettings', JSON.stringify(freshDefaults));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (gistToken) {
+      saveToGist(freshDefaults).catch((e) => console.warn('Sync to Gist after reset failed:', e));
+    }
+    return freshDefaults;
   };
 
   const syncAllWithGist = async (): Promise<boolean> => {
@@ -1457,7 +1526,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return pulled;
   };
 
-  // Automatically fetch the latest Gist settings for any visitor on app load!
+  // Automatically fetch latest Gist settings on load and poll every 30 seconds
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -1469,8 +1538,28 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
       }
     })();
+
+    // Background interval auto-poll every 1 minute (60 seconds)
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadFromGist(true);
+      }
+    }, 60000);
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        loadFromGist(true);
+      }
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
     return () => {
       isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
   }, [loadFromGist]);
 
@@ -1480,6 +1569,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         settings,
         setSettings,
         saveSettings,
+        resetAllSettingsData,
         isSubscribed,
         setIsSubscribed,
         resetSubscriptionStatus,

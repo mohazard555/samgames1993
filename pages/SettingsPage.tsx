@@ -29,9 +29,11 @@ const SettingsPage: React.FC = () => {
     deleteContactMessage,
     deleteSkillTestResult,
     syncError,
+    resetAllSettingsData,
   } = useSettings();
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Keep localSettings in sync if settings update remotely
   useEffect(() => {
@@ -408,6 +410,14 @@ const SettingsPage: React.FC = () => {
       reader.readAsText(file);
       if (e.target) e.target.value = '';
     }
+  };
+
+  const handleClearSettingsData = () => {
+    const fresh = resetAllSettingsData();
+    setLocalSettings(fresh);
+    setShowClearConfirm(false);
+    setSaveMessage('✓ تم مسح بيانات الإعدادات وإعادتها إلى الوضع الافتراضي النظيف بنجاح!');
+    setTimeout(() => setSaveMessage(''), 5000);
   };
 
   return (
@@ -1579,6 +1589,67 @@ const SettingsPage: React.FC = () => {
                   📤 استيراد إعدادات من ملف
                 </button>
                 <input type="file" ref={importFileRef} onChange={importSettings} accept=".json" className="hidden" />
+              </div>
+            </div>
+
+            {/* Clear All Settings Data Card */}
+            <div className="md:col-span-2 bg-red-50/80 p-6 sm:p-8 rounded-3xl shadow-md border-2 border-red-200 space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-red-200">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🧹</span>
+                  <div>
+                    <h3 className="font-black text-red-950 text-lg">
+                      مسح بيانات الإعدادات فقط (إعادة الضبط الافتراضي)
+                    </h3>
+                    <p className="text-xs text-red-700">
+                      وظيفة هذا الزر مسح كل شيء من الإعدادات فقط واسترجاع القيم الافتراضية النظيفة فوراً.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white font-black py-3 px-6 rounded-xl text-xs sm:text-sm shadow-md transition-transform active:scale-95 cursor-pointer flex items-center gap-2 shrink-0"
+                >
+                  <span>🗑️</span>
+                  <span>مسح كل شيء من الإعدادات</span>
+                </button>
+              </div>
+              <p className="text-xs text-red-600 font-semibold">
+                ⚠️ تنبيه: يمسح هذا الإجراء الإعدادات المخصصة وتفريغ القوائم من الإعدادات محلياً وسحابياً وإعادتها لوضع المصنع. يمكنك أخذ نسخة احتياطية (JSON) قبل المسح إذا أردت.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Clear Data Confirmation Modal */}
+        {showClearConfirm && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-4 border-red-300 text-center space-y-4">
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                ⚠️
+              </div>
+              <h3 className="text-xl font-black text-gray-900">تأكيد مسح بيانات الإعدادات</h3>
+              <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                هل أنت متأكد من رغبتك في مسح كل شيء من الإعدادات فقط؟
+                <br />
+                سيتم مسح وتصفير كافة التخصيصات والبيانات من الإعدادات واسترجاع القيم الافتراضية.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleClearSettingsData}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-3 px-4 rounded-xl text-sm shadow cursor-pointer transition-all"
+                >
+                  نعم، مسح كل شيء الآن 🗑️
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirm(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-xl text-sm cursor-pointer transition-all"
+                >
+                  إلغاء التراجع
+                </button>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ app.use(express.json({ limit: '10mb' }));
 // Ensure data directory exists for persistent submissions storage
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'submissions.json');
+const GIST_CONFIG_FILE = path.join(DATA_DIR, 'gist_config.json');
 
 if (!fs.existsSync(DATA_DIR)) {
   try {
@@ -40,6 +41,36 @@ function saveStoredSubmissions(data: any) {
   }
 }
 
+function getStoredGistConfig(): { gistToken: string; gistUrl: string } {
+  try {
+    if (fs.existsSync(GIST_CONFIG_FILE)) {
+      const content = fs.readFileSync(GIST_CONFIG_FILE, 'utf-8');
+      return JSON.parse(content);
+    }
+  } catch (e) {
+    console.warn('Error reading gist config:', e);
+  }
+  return {
+    gistToken: process.env.GIST_TOKEN || '',
+    gistUrl: process.env.GIST_URL || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
+  };
+}
+
+function saveStoredGistConfig(config: { gistToken?: string; gistUrl?: string }) {
+  try {
+    const current = getStoredGistConfig();
+    const updated = {
+      gistToken: config.gistToken !== undefined ? config.gistToken : current.gistToken,
+      gistUrl: config.gistUrl !== undefined ? config.gistUrl : current.gistUrl,
+    };
+    fs.writeFileSync(GIST_CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
+    return updated;
+  } catch (e) {
+    console.warn('Error writing gist config:', e);
+    return config;
+  }
+}
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
@@ -48,6 +79,21 @@ app.get('/api/health', (req, res) => {
 app.get('/api/data', (req, res) => {
   const submissions = getStoredSubmissions();
   res.json({ success: true, ...submissions });
+});
+
+// Gist Configuration Endpoints
+app.get('/api/gist-config', (req, res) => {
+  const config = getStoredGistConfig();
+  res.json({
+    gistUrl: config.gistUrl || '',
+    hasToken: Boolean(config.gistToken && config.gistToken.length > 5),
+  });
+});
+
+app.post('/api/gist-config', (req, res) => {
+  const { gistToken, gistUrl } = req.body;
+  const updated = saveStoredGistConfig({ gistToken, gistUrl });
+  res.json({ success: true, message: 'تم حفظ إعدادات الربط السحابي على الخادم بنجاح' });
 });
 
 app.post('/api/orders', async (req, res) => {
@@ -62,15 +108,14 @@ app.post('/api/orders', async (req, res) => {
     );
     saveStoredSubmissions(submissions);
 
-    // If Gist token is provided in headers or body, auto-sync to GitHub Gist
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl;
+    // Auto-sync to GitHub Gist using request or server stored config
+    const storedGist = getStoredGistConfig();
+    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
+    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
     if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken as string, submissions);
-      } catch (syncErr) {
-        console.warn('Background Gist sync on order failed:', syncErr);
-      }
+      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
+        console.warn('Background Gist sync on order failed:', syncErr)
+      );
     }
 
     res.json({ success: true, order, purchaseOrders: submissions.purchaseOrders });
@@ -91,14 +136,13 @@ app.post('/api/messages', async (req, res) => {
     );
     saveStoredSubmissions(submissions);
 
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl;
+    const storedGist = getStoredGistConfig();
+    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
+    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
     if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken as string, submissions);
-      } catch (syncErr) {
-        console.warn('Background Gist sync on message failed:', syncErr);
-      }
+      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
+        console.warn('Background Gist sync on message failed:', syncErr)
+      );
     }
 
     res.json({ success: true, message, contactMessages: submissions.contactMessages });
@@ -119,17 +163,63 @@ app.post('/api/feedbacks', async (req, res) => {
     );
     saveStoredSubmissions(submissions);
 
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl;
+    const storedGist = getStoredGistConfig();
+    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
+    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
     if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken as string, submissions);
-      } catch (syncErr) {
-        console.warn('Background Gist sync on feedback failed:', syncErr);
-      }
+      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
+        console.warn('Background Gist sync on feedback failed:', syncErr)
+      );
     }
 
     res.json({ success: true, feedback, feedbacks: submissions.feedbacks });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Full state synchronization endpoint
+app.post('/api/sync-all', async (req, res) => {
+  try {
+    const { purchaseOrders, contactMessages, feedbacks, gistToken, gistUrl } = req.body;
+    const submissions = getStoredSubmissions();
+
+    if (Array.isArray(purchaseOrders)) {
+      submissions.purchaseOrders = [
+        ...purchaseOrders,
+        ...(submissions.purchaseOrders || []),
+      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    }
+    if (Array.isArray(contactMessages)) {
+      submissions.contactMessages = [
+        ...contactMessages,
+        ...(submissions.contactMessages || []),
+      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    }
+    if (Array.isArray(feedbacks)) {
+      submissions.feedbacks = [
+        ...feedbacks,
+        ...(submissions.feedbacks || []),
+      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    }
+
+    saveStoredSubmissions(submissions);
+
+    if (gistToken || gistUrl) {
+      saveStoredGistConfig({ gistToken, gistUrl });
+    }
+
+    const storedGist = getStoredGistConfig();
+    const activeToken = gistToken || storedGist.gistToken;
+    const activeUrl = gistUrl || storedGist.gistUrl;
+
+    if (activeToken && activeUrl) {
+      syncToGistHelper(activeUrl, activeToken, submissions).catch((e) =>
+        console.warn('Background sync-all Gist error:', e)
+      );
+    }
+
+    res.json({ success: true, ...submissions });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
