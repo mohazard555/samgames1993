@@ -19,6 +19,8 @@ const SettingsPage: React.FC = () => {
     setGistToken,
     loadFromGist,
     saveToGist,
+    exportAllDataAsJSON,
+    importAllDataFromJSON,
     isSyncing,
     lastSyncTime,
     updateFeedbackStatus,
@@ -377,32 +379,34 @@ const SettingsPage: React.FC = () => {
   };
 
   const exportSettings = () => {
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(localSettings, null, 2))}`;
-    const link = document.createElement('a');
-    link.href = jsonString;
-    link.download = 'toysgame-settings.json';
-    link.click();
+    exportAllDataAsJSON();
+    setSaveMessage('✓ تم تصدير وتحميل ملف النسخة الاحتياطية الكاملة (JSON) بنجاح!');
+    setTimeout(() => setSaveMessage(''), 4000);
   };
 
   const importSettings = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
-          const newSettings = JSON.parse(event.target?.result as string);
-          if (newSettings.siteName) {
-            saveSettings(newSettings);
-            setLocalSettings(newSettings);
-            alert('تم استيراد الإعدادات بنجاح!');
-          } else {
-            alert('ملف الإعدادات غير صالح.');
+          const content = event.target?.result as string;
+          if (content) {
+            const res = await importAllDataFromJSON(content);
+            if (res.success) {
+              setSaveMessage(`✓ ${res.message} (تم استيراد ودمج ${res.summary?.orders ?? 0} طلب و ${res.summary?.codes ?? 0} كود)`);
+            } else {
+              setSaveMessage(`⚠️ تنبيه الاستيراد: ${res.message}`);
+            }
+            setTimeout(() => setSaveMessage(''), 6000);
           }
-        } catch {
-          alert('خطأ في قراءة الملف.');
+        } catch (err: any) {
+          setSaveMessage(`⚠️ خطأ في قراءة ملف JSON: ${err?.message || 'تنسيق غير مدعوم'}`);
+          setTimeout(() => setSaveMessage(''), 5000);
         }
       };
       reader.readAsText(file);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -1554,16 +1558,18 @@ const SettingsPage: React.FC = () => {
             <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border border-gray-200 space-y-4">
               <h3 className="font-black text-gray-800 flex items-center gap-2 text-lg pb-2 border-b">
                 <span>📦</span>
-                <span>النسخ الاحتياطي والاستعادة</span>
+                <span>النسخ الاحتياطي ونقل البيانات الشامل (JSON)</span>
               </h3>
-              <p className="text-xs text-gray-500">حفظ إعداداتك في ملف JSON أو استرجاعها بضغطة زر</p>
+              <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                حفظ واستيراد كافة البيانات (طلبات الشراء، أكواد التفعيل، رسائل اتصل بنا، الآراء، والإعدادات) لنقلها وفتحها من أي هاتف أو كمبيوتر ومزامنتها بآخر تعديل.
+              </p>
               <div className="flex flex-col gap-3 pt-4">
                 <button
                   type="button"
                   onClick={exportSettings}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors shadow cursor-pointer"
                 >
-                  📥 تصدير وحفظ ملف الإعدادات (JSON)
+                  📥 تصدير ملف النسخة الاحتياطية الشامل (JSON)
                 </button>
                 <button
                   type="button"

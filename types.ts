@@ -162,6 +162,7 @@ export interface Settings {
   paidSettings?: PaidSettings;
   purchaseOrders?: SubscriptionOrder[];
   approvedActivationCodes?: string[];
+  freeActivationCode?: string; // كود التفعيل المجاني المعتمد الوحيد
   codeDeviceBindings?: Record<string, string>;
   codeCustomerBindings?: Record<string, string>;
   hiddenGameNames?: string[];

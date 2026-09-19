@@ -38,20 +38,41 @@ const SubscriptionOrdersManager: React.FC = () => {
     updateOrderStatus,
     deletePurchaseOrder,
     generateManualActivationCode,
+    generateFreeRandomCode,
+    generateFriendCode,
     revokeActivationCode,
+    revokeFreeActivationCode,
+    exportAllDataAsJSON,
+    importAllDataFromJSON,
+    loadFromGist,
+    saveToGist,
+    isSyncing,
+    lastSyncTime,
+    gistToken,
   } = useSettings();
 
   const [filter, setFilter] = useState<'all' | 'معلق' | 'موافق عليه' | 'مرفوض'>('all');
-  const [manualNote, setManualNote] = useState('');
-  const [generatedCodeResult, setGeneratedCodeResult] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Friend / customer code generator modal states
   const [showFriendModal, setShowFriendModal] = useState(false);
   const [friendNameInput, setFriendNameInput] = useState('');
 
+  // JSON Import modal states
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [jsonInputText, setJsonInputText] = useState('');
+  const [importNotice, setImportNotice] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [syncStatusMsg, setSyncStatusMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Free Code Status Feedback
+  const [freeCodeFeedback, setFreeCodeFeedback] = useState<string | null>(null);
+
   const orders = settings.purchaseOrders || [];
   const approvedCodes = settings.approvedActivationCodes || [];
+  const activeFreeCode = settings.freeActivationCode && approvedCodes.includes(settings.freeActivationCode)
+    ? settings.freeActivationCode
+    : null;
 
   const filteredOrders = orders.filter((ord) => {
     if (filter === 'all') return true;
@@ -67,21 +88,87 @@ const SubscriptionOrdersManager: React.FC = () => {
     setTimeout(() => setCopiedCode(null), 2500);
   };
 
-  const handleCreateManual = (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = generateManualActivationCode(manualNote);
-    setGeneratedCodeResult(code);
-    setManualNote('');
+  // Generate or retrieve the SINGLE free activation code
+  const handleGenerateFreeCode = (forceReplace = false) => {
+    const result = generateFreeRandomCode(forceReplace);
+    handleCopy(result.code);
+    if (result.isNew) {
+      setFreeCodeFeedback(forceReplace ? '✓ تم تجديد واستبدال الكود المجاني بكود جديد وتم نسخه!' : '✓ تم توليد كود مجاني وحيد بنجاح وتم نسخه!');
+    } else {
+      setFreeCodeFeedback('ℹ️ لديك كود مجاني نشط مسبقاً (مسموح بكود مجاني واحد فقط لتجنب تكرار الأكواد). تم نسخ الكود!');
+    }
+    setTimeout(() => setFreeCodeFeedback(null), 4000);
+  };
+
+  const handleRevokeFreeCode = () => {
+    revokeFreeActivationCode();
+    setFreeCodeFeedback('✓ تم إلغاء الكود المجاني بنجاح.');
+    setTimeout(() => setFreeCodeFeedback(null), 3000);
   };
 
   const handleGenerateForFriend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!friendNameInput.trim()) return;
-    const code = generateManualActivationCode(friendNameInput);
+    const code = generateFriendCode(friendNameInput);
     handleCopy(code);
-    // Automatically close modal upon completion
     setShowFriendModal(false);
     setFriendNameInput('');
+  };
+
+  // Quick Gist synchronization
+  const handleManualGistSync = async () => {
+    setSyncStatusMsg({ text: '⏳ جاري المزامنة السحابية مع Gist...', type: 'info' });
+    const success = await loadFromGist();
+    if (success) {
+      if (gistToken) {
+        await saveToGist();
+      }
+      setSyncStatusMsg({ text: '✓ تمت المزامنة السحابية بنجاح وتم تحديث كافة البيانات!', type: 'success' });
+    } else {
+      setSyncStatusMsg({ text: '⚠️ تعذر سحب البيانات من السحابة. تحقق من إعدادات Gist.', type: 'error' });
+    }
+    setTimeout(() => setSyncStatusMsg(null), 4000);
+  };
+
+  // Handle JSON File Import
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        const res = await importAllDataFromJSON(text);
+        if (res.success) {
+          setImportNotice({
+            text: `✓ ${res.message} (تم دمج: ${res.summary?.orders ?? 0} طلب، ${res.summary?.codes ?? 0} كود)`,
+            type: 'success',
+          });
+        } else {
+          setImportNotice({ text: res.message, type: 'error' });
+        }
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleManualJsonTextImport = async () => {
+    if (!jsonInputText.trim()) {
+      setImportNotice({ text: 'يرجى لصق كود JSON أولاً', type: 'error' });
+      return;
+    }
+    const res = await importAllDataFromJSON(jsonInputText);
+    if (res.success) {
+      setImportNotice({
+        text: `✓ ${res.message} (تم دمج: ${res.summary?.orders ?? 0} طلب، ${res.summary?.codes ?? 0} كود)`,
+        type: 'success',
+      });
+      setJsonInputText('');
+    } else {
+      setImportNotice({ text: res.message, type: 'error' });
+    }
   };
 
   const getWhatsAppShareUrl = (order: SubscriptionOrder) => {
@@ -94,6 +181,77 @@ const SubscriptionOrdersManager: React.FC = () => {
 
   return (
     <div className="space-y-6 select-none">
+      {/* Central Sync & Portability Bar */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white p-4 sm:p-5 rounded-3xl shadow-lg border border-indigo-800/40">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl sm:text-3xl">🌐</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-black text-sm sm:text-base text-sky-200">
+                  مركز مزامنة ونقل البيانات بين الأجهزة (Gist & JSON)
+                </h4>
+                {lastSyncTime && (
+                  <span className="bg-sky-900/60 text-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-600/30">
+                    آخر مزامنة: {lastSyncTime}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-sky-100/80">
+                يمكنك تصدير واستيراد ملف JSON لنقل كافة الطلبات والرسائل لفتحها من أي جهاز ومزامنتها سحابياً.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={exportAllDataAsJSON}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              title="تحميل نسخة احتياطية كاملة بصيغة JSON"
+            >
+              <span>💾 تصدير JSON</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowImportModal(true);
+                setImportNotice(null);
+              }}
+              className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer"
+              title="استيراد بيانات من هاتف أو جهاز آخر"
+            >
+              <span>📂 استيراد JSON</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleManualGistSync}
+              disabled={isSyncing}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="تحديث ومزامنة السحابة الآن"
+            >
+              <span>{isSyncing ? '⏳ جاري المزامنة...' : '☁️ مزامنة Gist'}</span>
+            </button>
+          </div>
+        </div>
+
+        {syncStatusMsg && (
+          <div
+            className={`mt-3 p-2.5 rounded-xl text-xs font-bold ${
+              syncStatusMsg.type === 'success'
+                ? 'bg-emerald-900/80 text-emerald-200 border border-emerald-600'
+                : syncStatusMsg.type === 'error'
+                ? 'bg-red-900/80 text-red-200 border border-red-600'
+                : 'bg-blue-900/80 text-blue-200 border border-blue-600'
+            }`}
+          >
+            {syncStatusMsg.text}
+          </div>
+        )}
+      </div>
+
       {/* Overview Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl text-center">
@@ -114,74 +272,141 @@ const SubscriptionOrdersManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Manual Code Generator Tool */}
-      <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 border border-amber-300 p-4 sm:p-5 rounded-3xl shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-amber-900">
-            <span className="text-2xl">⚡</span>
-            <div>
-              <h4 className="font-black text-sm sm:text-base">
-                توليد أكواد تفعيل VIP (100 كود متاح):
-              </h4>
-              <p className="text-xs text-amber-800">
-                توليد كود تفعيل جديد مخصص لصديق أو زبون وربطه باسمه فوراً.
-              </p>
+      {/* Code Generation Controls (Enforced: Single Free Code + Dedicated Friend Code) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Box 1: Single Free Activation Code */}
+        <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-2 border-emerald-300 p-4 sm:p-5 rounded-3xl shadow-sm space-y-3 flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-emerald-950">
+                <span className="text-2xl">🎁</span>
+                <h4 className="font-black text-sm sm:text-base">
+                  كود تفعيل عشوائي مجاني (كود واحد فقط):
+                </h4>
+              </div>
+              <span className="bg-emerald-200 text-emerald-900 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-400">
+                مجاني 100%
+              </span>
+            </div>
+
+            <div className="bg-white/90 border border-emerald-200 rounded-2xl p-2.5 text-xs text-emerald-900 space-y-1">
+              <div className="flex items-start gap-1.5 font-bold">
+                <span className="text-emerald-700">💡</span>
+                <span>تنويه النظام: يُسمح بتوليد كود مجاني واحد فقط لضبط النظام ومنع تكرار توليد أرقام عشوائية كثيرة عند النقر المتكرر.</span>
+              </div>
+            </div>
+
+            {activeFreeCode ? (
+              <div className="bg-white border-2 border-emerald-400 p-3 rounded-2xl shadow-sm space-y-2 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-700">
+                    الكود المجاني الفعّال حالياً:
+                  </span>
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                    متاح للاستخدام
+                  </span>
+                </div>
+                <div className="font-mono font-black text-base sm:text-lg text-emerald-800 bg-emerald-50/70 p-2 rounded-xl text-center tracking-wider border border-emerald-200 select-text">
+                  {activeFreeCode}
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(activeFreeCode)}
+                    className="flex-1 py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    {copiedCode === activeFreeCode ? '✓ تم النسخ' : 'نسخ الكود 📋'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateFreeCode(true)}
+                    className="py-1.5 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                    title="استبدال الكود المجاني بكود مجاني آخر جديد"
+                  >
+                    🔄 استبدال الكود
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRevokeFreeCode}
+                    className="py-1.5 px-2.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-xs rounded-xl transition-all active:scale-95 cursor-pointer"
+                    title="إلغاء هذا الكود المجاني"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white/80 border border-dashed border-emerald-300 p-4 rounded-2xl text-center space-y-2">
+                <p className="text-xs text-gray-600">
+                  لا يوجد كود مجاني مولّد حالياً. اضغط على الزر أدناه لتوليد الكود المجاني الوحيد.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleGenerateFreeCode(false)}
+                  className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>🎁 توليد كود VIP عشوائي مجاني</span>
+                </button>
+              </div>
+            )}
+
+            {freeCodeFeedback && (
+              <div className="text-xs font-bold text-emerald-800 bg-emerald-100 p-2 rounded-xl text-center animate-fade-in border border-emerald-300">
+                {freeCodeFeedback}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Box 2: Custom Friend / Customer VIP Code */}
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-300 p-4 sm:p-5 rounded-3xl shadow-sm space-y-3 flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-blue-950">
+                <span className="text-2xl">👤</span>
+                <h4 className="font-black text-sm sm:text-base">
+                  توليد كود لصديق أو زبون مخصص:
+                </h4>
+              </div>
+              <span className="bg-blue-200 text-blue-900 text-[10px] font-black px-2 py-0.5 rounded-full border border-blue-400">
+                مخصص بالاسم
+              </span>
+            </div>
+
+            <p className="text-xs text-blue-900 leading-relaxed">
+              توليد كود VIP خاص لصديق أو مشترٍ، يتم توثيقه باسمه الخاص وإدراجه مباشرة في قائمة الطلبات المعتمدة مع إمكانية إرساله عبر واتساب.
+            </p>
+
+            <div className="bg-white/90 border border-blue-200 rounded-2xl p-3 text-xs space-y-2">
+              <span className="text-[11px] font-bold text-blue-800 block">
+                ميزة الأكواد المخصصة:
+              </span>
+              <ul className="text-[11px] text-gray-700 space-y-1 list-disc list-inside">
+                <li>ربط الكود باسم الصديق أو المشتري رسمياً.</li>
+                <li>تفعيل VIP دائم لجميع الألعاب المدفوعة.</li>
+                <li>توليد رابط واتساب فوري جاهز للإرسال.</li>
+              </ul>
             </div>
           </div>
+
           <button
             type="button"
             onClick={() => setShowFriendModal(true)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>🎁 توليد كود لصديق / زبون جديد</span>
+            <span>🎁 إنشاء كود مخصص لصديق / زبون جديد</span>
           </button>
         </div>
-
-        <form onSubmit={handleCreateManual} className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-amber-200/60">
-          <input
-            type="text"
-            value={manualNote}
-            onChange={(e) => setManualNote(e.target.value)}
-            placeholder="ملاحظة أو اسم الزبون اليدوي (اختياري)"
-            className="flex-1 bg-white border border-amber-300 rounded-xl px-3.5 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
-          >
-            توليد كود VIP عشوائي 🔑
-          </button>
-        </form>
-
-        {generatedCodeResult && (
-          <div className="bg-white p-3 rounded-2xl border border-amber-300 flex items-center justify-between flex-wrap gap-2 animate-fade-in">
-            <div>
-              <span className="text-[11px] text-gray-500 font-bold block">تم توليد الكود واعتماده:</span>
-              <span className="font-mono font-black text-amber-700 text-sm sm:text-base">
-                {generatedCodeResult}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopy(generatedCodeResult)}
-                className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs rounded-lg transition-colors"
-              >
-                {copiedCode === generatedCodeResult ? '✓ تم النسخ' : 'نسخ الكود 📋'}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Friend Code Generator Modal with Auto-Close */}
+      {/* Friend Code Generator Modal */}
       {showFriendModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-blue-100 space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="font-black text-base text-blue-900 flex items-center gap-2">
                 <span>🎁</span>
-                <span>توليد كود تفعيل عشوائي لصديق / زبون</span>
+                <span>توليد كود تفعيل VIP لصديق أو زبون</span>
               </h3>
               <button
                 type="button"
@@ -201,11 +426,11 @@ const SubscriptionOrdersManager: React.FC = () => {
                   required
                   value={friendNameInput}
                   onChange={(e) => setFriendNameInput(e.target.value)}
-                  placeholder="مثلاً: أحمد محمد / صديق الغالي"
+                  placeholder="مثلاً: أحمد محمد / صديقي فلان"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-[11px] text-gray-500 mt-1">
-                  سيتم توليد كود عشوائي فوري، ربطه باسم الصديق، ونسخه تلقائياً مع إغلاق النافذة.
+                  سيتم توليد كود VIP وربطه باسم الصديق، ونسخه تلقائياً مع إغلاق النافذة.
                 </p>
               </div>
               <div className="flex gap-2 justify-end pt-2">
@@ -218,12 +443,94 @@ const SubscriptionOrdersManager: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   توليد ونسخ وإغلاق 🔑
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* JSON Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-amber-200 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-black text-base text-gray-900 flex items-center gap-2">
+                <span>📂</span>
+                <span>استيراد ودمج بيانات التطبيق (ملف JSON)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-lg font-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600 leading-relaxed">
+              إذا قمت بتصدير ملف JSON من هاتفك أو جهازك الآخر، يمكنك رفعه هنا لدمج كافة الطلبات والأكواد والرسائل فوراً على هذا الجهاز والمزامنة مع السحابة.
+            </p>
+
+            {/* Option 1: File Upload */}
+            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-center space-y-2">
+              <span className="text-xs font-bold text-amber-900 block">
+                الطريقة 1: اختيار ملف JSON من الجهاز
+              </span>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".json,application/json"
+                onChange={handleFileUpload}
+                className="block w-full text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-amber-600 file:text-white hover:file:bg-amber-700 cursor-pointer"
+              />
+            </div>
+
+            {/* Option 2: Paste Raw JSON */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-gray-700">
+                الطريقة 2: أو لصق نص الـ JSON مباشرة (مفيد جداً للهواتف):
+              </label>
+              <textarea
+                rows={4}
+                value={jsonInputText}
+                onChange={(e) => setJsonInputText(e.target.value)}
+                placeholder="الصق محتوى ملف الـ JSON هنا..."
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs font-mono text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              <button
+                type="button"
+                onClick={handleManualJsonTextImport}
+                className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer"
+              >
+                تنفيذ الدمج من النص الملصق 📥
+              </button>
+            </div>
+
+            {importNotice && (
+              <div
+                className={`p-3 rounded-xl text-xs font-bold ${
+                  importNotice.type === 'success'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : 'bg-red-100 text-red-800 border border-red-300'
+                }`}
+              >
+                {importNotice.text}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2 border-t">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                إغلاق
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -435,12 +742,10 @@ const SubscriptionOrdersManager: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (confirm(`هل أنت متأكد من إلغاء وحظر الكود: ${code}؟`)) {
-                        revokeActivationCode(code);
-                      }
+                      revokeActivationCode(code);
                     }}
                     className="p-1 hover:bg-red-100 rounded text-red-500"
-                    title="حذف/إلغاء"
+                    title="إلغاء وحظر الكود"
                   >
                     ✕
                   </button>

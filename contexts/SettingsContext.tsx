@@ -149,7 +149,18 @@ interface SettingsContextType {
   updateOrderStatus: (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => void;
   deletePurchaseOrder: (orderId: string) => void;
   generateManualActivationCode: (note?: string) => string;
+  generateFreeRandomCode: (forceReplace?: boolean) => { code: string; isNew: boolean };
+  generateFriendCode: (friendName: string) => string;
   revokeActivationCode: (code: string) => void;
+  revokeFreeActivationCode: () => void;
+  // JSON Backup / Restore / Cross-Device Sync
+  exportAllDataAsJSON: () => void;
+  importAllDataFromJSON: (jsonInput: string | object) => Promise<{
+    success: boolean;
+    message: string;
+    summary?: { orders: number; feedbacks: number; messages: number; codes: number };
+  }>;
+  syncAllWithGist: () => Promise<boolean>;
   // Video-unlocked games in session
   unlockedVideoGames: number[];
   unlockVideoGame: (gameId: number) => void;
@@ -472,21 +483,107 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const generateManualActivationCode = (customerName?: string): string => {
+  // Generate only ONE free random activation code at a time
+  const generateFreeRandomCode = (forceReplace = false): { code: string; isNew: boolean } => {
+    // If a free code already exists and is valid, and user did not force-replace it, reuse it
+    if (!forceReplace && settings.freeActivationCode && (settings.approvedActivationCodes || []).includes(settings.freeActivationCode)) {
+      return { code: settings.freeActivationCode, isNew: false };
+    }
+
+    const existingFree = settings.freeActivationCode;
+    let baseCodes = settings.approvedActivationCodes || [];
+    if (existingFree) {
+      baseCodes = baseCodes.filter((c) => c !== existingFree);
+    }
+
+    const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newCode = `VIP-FREE-${part1}-${part2}`;
+
+    const updatedCodes = [newCode, ...baseCodes];
+    const updatedBindings = {
+      ...(settings.codeCustomerBindings || {}),
+      [newCode]: 'كود عشوائي مجاني 🎁 (كود تجريبي مجاني)',
+    };
+    if (existingFree && updatedBindings[existingFree]) {
+      delete updatedBindings[existingFree];
+    }
+
+    const freeOrder: SubscriptionOrder = {
+      id: `FREE-${Date.now().toString().slice(-5)}`,
+      customerName: 'كود عشوائي مجاني 🎁 (هدية مجانية)',
+      customerPhone: 'مجاني - الإدارة',
+      paymentMethod: 'مجاني',
+      amount: 0,
+      currency: settings.paidSettings?.currency || 'دولار',
+      transactionId: 'FREE_RANDOM_CODE',
+      notes: 'كود تفعيل عشوائي مجاني وحيد مسموح به في النظام',
+      status: 'موافق عليه',
+      createdAt: new Date().toLocaleString('ar-EG'),
+      activationCode: newCode,
+      barcodeValue: newCode,
+      activatedAt: new Date().toLocaleString('ar-EG'),
+    };
+
+    const baseOrders = existingFree
+      ? (settings.purchaseOrders || []).filter((o) => o.activationCode !== existingFree)
+      : (settings.purchaseOrders || []);
+
+    const updatedOrders = [freeOrder, ...baseOrders];
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+      freeActivationCode: newCode,
+      codeCustomerBindings: updatedBindings,
+      purchaseOrders: updatedOrders,
+    };
+
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+
+    return { code: newCode, isNew: true };
+  };
+
+  const revokeFreeActivationCode = () => {
+    if (!settings.freeActivationCode) return;
+    const target = settings.freeActivationCode;
+    const updatedCodes = (settings.approvedActivationCodes || []).filter((c) => c !== target);
+    const updatedOrders = (settings.purchaseOrders || []).map((ord) =>
+      ord.activationCode === target ? { ...ord, status: 'مرفوض' as const } : ord
+    );
+    const newBindings = { ...(settings.codeCustomerBindings || {}) };
+    delete newBindings[target];
+
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+      freeActivationCode: undefined,
+      codeCustomerBindings: newBindings,
+      purchaseOrders: updatedOrders,
+    };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+  };
+
+  const generateFriendCode = (friendName: string): string => {
+    const cleanName = friendName.trim() || 'صديق مخصص';
     const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
     const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
     const newCode = `VIP-FRIEND-${part1}-${part2}`;
 
     const updatedCodes = [newCode, ...(settings.approvedActivationCodes || [])];
-    const customerKey = customerName ? customerName.trim() : 'صديق مجهول';
     const updatedBindings = {
       ...(settings.codeCustomerBindings || {}),
-      [newCode]: customerKey,
+      [newCode]: `صديق: ${cleanName}`,
     };
 
-    const manualOrder: SubscriptionOrder = {
-      id: `MAN-${Date.now().toString().slice(-5)}`,
-      customerName: customerName ? `كود صديق: ${customerName}` : 'توليد يدوي لصديق',
+    const friendOrder: SubscriptionOrder = {
+      id: `FRD-${Date.now().toString().slice(-5)}`,
+      customerName: `كود صديق: ${cleanName}`,
       customerPhone: 'مباشر من الإدارة',
       paymentMethod: 'sham_cash',
       amount: settings.paidSettings?.price || 3,
@@ -499,7 +596,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       activatedAt: new Date().toLocaleString('ar-EG'),
     };
 
-    const updatedOrders = [manualOrder, ...(settings.purchaseOrders || [])];
+    const updatedOrders = [friendOrder, ...(settings.purchaseOrders || [])];
     const newSettings: Settings = {
       ...settings,
       approvedActivationCodes: updatedCodes,
@@ -515,6 +612,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return newCode;
   };
 
+  const generateManualActivationCode = (customerName?: string): string => {
+    if (customerName && customerName.trim()) {
+      return generateFriendCode(customerName);
+    }
+    return generateFreeRandomCode(false).code;
+  };
+
   const revokeActivationCode = (code: string) => {
     const normalized = code.trim().toUpperCase();
     const updatedCodes = (settings.approvedActivationCodes || []).filter(
@@ -527,9 +631,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return ord;
     });
 
+    const isFreeCodeRevoked = settings.freeActivationCode && settings.freeActivationCode.trim().toUpperCase() === normalized;
+
     const newSettings: Settings = {
       ...settings,
       approvedActivationCodes: updatedCodes,
+      freeActivationCode: isFreeCodeRevoked ? undefined : settings.freeActivationCode,
       purchaseOrders: updatedOrders,
     };
     saveSettings(newSettings);
@@ -873,6 +980,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
               ...(defaultSettings.approvedActivationCodes || []),
             ])
           ),
+          freeActivationCode:
+            fetchedSettings.freeActivationCode ||
+            localParsed.freeActivationCode ||
+            settings.freeActivationCode,
+          codeCustomerBindings: {
+            ...(localParsed.codeCustomerBindings || {}),
+            ...(fetchedSettings.codeCustomerBindings || {}),
+          },
           adSettings: {
             ...defaultSettings.adSettings,
             ...(fetchedSettings.adSettings || {}),
@@ -1176,6 +1291,172 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  // Export all application data as a complete JSON backup file
+  const exportAllDataAsJSON = () => {
+    const backupData = {
+      app: 'toysgame-world',
+      version: '2.0.0',
+      exportedAt: new Date().toISOString(),
+      exportedAtFormatted: new Date().toLocaleString('ar-EG'),
+      siteName: settings.siteName,
+      purchaseOrders: settings.purchaseOrders || [],
+      approvedActivationCodes: settings.approvedActivationCodes || [],
+      freeActivationCode: settings.freeActivationCode,
+      codeCustomerBindings: settings.codeCustomerBindings || {},
+      feedbacks: settings.feedbacks || [],
+      contactMessages: settings.contactMessages || [],
+      skillTestResults: settings.skillTestResults || [],
+      paidSettings: settings.paidSettings,
+      adSettings: settings.adSettings,
+      googleAdSettings: settings.googleAdSettings,
+      allSettings: settings,
+    };
+
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(backupData, null, 2))}`;
+    const link = document.createElement('a');
+    link.href = jsonString;
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.download = `toysgame-backup-${dateStr}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Import application data from JSON file or JSON string and merge intelligently
+  const importAllDataFromJSON = async (
+    jsonInput: string | object
+  ): Promise<{
+    success: boolean;
+    message: string;
+    summary?: { orders: number; feedbacks: number; messages: number; codes: number };
+  }> => {
+    try {
+      let data: any;
+      if (typeof jsonInput === 'string') {
+        data = JSON.parse(jsonInput);
+      } else {
+        data = jsonInput;
+      }
+
+      if (!data || typeof data !== 'object') {
+        return { success: false, message: 'ملف JSON غير صالح أو فارغ.' };
+      }
+
+      const incoming = data.allSettings || data;
+
+      const incomingOrders: SubscriptionOrder[] = Array.isArray(incoming.purchaseOrders)
+        ? incoming.purchaseOrders
+        : Array.isArray(data.purchaseOrders)
+        ? data.purchaseOrders
+        : [];
+
+      const incomingCodes: string[] = Array.isArray(incoming.approvedActivationCodes)
+        ? incoming.approvedActivationCodes
+        : Array.isArray(data.approvedActivationCodes)
+        ? data.approvedActivationCodes
+        : [];
+
+      const incomingBindings: Record<string, string> =
+        incoming.codeCustomerBindings || data.codeCustomerBindings || {};
+
+      const incomingFeedbacks: FeedbackItem[] = Array.isArray(incoming.feedbacks)
+        ? incoming.feedbacks
+        : Array.isArray(data.feedbacks)
+        ? data.feedbacks
+        : [];
+
+      const incomingMessages: ContactMessage[] = Array.isArray(incoming.contactMessages)
+        ? incoming.contactMessages
+        : Array.isArray(data.contactMessages)
+        ? data.contactMessages
+        : [];
+
+      const incomingSkillResults: SkillTestResult[] = Array.isArray(incoming.skillTestResults)
+        ? incoming.skillTestResults
+        : Array.isArray(data.skillTestResults)
+        ? data.skillTestResults
+        : [];
+
+      const freeCode = incoming.freeActivationCode || data.freeActivationCode || settings.freeActivationCode;
+
+      // Smart merge
+      const mergedOrders = [
+        ...incomingOrders,
+        ...(settings.purchaseOrders || []),
+      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id || (t.activationCode && t.activationCode === item.activationCode)));
+
+      const mergedCodes = Array.from(
+        new Set([
+          ...incomingCodes,
+          ...(settings.approvedActivationCodes || []),
+        ])
+      );
+
+      const mergedBindings = {
+        ...(settings.codeCustomerBindings || {}),
+        ...incomingBindings,
+      };
+
+      const mergedFeedbacks = [
+        ...incomingFeedbacks,
+        ...(settings.feedbacks || []),
+      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+      const mergedMessages = [
+        ...incomingMessages,
+        ...(settings.contactMessages || []),
+      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+      const mergedSkillResults = [
+        ...incomingSkillResults,
+        ...(settings.skillTestResults || []),
+      ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+      const newSettings: Settings = {
+        ...settings,
+        ...(incoming.siteName ? { siteName: incoming.siteName } : {}),
+        ...(incoming.paidSettings ? { paidSettings: incoming.paidSettings } : {}),
+        ...(incoming.adSettings ? { adSettings: incoming.adSettings } : {}),
+        purchaseOrders: mergedOrders,
+        approvedActivationCodes: mergedCodes,
+        freeActivationCode: freeCode,
+        codeCustomerBindings: mergedBindings,
+        feedbacks: mergedFeedbacks,
+        contactMessages: mergedMessages,
+        skillTestResults: mergedSkillResults,
+      };
+
+      saveSettings(newSettings);
+
+      // Auto-sync to Gist if token is set
+      if (gistToken) {
+        saveToGist(newSettings).catch((e) => console.warn('Sync to Gist after import failed:', e));
+      }
+
+      return {
+        success: true,
+        message: 'تم استيراد ودمج البيانات بنجاح في هذا الجهاز!',
+        summary: {
+          orders: mergedOrders.length,
+          codes: mergedCodes.length,
+          feedbacks: mergedFeedbacks.length,
+          messages: mergedMessages.length,
+        },
+      };
+    } catch (err: any) {
+      console.error('Import error:', err);
+      return { success: false, message: `فشل قراءة الملف: ${err.message || 'تنسيق غير معروف'}` };
+    }
+  };
+
+  const syncAllWithGist = async (): Promise<boolean> => {
+    const pulled = await loadFromGist();
+    if (pulled && gistToken) {
+      await saveToGist();
+    }
+    return pulled;
+  };
+
   // Automatically fetch the latest Gist settings for any visitor on app load!
   useEffect(() => {
     let isMounted = true;
@@ -1210,7 +1491,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         updateOrderStatus,
         deletePurchaseOrder,
         generateManualActivationCode,
+        generateFreeRandomCode,
+        generateFriendCode,
         revokeActivationCode,
+        revokeFreeActivationCode,
+        exportAllDataAsJSON,
+        importAllDataFromJSON,
+        syncAllWithGist,
         unlockedVideoGames,
         unlockVideoGame,
         isGameUnlocked,
