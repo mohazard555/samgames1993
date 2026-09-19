@@ -568,13 +568,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const updateOrderStatus = (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => {
     let orderActivationCode = '';
+    const activatedAt = status === 'موافق عليه' ? new Date().toLocaleString('ar-EG') : undefined;
     const updatedOrders = (settings.purchaseOrders || []).map((ord) => {
       if (ord.id === orderId) {
         orderActivationCode = ord.activationCode;
         return {
           ...ord,
           status,
-          activatedAt: status === 'موافق عليه' ? new Date().toLocaleString('ar-EG') : ord.activatedAt,
+          activatedAt: status === 'موافق عليه' ? (activatedAt || new Date().toLocaleString('ar-EG')) : ord.activatedAt,
         };
       }
       return ord;
@@ -594,6 +595,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, activatedAt }),
+    }).catch((e) => console.warn('Order status server patch error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -606,6 +615,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       purchaseOrders: updatedOrders,
     };
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/orders/${orderId}`, {
+      method: 'DELETE',
+    }).catch((e) => console.warn('Order delete server error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -1514,6 +1529,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedFeedbacks = (settings.feedbacks || []).map((fb) => (fb.id === id ? { ...fb, status } : fb));
     const newSettings = { ...settings, feedbacks: updatedFeedbacks };
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/feedbacks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).catch((e) => console.warn('Feedback status server patch error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -1523,6 +1546,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedFeedbacks = (settings.feedbacks || []).filter((fb) => fb.id !== id);
     const newSettings = { ...settings, feedbacks: updatedFeedbacks };
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/feedbacks/${id}`, {
+      method: 'DELETE',
+    }).catch((e) => console.warn('Feedback delete server error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -1583,6 +1612,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedMessages = (settings.contactMessages || []).map((msg) => (msg.id === id ? { ...msg, status } : msg));
     const newSettings = { ...settings, contactMessages: updatedMessages };
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/messages/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).catch((e) => console.warn('Message status server patch error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -1592,6 +1629,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedMessages = (settings.contactMessages || []).filter((msg) => msg.id !== id);
     const newSettings = { ...settings, contactMessages: updatedMessages };
     saveSettings(newSettings);
+
+    // Call server API
+    fetch(`/api/messages/${id}`, {
+      method: 'DELETE',
+    }).catch((e) => console.warn('Message delete server error:', e));
+
     if (gistToken) {
       saveToGist(newSettings).catch(() => {});
     }
@@ -1848,21 +1891,46 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return pulled;
   };
 
-  // Automatically sync Gist token to backend server and pull latest data on load
+  // Automatically sync Gist token with backend server and pull latest data on load
   useEffect(() => {
-    // Sync local token to server on app load so server can sync submissions on behalf of visitors
-    const savedToken = localStorage.getItem('gistToken');
-    const savedUrl = localStorage.getItem('gistUrl') || DEFAULT_GIST_URL;
-    if (savedToken && savedToken.trim().length > 5) {
-      fetch('/api/gist-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gistToken: savedToken.trim(), gistUrl: savedUrl.trim() }),
-      }).catch((e) => console.warn('Auto-sync token to server on mount failed:', e));
-    }
-
     let isMounted = true;
-    (async () => {
+
+    const initGistConfigAndSync = async () => {
+      const savedToken = localStorage.getItem('gistToken');
+      const savedUrl = localStorage.getItem('gistUrl') || DEFAULT_GIST_URL;
+
+      // 1. If we have a valid token locally, ensure server is aware of it
+      if (savedToken && savedToken.trim().length > 5) {
+        try {
+          await fetch('/api/gist-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gistToken: savedToken.trim(), gistUrl: savedUrl.trim() }),
+          });
+        } catch (e) {
+          console.warn('Auto-sync token to server on mount failed:', e);
+        }
+      } else {
+        // 2. If opening from a new device/browser without local token, fetch server's pre-configured token!
+        try {
+          const res = await fetch('/api/gist-config');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.gistToken && isMounted) {
+              setGistTokenState(data.gistToken.trim());
+              localStorage.setItem('gistToken', data.gistToken.trim());
+            }
+            if (data.gistUrl && (!localStorage.getItem('gistUrl') || savedUrl === DEFAULT_GIST_URL) && isMounted) {
+              setGistUrlState(data.gistUrl.trim());
+              localStorage.setItem('gistUrl', data.gistUrl.trim());
+            }
+          }
+        } catch (e) {
+          console.warn('Fetching server gist-config failed:', e);
+        }
+      }
+
+      // 3. Initial load from Gist and Server
       try {
         await loadFromGist();
       } finally {
@@ -1870,14 +1938,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           setIsInitialLoading(false);
         }
       }
-    })();
+    };
 
-    // Background interval auto-poll every 1 minute (60 seconds)
+    initGistConfigAndSync();
+
+    // Background interval auto-poll every 6 seconds for instant live updates across devices
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         loadFromGist(true);
       }
-    }, 60000);
+    }, 6000);
 
     const handleVisibilityOrFocus = () => {
       if (document.visibilityState === 'visible') {

@@ -140,7 +140,8 @@ app.get('/api/gist-config', (req, res) => {
     (submissions.feedbacks?.length || 0);
 
   res.json({
-    gistUrl: config.gistUrl || '',
+    gistUrl: config.gistUrl || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
+    gistToken: config.gistToken || '',
     hasToken: Boolean(config.gistToken && config.gistToken.length > 5),
     pendingSubmissionsCount: pendingCount,
   });
@@ -482,38 +483,58 @@ app.post('/api/unbind-code', async (req, res) => {
 // Full state synchronization endpoint
 app.post('/api/sync-all', async (req, res) => {
   try {
-    const { purchaseOrders, contactMessages, feedbacks, codeIpBindings, codeActivationDetails, gistToken, gistUrl } = req.body;
+    const { purchaseOrders, contactMessages, feedbacks, codeIpBindings, codeActivationDetails, gistToken, gistUrl, replace } = req.body;
     const submissions = getStoredSubmissions();
 
     if (Array.isArray(purchaseOrders)) {
-      submissions.purchaseOrders = [
-        ...purchaseOrders,
-        ...(submissions.purchaseOrders || []),
-      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      if (replace) {
+        submissions.purchaseOrders = purchaseOrders;
+      } else {
+        submissions.purchaseOrders = [
+          ...purchaseOrders,
+          ...(submissions.purchaseOrders || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      }
     }
     if (Array.isArray(contactMessages)) {
-      submissions.contactMessages = [
-        ...contactMessages,
-        ...(submissions.contactMessages || []),
-      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      if (replace) {
+        submissions.contactMessages = contactMessages;
+      } else {
+        submissions.contactMessages = [
+          ...contactMessages,
+          ...(submissions.contactMessages || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      }
     }
     if (Array.isArray(feedbacks)) {
-      submissions.feedbacks = [
-        ...feedbacks,
-        ...(submissions.feedbacks || []),
-      ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      if (replace) {
+        submissions.feedbacks = feedbacks;
+      } else {
+        submissions.feedbacks = [
+          ...feedbacks,
+          ...(submissions.feedbacks || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      }
     }
     if (codeIpBindings && typeof codeIpBindings === 'object') {
-      submissions.codeIpBindings = {
-        ...(submissions.codeIpBindings || {}),
-        ...codeIpBindings,
-      };
+      if (replace) {
+        submissions.codeIpBindings = codeIpBindings;
+      } else {
+        submissions.codeIpBindings = {
+          ...(submissions.codeIpBindings || {}),
+          ...codeIpBindings,
+        };
+      }
     }
     if (codeActivationDetails && typeof codeActivationDetails === 'object') {
-      submissions.codeActivationDetails = {
-        ...(submissions.codeActivationDetails || {}),
-        ...codeActivationDetails,
-      };
+      if (replace) {
+        submissions.codeActivationDetails = codeActivationDetails;
+      } else {
+        submissions.codeActivationDetails = {
+          ...(submissions.codeActivationDetails || {}),
+          ...codeActivationDetails,
+        };
+      }
     }
 
     saveStoredSubmissions(submissions);
@@ -537,6 +558,162 @@ app.post('/api/sync-all', async (req, res) => {
     }
 
     res.json({ success: true, syncedToGist, ...submissions });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update single order status or details
+app.patch('/api/orders/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const submissions = getStoredSubmissions();
+    let found = false;
+
+    submissions.purchaseOrders = (submissions.purchaseOrders || []).map((ord: any) => {
+      if (ord.id === id) {
+        found = true;
+        return { ...ord, ...updates, updatedAt: new Date().toISOString() };
+      }
+      return ord;
+    });
+
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, purchaseOrders: submissions.purchaseOrders });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Delete single order
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submissions = getStoredSubmissions();
+    submissions.purchaseOrders = (submissions.purchaseOrders || []).filter((ord: any) => ord.id !== id);
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, purchaseOrders: submissions.purchaseOrders });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update single feedback status
+app.patch('/api/feedbacks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const submissions = getStoredSubmissions();
+    let found = false;
+
+    submissions.feedbacks = (submissions.feedbacks || []).map((fb: any) => {
+      if (fb.id === id) {
+        found = true;
+        return { ...fb, status: status || fb.status, updatedAt: new Date().toISOString() };
+      }
+      return fb;
+    });
+
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Feedback not found' });
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, feedbacks: submissions.feedbacks });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Delete single feedback
+app.delete('/api/feedbacks/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submissions = getStoredSubmissions();
+    submissions.feedbacks = (submissions.feedbacks || []).filter((fb: any) => fb.id !== id);
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, feedbacks: submissions.feedbacks });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update single contact message status
+app.patch('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const submissions = getStoredSubmissions();
+    let found = false;
+
+    submissions.contactMessages = (submissions.contactMessages || []).map((msg: any) => {
+      if (msg.id === id) {
+        found = true;
+        return { ...msg, status: status || msg.status, updatedAt: new Date().toISOString() };
+      }
+      return msg;
+    });
+
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, contactMessages: submissions.contactMessages });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Delete single contact message
+app.delete('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submissions = getStoredSubmissions();
+    submissions.contactMessages = (submissions.contactMessages || []).filter((msg: any) => msg.id !== id);
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, contactMessages: submissions.contactMessages });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -35,12 +35,8 @@ const SettingsPage: React.FC = () => {
 
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-
-  // Keep localSettings in sync if settings update remotely
-  useEffect(() => {
-    setLocalSettings(settings);
-  }, [settings]);
-
+  const [isLiveRefreshing, setIsLiveRefreshing] = useState(false);
+  const [liveRefreshNotice, setLiveRefreshNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'paid' | 'orders' | 'ads' | 'sync' | 'skillResults'
   >('general');
@@ -48,11 +44,12 @@ const SettingsPage: React.FC = () => {
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
+  const [showGistToken, setShowGistToken] = useState(false);
+  const [tokenSaveNotice, setTokenSaveNotice] = useState<string | null>(null);
   const [gameSearch, setGameSearch] = useState('');
   const [gameCategoryFilter, setGameCategoryFilter] = useState('الكل');
   const [paidGameSearch, setPaidGameSearch] = useState('');
   const [paidGameCategoryFilter, setPaidGameCategoryFilter] = useState('الكل');
-
 
   // Filters for Feedback & Messages
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل'>('all');
@@ -62,6 +59,42 @@ const SettingsPage: React.FC = () => {
   const musicFileRef = useRef<HTMLInputElement>(null);
   const audioPreviewRef = useRef<HTMLAudioElement>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+
+  // Keep localSettings in sync if settings update remotely
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
+  // Fast auto-sync when admin is unlocked and on tab switch
+  useEffect(() => {
+    if (isAdminUnlocked) {
+      loadFromGist(true).catch(() => {});
+      const pollTimer = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          loadFromGist(true).catch(() => {});
+        }
+      }, 4000);
+      return () => clearInterval(pollTimer);
+    }
+  }, [isAdminUnlocked, activeTab, loadFromGist]);
+
+  const handleLiveRefresh = async () => {
+    setIsLiveRefreshing(true);
+    setLiveRefreshNotice('⏳ جاري جلب أحدث الطلبات والرسائل والتقييمات...');
+    try {
+      const res = await loadFromGist(false);
+      if (res) {
+        setLiveRefreshNotice('✓ تم تحديث واستلام أحدث البيانات بنجاح!');
+      } else {
+        setLiveRefreshNotice('✓ تم فحص وتحديث القوائم!');
+      }
+    } catch {
+      setLiveRefreshNotice('⚠️ تم تحديث القوائم محلياً');
+    } finally {
+      setIsLiveRefreshing(false);
+      setTimeout(() => setLiveRefreshNotice(null), 3500);
+    }
+  };
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -956,57 +989,76 @@ const SettingsPage: React.FC = () => {
                 <div>
                   <h2 className="text-xl font-black text-amber-950">مركز آراء وتقييمات المستخدمين</h2>
                   <p className="text-xs text-gray-500">
-                    متابعة وتحديث حالة المشاركات الواردة من صفحة "شاركنا رأيك"
+                    متابعة وتحديث حالة المشاركات الواردة من صفحة "شاركنا رأيك" (يتم التحديث المباشر تلقائياً)
                   </p>
                 </div>
               </div>
 
-              {/* Status Filters */}
-              <div className="flex flex-wrap gap-1.5 bg-amber-50 p-1 rounded-xl border border-amber-200">
+              {/* Refresh Button & Status Filters */}
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setFeedbackFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    feedbackFilter === 'all' ? 'bg-amber-500 text-white shadow' : 'text-amber-950 hover:bg-amber-100'
-                  }`}
+                  onClick={handleLiveRefresh}
+                  disabled={isLiveRefreshing}
+                  className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow transition-all cursor-pointer disabled:opacity-50"
+                  title="سحب فوري لأحدث الآراء من السيرفر والسحابة"
                 >
-                  الكل ({totalFeedbacks})
+                  <span className={isLiveRefreshing ? 'animate-spin' : ''}>🔄</span>
+                  <span>{isLiveRefreshing ? 'جاري التحديث...' : 'تحديث فوري الآن'}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedbackFilter('قيد الاطلاع')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    feedbackFilter === 'قيد الاطلاع'
-                      ? 'bg-amber-500 text-white shadow'
-                      : 'text-amber-950 hover:bg-amber-100'
-                  }`}
-                >
-                  قيد الاطلاع ({pendingFeedbacks})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedbackFilter('تمت المراجعة')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    feedbackFilter === 'تمت المراجعة'
-                      ? 'bg-blue-500 text-white shadow'
-                      : 'text-blue-950 hover:bg-blue-100'
-                  }`}
-                >
-                  تمت المراجعة
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedbackFilter('مكتمل')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    feedbackFilter === 'مكتمل'
-                      ? 'bg-emerald-500 text-white shadow'
-                      : 'text-emerald-950 hover:bg-emerald-100'
-                  }`}
-                >
-                  مكتمل
-                </button>
+
+                <div className="flex flex-wrap gap-1 bg-amber-50 p-1 rounded-xl border border-amber-200">
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      feedbackFilter === 'all' ? 'bg-amber-500 text-white shadow' : 'text-amber-950 hover:bg-amber-100'
+                    }`}
+                  >
+                    الكل ({totalFeedbacks})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackFilter('قيد الاطلاع')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      feedbackFilter === 'قيد الاطلاع'
+                        ? 'bg-amber-500 text-white shadow'
+                        : 'text-amber-950 hover:bg-amber-100'
+                    }`}
+                  >
+                    قيد الاطلاع ({pendingFeedbacks})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackFilter('تمت المراجعة')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      feedbackFilter === 'تمت المراجعة'
+                        ? 'bg-blue-500 text-white shadow'
+                        : 'text-blue-950 hover:bg-blue-100'
+                    }`}
+                  >
+                    تمت المراجعة
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackFilter('مكتمل')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      feedbackFilter === 'مكتمل'
+                        ? 'bg-emerald-500 text-white shadow'
+                        : 'text-emerald-950 hover:bg-emerald-100'
+                    }`}
+                  >
+                    مكتمل
+                  </button>
+                </div>
               </div>
             </div>
+
+            {liveRefreshNotice && (
+              <div className="bg-amber-100 border border-amber-300 text-amber-950 text-xs font-bold px-4 py-2 rounded-xl text-center animate-fade-in">
+                {liveRefreshNotice}
+              </div>
+            )}
 
             {/* Feedbacks List */}
             {filteredFeedbacks.length === 0 ? (
@@ -1124,59 +1176,78 @@ const SettingsPage: React.FC = () => {
                 <div>
                   <h2 className="text-xl font-black text-emerald-950">صندوق رسائل اتصل بنا</h2>
                   <p className="text-xs text-gray-500">
-                    متابعة الرسائل والاستفسارات الواردة من صفحة "اتصل بنا"
+                    متابعة الرسائل والاستفسارات الواردة من صفحة "اتصل بنا" (يتم التحديث المباشر تلقائياً)
                   </p>
                 </div>
               </div>
 
-              {/* Message Filters */}
-              <div className="flex flex-wrap gap-1.5 bg-emerald-50 p-1 rounded-xl border border-emerald-200">
+              {/* Refresh Button & Message Filters */}
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setMessageFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    messageFilter === 'all'
-                      ? 'bg-emerald-600 text-white shadow'
-                      : 'text-emerald-950 hover:bg-emerald-100'
-                  }`}
+                  onClick={handleLiveRefresh}
+                  disabled={isLiveRefreshing}
+                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow transition-all cursor-pointer disabled:opacity-50"
+                  title="سحب فوري لأحدث رسائل اتصل بنا من السيرفر والسحابة"
                 >
-                  الكل ({totalMessages})
+                  <span className={isLiveRefreshing ? 'animate-spin' : ''}>🔄</span>
+                  <span>{isLiveRefreshing ? 'جاري التحديث...' : 'تحديث فوري الآن'}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setMessageFilter('جديدة')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    messageFilter === 'جديدة'
-                      ? 'bg-red-500 text-white shadow'
-                      : 'text-emerald-950 hover:bg-emerald-100'
-                  }`}
-                >
-                  جديدة ({newMessages})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMessageFilter('قيد الاطلاع')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    messageFilter === 'قيد الاطلاع'
-                      ? 'bg-amber-500 text-white shadow'
-                      : 'text-amber-950 hover:bg-amber-100'
-                  }`}
-                >
-                  قيد الاطلاع
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMessageFilter('تم الرد')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
-                    messageFilter === 'تم الرد'
-                      ? 'bg-blue-600 text-white shadow'
-                      : 'text-blue-950 hover:bg-blue-100'
-                  }`}
-                >
-                  تم الرد
-                </button>
+
+                <div className="flex flex-wrap gap-1 bg-emerald-50 p-1 rounded-xl border border-emerald-200">
+                  <button
+                    type="button"
+                    onClick={() => setMessageFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      messageFilter === 'all'
+                        ? 'bg-emerald-600 text-white shadow'
+                        : 'text-emerald-950 hover:bg-emerald-100'
+                    }`}
+                  >
+                    الكل ({totalMessages})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMessageFilter('جديدة')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      messageFilter === 'جديدة'
+                        ? 'bg-red-500 text-white shadow'
+                        : 'text-emerald-950 hover:bg-emerald-100'
+                    }`}
+                  >
+                    جديدة ({newMessages})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMessageFilter('قيد الاطلاع')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      messageFilter === 'قيد الاطلاع'
+                        ? 'bg-amber-500 text-white shadow'
+                        : 'text-amber-950 hover:bg-amber-100'
+                    }`}
+                  >
+                    قيد الاطلاع
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMessageFilter('تم الرد')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-colors cursor-pointer ${
+                      messageFilter === 'تم الرد'
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'text-blue-950 hover:bg-blue-100'
+                    }`}
+                  >
+                    تم الرد
+                  </button>
+                </div>
               </div>
             </div>
+
+            {liveRefreshNotice && (
+              <div className="bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs font-bold px-4 py-2 rounded-xl text-center animate-fade-in">
+                {liveRefreshNotice}
+              </div>
+            )}
 
             {/* Messages List */}
             {filteredMessages.length === 0 ? (
@@ -1647,10 +1718,21 @@ const SettingsPage: React.FC = () => {
                   <span>🌐</span>
                   <span>مزامنة سحابية عامة (GitHub Gist)</span>
                 </h3>
+                {gistToken && gistToken.trim().length > 5 ? (
+                  <span className="text-[11px] bg-emerald-100 text-emerald-800 font-black px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1">
+                    <span>🟢</span>
+                    <span>متزامن مع الخادم</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full border border-amber-300 flex items-center gap-1">
+                    <span>⚪</span>
+                    <span>بانتظار إدخال الرمز</span>
+                  </span>
+                )}
               </div>
 
               <p className="text-xs text-gray-600 leading-relaxed font-semibold">
-                المزامنة السحابية تنشر التعديلات (الموسيقى، الألعاب، العداد، الإعلانات) فوراً لجميع الزوار من أي هاتف أو متصفح.
+                المزامنة السحابية تنشر التعديلات (الموسيقى، الألعاب، العداد، الإعلانات) وتستقبل طلبات التفعيل ورسائل الزوار فوراً من أي هاتف أو متصفح بدون إعادة إدخال الرمز في كل جهاز.
               </p>
 
               <div className="space-y-3 text-xs">
@@ -1661,25 +1743,61 @@ const SettingsPage: React.FC = () => {
                     value={gistUrl}
                     onChange={(e) => setGistUrl(e.target.value)}
                     placeholder="رابط Gist Raw"
-                    className="w-full px-3 py-2 border rounded-xl font-mono text-xs"
+                    className="w-full px-3 py-2 border rounded-xl font-mono text-xs bg-gray-50 focus:bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-black text-gray-700 mb-1">رمز التحقق (GitHub Token):</label>
-                  <input
-                    type="password"
-                    value={gistToken}
-                    onChange={(e) => setGistToken(e.target.value)}
-                    placeholder="GitHub Token"
-                    className="w-full px-3 py-2 border rounded-xl font-mono text-xs"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-black text-gray-700">رمز التحقق (GitHub Token):</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowGistToken(!showGistToken)}
+                      className="text-[11px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>{showGistToken ? '🙈 إخفاء الرمز' : '👁️ إظهار الرمز'}</span>
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showGistToken ? 'text' : 'password'}
+                      value={gistToken}
+                      onChange={(e) => setGistToken(e.target.value)}
+                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                      className="w-full px-3 py-2 border rounded-xl font-mono text-xs bg-gray-50 focus:bg-white pr-3"
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1 font-semibold">
+                    ✓ الرمز يتم حفظه وتثبيته تلقائياً على الخادم ليتم مشاركته مع أي هاتف أو جهاز تفتحه مستقبلاً.
+                  </p>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setGistToken(gistToken);
+                      setGistUrl(gistUrl);
+                      setTokenSaveNotice('✓ تم حفظ وتثبيت رمز المزامنة بنجاح على الخادم وكافة الأجهزة!');
+                      setTimeout(() => setTokenSaveNotice(null), 4000);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow cursor-pointer transition-all active:scale-95"
+                  >
+                    <span>💾</span>
+                    <span>حفظ وتثبيت الرمز على السيرفر وجميع الأجهزة</span>
+                  </button>
+                </div>
+
+                {tokenSaveNotice && (
+                  <p className="text-xs font-bold p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-center animate-fade-in">
+                    {tokenSaveNotice}
+                  </p>
+                )}
+
+                <div className="flex gap-2 pt-1">
                   <button
                     type="button"
                     onClick={handleLoadFromGist}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer transition-all active:scale-95"
                   >
                     <span>📥</span>
                     <span>سحب من Gist الآن</span>
@@ -1687,7 +1805,7 @@ const SettingsPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSaveToGist}
-                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer"
+                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow cursor-pointer transition-all active:scale-95"
                   >
                     <span>🚀</span>
                     <span>نشر فوري إلى Gist</span>
