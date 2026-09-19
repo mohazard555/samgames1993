@@ -5,17 +5,13 @@ import { saveAudioToCache, getAudioFromCache, clearAudioCache } from '../utils/a
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
 
+export const DEFAULT_100_ACTIVATION_CODES: string[] = Array.from({ length: 100 }, (_, i) => {
+  const num = (i + 1).toString().padStart(4, '0');
+  return `VIP-TOYS-2026-${num}`;
+});
+
 function generate100DefaultCodes(): string[] {
-  const codes: string[] = ['VIP-TOYS-2026-PREMIUM', 'VIP-SHAM-8832-7719'];
-  while (codes.length < 100) {
-    const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const code = `VIP-CODE-${p1}-${p2}`;
-    if (!codes.includes(code)) {
-      codes.push(code);
-    }
-  }
-  return codes;
+  return DEFAULT_100_ACTIVATION_CODES;
 }
 
 const defaultPaidSettings: Settings['paidSettings'] = {
@@ -150,6 +146,9 @@ interface SettingsContextType {
   deletePurchaseOrder: (orderId: string) => void;
   generateManualActivationCode: (note?: string) => string;
   generateFreeRandomCode: (forceReplace?: boolean) => { code: string; isNew: boolean };
+  generateSingleRandomCode: () => string;
+  generateBatchCodes: (count: number) => string[];
+  resetApprovedCodesTo100: () => string[];
   generateFriendCode: (friendName: string) => string;
   revokeActivationCode: (code: string) => void;
   revokeFreeActivationCode: () => void;
@@ -614,6 +613,74 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return newCode;
   };
 
+  // Generate exactly ONE single random unique code (no duplicates)
+  const generateSingleRandomCode = (): string => {
+    const existingSet = new Set(
+      (settings.approvedActivationCodes || []).map((c) => c.trim().toUpperCase())
+    );
+    let newCode = '';
+    while (!newCode || existingSet.has(newCode)) {
+      const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      newCode = `VIP-CODE-${p1}-${p2}`;
+    }
+
+    const updatedCodes = [newCode, ...(settings.approvedActivationCodes || [])];
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+    };
+
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+    return newCode;
+  };
+
+  // Generate a specified number of unique codes without duplicates
+  const generateBatchCodes = (count: number): string[] => {
+    const safeCount = Math.max(1, Math.min(Number(count) || 1, 500));
+    const existingSet = new Set(
+      (settings.approvedActivationCodes || []).map((c) => c.trim().toUpperCase())
+    );
+    const newBatch: string[] = [];
+
+    while (newBatch.length < safeCount) {
+      const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const code = `VIP-CODE-${p1}-${p2}`;
+      if (!existingSet.has(code) && !newBatch.includes(code)) {
+        newBatch.push(code);
+      }
+    }
+
+    const updatedCodes = [...newBatch, ...(settings.approvedActivationCodes || [])];
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: updatedCodes,
+    };
+
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+    return newBatch;
+  };
+
+  // Reset approved codes registry back to the clean 100 default codes
+  const resetApprovedCodesTo100 = (): string[] => {
+    const newSettings: Settings = {
+      ...settings,
+      approvedActivationCodes: DEFAULT_100_ACTIVATION_CODES,
+    };
+    saveSettings(newSettings);
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+    return DEFAULT_100_ACTIVATION_CODES;
+  };
+
   const generateManualActivationCode = (customerName?: string): string => {
     if (customerName && customerName.trim()) {
       return generateFriendCode(customerName);
@@ -992,13 +1059,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : []),
             ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
           ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
-          approvedActivationCodes: Array.from(
-            new Set([
-              ...(Array.isArray(effectiveRemote.approvedActivationCodes) ? effectiveRemote.approvedActivationCodes : []),
-              ...(Array.isArray(localParsed.approvedActivationCodes) ? localParsed.approvedActivationCodes : []),
-              ...(defaultSettings.approvedActivationCodes || []),
-            ])
-          ),
+          approvedActivationCodes:
+            Array.isArray(effectiveRemote.approvedActivationCodes) && effectiveRemote.approvedActivationCodes.length > 0
+              ? effectiveRemote.approvedActivationCodes
+              : Array.isArray(localParsed.approvedActivationCodes) && localParsed.approvedActivationCodes.length > 0
+              ? localParsed.approvedActivationCodes
+              : DEFAULT_100_ACTIVATION_CODES,
           freeActivationCode:
             effectiveRemote.freeActivationCode ||
             localParsed.freeActivationCode ||
@@ -1582,6 +1648,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         deletePurchaseOrder,
         generateManualActivationCode,
         generateFreeRandomCode,
+        generateSingleRandomCode,
+        generateBatchCodes,
+        resetApprovedCodesTo100,
         generateFriendCode,
         revokeActivationCode,
         revokeFreeActivationCode,
