@@ -45,7 +45,11 @@ function getStoredGistConfig(): { gistToken: string; gistUrl: string } {
   try {
     if (fs.existsSync(GIST_CONFIG_FILE)) {
       const content = fs.readFileSync(GIST_CONFIG_FILE, 'utf-8');
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      return {
+        gistToken: parsed.gistToken || process.env.GIST_TOKEN || '',
+        gistUrl: parsed.gistUrl || process.env.GIST_URL || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
+      };
     }
   } catch (e) {
     console.warn('Error reading gist config:', e);
@@ -60,8 +64,8 @@ function saveStoredGistConfig(config: { gistToken?: string; gistUrl?: string }) 
   try {
     const current = getStoredGistConfig();
     const updated = {
-      gistToken: config.gistToken !== undefined ? config.gistToken : current.gistToken,
-      gistUrl: config.gistUrl !== undefined ? config.gistUrl : current.gistUrl,
+      gistToken: (config.gistToken !== undefined && config.gistToken.trim()) ? config.gistToken.trim() : current.gistToken,
+      gistUrl: (config.gistUrl !== undefined && config.gistUrl.trim()) ? config.gistUrl.trim() : current.gistUrl,
     };
     fs.writeFileSync(GIST_CONFIG_FILE, JSON.stringify(updated, null, 2), 'utf-8');
     return updated;
@@ -84,16 +88,43 @@ app.get('/api/data', (req, res) => {
 // Gist Configuration Endpoints
 app.get('/api/gist-config', (req, res) => {
   const config = getStoredGistConfig();
+  const submissions = getStoredSubmissions();
+  const pendingCount =
+    (submissions.purchaseOrders?.length || 0) +
+    (submissions.contactMessages?.length || 0) +
+    (submissions.feedbacks?.length || 0);
+
   res.json({
     gistUrl: config.gistUrl || '',
     hasToken: Boolean(config.gistToken && config.gistToken.length > 5),
+    pendingSubmissionsCount: pendingCount,
   });
 });
 
-app.post('/api/gist-config', (req, res) => {
+app.post('/api/gist-config', async (req, res) => {
   const { gistToken, gistUrl } = req.body;
   const updated = saveStoredGistConfig({ gistToken, gistUrl });
-  res.json({ success: true, message: 'تم حفظ إعدادات الربط السحابي على الخادم بنجاح' });
+
+  // If token is now active, immediately sync any stored local submissions to Gist!
+  if (updated.gistToken && updated.gistUrl) {
+    const submissions = getStoredSubmissions();
+    const hasAnySubmissions =
+      (submissions.purchaseOrders && submissions.purchaseOrders.length > 0) ||
+      (submissions.contactMessages && submissions.contactMessages.length > 0) ||
+      (submissions.feedbacks && submissions.feedbacks.length > 0);
+
+    if (hasAnySubmissions) {
+      syncToGistHelper(updated.gistUrl, updated.gistToken, submissions)
+        .then(() => console.log('Successfully flushed stored submissions to Gist on token registration!'))
+        .catch((err) => console.warn('Flush submissions on token registration failed:', err.message));
+    }
+  }
+
+  res.json({
+    success: true,
+    hasToken: Boolean(updated.gistToken && updated.gistToken.length > 5),
+    message: 'تم حفظ وتفعيل إعدادات المزامنة السحابية على الخادم بنجاح',
+  });
 });
 
 app.post('/api/orders', async (req, res) => {
@@ -108,17 +139,31 @@ app.post('/api/orders', async (req, res) => {
     );
     saveStoredSubmissions(submissions);
 
-    // Auto-sync to GitHub Gist using request or server stored config
+    // Auto-sync to GitHub Gist using request headers, body or server stored config
     const storedGist = getStoredGistConfig();
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+
+    let syncedToGist = false;
+    let gistError: string | null = null;
+
     if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
-        console.warn('Background Gist sync on order failed:', syncErr)
-      );
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+        syncedToGist = true;
+      } catch (syncErr: any) {
+        gistError = syncErr.message;
+        console.warn('Gist sync on order failed:', syncErr.message);
+      }
     }
 
-    res.json({ success: true, order, purchaseOrders: submissions.purchaseOrders });
+    res.json({
+      success: true,
+      order,
+      syncedToGist,
+      gistError,
+      purchaseOrders: submissions.purchaseOrders,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -137,15 +182,29 @@ app.post('/api/messages', async (req, res) => {
     saveStoredSubmissions(submissions);
 
     const storedGist = getStoredGistConfig();
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+
+    let syncedToGist = false;
+    let gistError: string | null = null;
+
     if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
-        console.warn('Background Gist sync on message failed:', syncErr)
-      );
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+        syncedToGist = true;
+      } catch (syncErr: any) {
+        gistError = syncErr.message;
+        console.warn('Gist sync on message failed:', syncErr.message);
+      }
     }
 
-    res.json({ success: true, message, contactMessages: submissions.contactMessages });
+    res.json({
+      success: true,
+      message,
+      syncedToGist,
+      gistError,
+      contactMessages: submissions.contactMessages,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -164,15 +223,29 @@ app.post('/api/feedbacks', async (req, res) => {
     saveStoredSubmissions(submissions);
 
     const storedGist = getStoredGistConfig();
-    const gistToken = req.headers['x-gist-token'] || req.body.gistToken || storedGist.gistToken;
-    const gistUrl = req.headers['x-gist-url'] || req.body.gistUrl || storedGist.gistUrl;
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+
+    let syncedToGist = false;
+    let gistError: string | null = null;
+
     if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken as string, submissions).catch((syncErr) =>
-        console.warn('Background Gist sync on feedback failed:', syncErr)
-      );
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+        syncedToGist = true;
+      } catch (syncErr: any) {
+        gistError = syncErr.message;
+        console.warn('Gist sync on feedback failed:', syncErr.message);
+      }
     }
 
-    res.json({ success: true, feedback, feedbacks: submissions.feedbacks });
+    res.json({
+      success: true,
+      feedback,
+      syncedToGist,
+      gistError,
+      feedbacks: submissions.feedbacks,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -210,16 +283,20 @@ app.post('/api/sync-all', async (req, res) => {
     }
 
     const storedGist = getStoredGistConfig();
-    const activeToken = gistToken || storedGist.gistToken;
-    const activeUrl = gistUrl || storedGist.gistUrl;
+    const activeToken = (gistToken || storedGist.gistToken || '').trim();
+    const activeUrl = (gistUrl || storedGist.gistUrl || '').trim();
 
+    let syncedToGist = false;
     if (activeToken && activeUrl) {
-      syncToGistHelper(activeUrl, activeToken, submissions).catch((e) =>
-        console.warn('Background sync-all Gist error:', e)
-      );
+      try {
+        await syncToGistHelper(activeUrl, activeToken, submissions);
+        syncedToGist = true;
+      } catch (e: any) {
+        console.warn('Background sync-all Gist error:', e.message);
+      }
     }
 
-    res.json({ success: true, ...submissions });
+    res.json({ success: true, syncedToGist, ...submissions });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -232,25 +309,56 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
   const fileMatch = cleanUrl.match(/\/([^\/?#]+\.json)/i);
   const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
 
-  // Fetch current gist content first to merge
-  const getRes = await fetch(`https://api.github.com/gists/${gistId}`, {
-    headers: {
-      Authorization: `token ${token}`,
-      Accept: 'application/vnd.github.v3+json',
-    },
-  });
+  const authHeader = token.startsWith('ghp_') || token.startsWith('github_pat_')
+    ? `Bearer ${token}`
+    : `token ${token}`;
 
-  let currentSettings = {};
-  if (getRes.ok) {
-    const gistData = await getRes.json();
-    const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0];
-    if (targetFile && targetFile.content) {
-      try {
-        currentSettings = JSON.parse(targetFile.content);
-      } catch {}
+  const requestHeaders = {
+    Authorization: authHeader,
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'ToysGame-Sync-Server/1.0',
+  };
+
+  // 1. Fetch current gist content first to safely merge
+  let currentSettings: any = {};
+  try {
+    const getRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
+      headers: requestHeaders,
+    });
+
+    if (getRes.ok) {
+      const gistData = await getRes.json();
+      const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0] as any;
+      if (targetFile) {
+        if (targetFile.content && !targetFile.truncated) {
+          try {
+            currentSettings = JSON.parse(targetFile.content);
+          } catch {}
+        } else if (targetFile.raw_url) {
+          const rawRes = await fetch(targetFile.raw_url, { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' } });
+          if (rawRes.ok) {
+            currentSettings = await rawRes.json();
+          }
+        }
+      }
     }
+  } catch (err: any) {
+    console.warn('GitHub API fetch failed in helper, trying raw fallback:', err.message);
   }
 
+  // Fallback to public raw if still empty
+  if (!currentSettings || Object.keys(currentSettings).length === 0) {
+    try {
+      const rawRes = await fetch(`https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`, {
+        headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
+      });
+      if (rawRes.ok) {
+        currentSettings = await rawRes.json();
+      }
+    } catch {}
+  }
+
+  // Safety safeguard: never wipe existing Gist config if we have existing keys
   const merged = {
     ...currentSettings,
     purchaseOrders: [
@@ -267,11 +375,10 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
   };
 
-  await fetch(`https://api.github.com/gists/${gistId}`, {
+  const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `token ${token}`,
-      Accept: 'application/vnd.github.v3+json',
+      ...requestHeaders,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -282,6 +389,21 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
       },
     }),
   });
+
+  if (!patchRes.ok) {
+    const errorBody = await patchRes.text();
+    throw new Error(`GitHub Gist API error ${patchRes.status}: ${errorBody}`);
+  }
+
+  // Update server local file to reflect current merged state
+  saveStoredSubmissions({
+    purchaseOrders: merged.purchaseOrders,
+    contactMessages: merged.contactMessages,
+    feedbacks: merged.feedbacks,
+  });
+
+  console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks.`);
+  return merged;
 }
 
 async function startServer() {

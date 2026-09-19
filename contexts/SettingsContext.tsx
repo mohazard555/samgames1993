@@ -1002,7 +1002,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const localSettingsRaw = localStorage.getItem('toysGameSettings');
       const localParsed = localSettingsRaw ? JSON.parse(localSettingsRaw) : {};
 
-      if ((fetchedSettings && typeof fetchedSettings === 'object') || (serverSubmissions.purchaseOrders && serverSubmissions.purchaseOrders.length > 0)) {
+      const hasAnyServerSubmissions =
+        Boolean(serverSubmissions.purchaseOrders && serverSubmissions.purchaseOrders.length > 0) ||
+        Boolean(serverSubmissions.contactMessages && serverSubmissions.contactMessages.length > 0) ||
+        Boolean(serverSubmissions.feedbacks && serverSubmissions.feedbacks.length > 0);
+
+      if ((fetchedSettings && typeof fetchedSettings === 'object') || hasAnyServerSubmissions) {
         const effectiveRemote = fetchedSettings || {};
 
         const parsedWaitTime =
@@ -1089,6 +1094,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
         setLastSyncTime(syncTimeStr);
         localStorage.setItem('toysGameLastGistSync', syncTimeStr);
+
+        // Check if there are any submissions that were received on the server disk but missing from Gist
+        const hasUnsyncedServerFeedbacks = (serverSubmissions.feedbacks || []).some(
+          (sf: any) => !(effectiveRemote.feedbacks || []).some((rf: any) => rf.id === sf.id)
+        );
+        const hasUnsyncedServerMessages = (serverSubmissions.contactMessages || []).some(
+          (sm: any) => !(effectiveRemote.contactMessages || []).some((rm: any) => rm.id === sm.id)
+        );
+        const hasUnsyncedServerOrders = (serverSubmissions.purchaseOrders || []).some(
+          (so: any) => !(effectiveRemote.purchaseOrders || []).some((ro: any) => ro.id === so.id)
+        );
+
+        if ((hasUnsyncedServerFeedbacks || hasUnsyncedServerMessages || hasUnsyncedServerOrders) && activeToken) {
+          saveToGist(merged).catch((e) => console.warn('Auto-push pending server submissions to Gist failed:', e));
+        }
+
         if (!isSilent) setIsSyncing(false);
         return true;
       }
@@ -1592,8 +1613,19 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return pulled;
   };
 
-  // Automatically fetch latest Gist settings on load and poll every 30 seconds
+  // Automatically sync Gist token to backend server and pull latest data on load
   useEffect(() => {
+    // Sync local token to server on app load so server can sync submissions on behalf of visitors
+    const savedToken = localStorage.getItem('gistToken');
+    const savedUrl = localStorage.getItem('gistUrl') || DEFAULT_GIST_URL;
+    if (savedToken && savedToken.trim().length > 5) {
+      fetch('/api/gist-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gistToken: savedToken.trim(), gistUrl: savedUrl.trim() }),
+      }).catch((e) => console.warn('Auto-sync token to server on mount failed:', e));
+    }
+
     let isMounted = true;
     (async () => {
       try {
