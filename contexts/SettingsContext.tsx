@@ -24,6 +24,11 @@ const defaultPaidSettings: Settings['paidSettings'] = {
   questionGateEnabled: true, // تفعيل طلب الاشتراك عند الوصول لسؤال محدد
   questionGateNumber: 15, // السؤال رقم 15
   vipTrialDurationSeconds: 60, // دقيقة واحدة تجربة مجانية لألعاب VIP
+  vip50GamesGateIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // ألعاب الـ 50 مرحلة التي تطلب اشتراك VIP عند مرحلة معينة
+  vip50StageThreshold: 10, // طلب اشتراك عند الوصول للمرحلة 10
+  timer50GamesIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // ألعاب الـ 50 مرحلة التي لها مؤقت زمني
+  timer50DurationSeconds: 20, // 20 ثانية لكل سؤال/مرحلة
+  customGame50Config: {},
   shamCash: {
     enabled: true,
     accountName: 'mohannad anis ahmad',
@@ -133,11 +138,12 @@ interface SettingsContextType {
   isSubscribed: boolean;
   setIsSubscribed: (val: boolean) => void;
   resetSubscriptionStatus: () => void;
-  // VIP Paid state (Permanent local activation)
+  // VIP Paid state (Permanent local activation with strict device & IP binding)
   isVipActive: boolean;
   vipActivationCode: string;
-  activateVip: (code: string) => { success: boolean; message: string };
+  activateVip: (code: string, customerName?: string) => Promise<{ success: boolean; message: string; reason?: string; clientIp?: string; boundIp?: string }>;
   deactivateVip: () => void;
+  unbindCodeIp: (code: string) => Promise<{ success: boolean; message: string }>;
   // Subscription Orders & Activation Codes
   addPurchaseOrder: (
     order: Omit<SubscriptionOrder, 'id' | 'createdAt' | 'activationCode' | 'status'>
@@ -184,14 +190,19 @@ interface SettingsContextType {
   syncError: string | null;
   setSyncError: (err: string | null) => void;
   // Feedback & Contact Management
-  addFeedback: (item: { name: string; email: string; rating: number; category?: string; message: string }) => Promise<void>;
+  addFeedback: (item: { name: string; email: string; rating: number; category?: string; message: string }) => Promise<FeedbackItem>;
   updateFeedbackStatus: (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => void;
   deleteFeedback: (id: string) => void;
-  addContactMessage: (item: { name: string; email: string; subject: string; message: string }) => Promise<void>;
+  addContactMessage: (item: { name: string; email: string; subject: string; message: string }) => Promise<ContactMessage>;
   updateContactMessageStatus: (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => void;
   deleteContactMessage: (id: string) => void;
   addSkillTestResult: (item: { name: string; age: string; country: string; score: number; total: number }) => Promise<void>;
   deleteSkillTestResult: (id: string) => void;
+  // 50 Questions VIP Gate & Timer helpers
+  isGame50VipGated: (gameId: number) => boolean;
+  getGame50VipThreshold: (gameId: number) => number;
+  isGame50TimerEnabled: (gameId: number) => boolean;
+  getGame50TimerDuration: (gameId: number) => number;
 }
 
 
@@ -306,7 +317,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
-  const activateVip = (rawCode: string): { success: boolean; message: string } => {
+  const activateVip = async (
+    rawCode: string,
+    customerName?: string
+  ): Promise<{ success: boolean; message: string; reason?: string; clientIp?: string; boundIp?: string }> => {
     const code = (rawCode || '').trim().toUpperCase();
     if (!code) {
       return { success: false, message: 'يرجى كتابة كود التفعيل أولاً.' };
@@ -316,10 +330,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const bindings = settings.codeDeviceBindings || {};
     const boundDevice = bindings[code];
 
+    // Local device mismatch check
     if (boundDevice && boundDevice !== deviceId) {
       return {
         success: false,
-        message: 'عذراً، هذا الكود مستخدم بالفعل على جهاز آخر ولا يمكن استخدامه على جهاز متعدد لمنع التلاعب والتداول.',
+        reason: 'DEVICE_MISMATCH',
+        message: '⚠️ تنبيه أمني: هذا الكود مفعّل مسبقاً على هاتف وجهاز آخر ولا يمكن تفعيله على هاتف ثانٍ منعاً للتلاعب والتداول.',
       };
     }
 
@@ -336,41 +352,148 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     // 3. Algorithmic fallback: codes starting with VIP- and having 3 parts
     const isAlgorithmicValid = /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(code);
 
-    if (isApprovedCode || (matchingOrder && matchingOrder.status !== 'مرفوض') || isAlgorithmicValid) {
-      // Bind code to device
-      const updatedBindings = { ...bindings, [code]: deviceId };
-      const newSettings: Settings = {
-        ...settings,
-        codeDeviceBindings: updatedBindings,
-      };
-      saveSettings(newSettings);
-      if (gistToken) {
-        saveToGist(newSettings).catch(() => {});
-      }
-
-      try {
-        localStorage.setItem('toysGameVipActive', 'true');
-        localStorage.setItem('toysGameVipCode', code);
-      } catch (e) {
-        console.error(e);
-      }
-      setIsVipActiveState(true);
-      setVipActivationCodeState(code);
-
-      // If matched an order and not approved yet, mark it approved with activation timestamp
-      if (matchingOrder && matchingOrder.status === 'معلق') {
-        updateOrderStatus(matchingOrder.id, 'موافق عليه');
-      }
-
+    if (!isApprovedCode && (!matchingOrder || matchingOrder.status === 'مرفوض') && !isAlgorithmicValid) {
       return {
-        success: true,
-        message: 'تهانينا! تم تفعيل النسخة الكاملة (VIP) بنجاح على هذا الجهاز مدى الحياة 🎉',
+        success: false,
+        message: 'كود التفعيل غير صحيح أو غير معتمد. يرجى مراجعة الإدارة أو التأكد من إدخال الرمز بشكل دقيق.',
       };
     }
 
+    // Call Backend Server IP-Binding Endpoint to verify and lock to phone's IP
+    let serverIp = '';
+    let serverDevice = '';
+    let serverActivatedAt = new Date().toLocaleString('ar-EG');
+
+    try {
+      const res = await fetch('/api/activate-vip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({
+          code,
+          deviceFingerprint: deviceId,
+          customerName: customerName || settings.codeCustomerBindings?.[code],
+          gistToken,
+          gistUrl,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        // Server rejected due to IP mismatch!
+        return {
+          success: false,
+          reason: data.reason || 'IP_MISMATCH',
+          boundIp: data.boundIp,
+          message:
+            data.message ||
+            '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بـ IP هاتف آخر ويمنع منعا باتا إدخاله بهاتف آخر منعاً للتلاعب.',
+        };
+      }
+
+      if (data.clientIp) serverIp = data.clientIp;
+      if (data.deviceInfo) serverDevice = data.deviceInfo;
+      if (data.activatedAt) serverActivatedAt = data.activatedAt;
+    } catch (apiErr) {
+      console.warn('Backend /api/activate-vip request failed, relying on client fingerprinting:', apiErr);
+    }
+
+    // Bind code to device & IP in local and cloud state
+    const updatedDeviceBindings = { ...bindings, [code]: deviceId };
+    const updatedIpBindings = {
+      ...(settings.codeIpBindings || {}),
+      ...(serverIp ? { [code]: serverIp } : {}),
+    };
+    const updatedDetails = {
+      ...(settings.codeActivationDetails || {}),
+      [code]: {
+        ip: serverIp || 'مسجل محلياً',
+        deviceInfo: serverDevice || navigator.userAgent,
+        activatedAt: serverActivatedAt,
+        customerName: customerName || settings.codeCustomerBindings?.[code],
+        deviceFingerprint: deviceId,
+      },
+    };
+
+    const newSettings: Settings = {
+      ...settings,
+      codeDeviceBindings: updatedDeviceBindings,
+      codeIpBindings: updatedIpBindings,
+      codeActivationDetails: updatedDetails,
+    };
+    saveSettings(newSettings);
+
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+
+    try {
+      localStorage.setItem('toysGameVipActive', 'true');
+      localStorage.setItem('toysGameVipCode', code);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsVipActiveState(true);
+    setVipActivationCodeState(code);
+
+    // If matched an order and not approved yet, mark it approved
+    if (matchingOrder && matchingOrder.status === 'معلق') {
+      updateOrderStatus(matchingOrder.id, 'موافق عليه');
+    }
+
     return {
-      success: false,
-      message: 'كود التفعيل غير صحيح أو غير معتمد. يرجى مراجعة الإدارة أو التأكد من إدخال الرمز بشكل دقيق.',
+      success: true,
+      clientIp: serverIp,
+      message: serverIp
+        ? `🎉 تهانينا! تم ربط وتفعيل كود VIP بنجاح على هذا الهاتف (IP: ${serverIp}) مدى الحياة.`
+        : '🎉 تهانينا! تم تفعيل النسخة الكاملة (VIP) بنجاح على هذا الجهاز مدى الحياة.',
+    };
+  };
+
+  // Admin unbind IP and Device from code
+  const unbindCodeIp = async (code: string): Promise<{ success: boolean; message: string }> => {
+    const cleanCode = (code || '').trim().toUpperCase();
+    if (!cleanCode) return { success: false, message: 'كود غير محدد' };
+
+    try {
+      await fetch('/api/unbind-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({ code: cleanCode, gistToken, gistUrl }),
+      });
+    } catch (e) {
+      console.warn('API unbind call failed:', e);
+    }
+
+    const updatedDeviceBindings = { ...(settings.codeDeviceBindings || {}) };
+    delete updatedDeviceBindings[cleanCode];
+
+    const updatedIpBindings = { ...(settings.codeIpBindings || {}) };
+    delete updatedIpBindings[cleanCode];
+
+    const updatedDetails = { ...(settings.codeActivationDetails || {}) };
+    delete updatedDetails[cleanCode];
+
+    const newSettings: Settings = {
+      ...settings,
+      codeDeviceBindings: updatedDeviceBindings,
+      codeIpBindings: updatedIpBindings,
+      codeActivationDetails: updatedDetails,
+    };
+    saveSettings(newSettings);
+
+    if (gistToken) {
+      saveToGist(newSettings).catch(() => {});
+    }
+
+    return {
+      success: true,
+      message: `تم بنجاح فك ارتباط الـ IP والجهاز للكود (${cleanCode}) وأصبح متاحاً للاستخدام من جديد.`,
     };
   };
 
@@ -405,6 +528,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     let updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
     
+    let returnedOrder = newOrder;
     // Post to server API
     try {
       const res = await fetch('/api/orders', {
@@ -419,6 +543,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const data = await res.json();
         if (data.success && Array.isArray(data.purchaseOrders)) {
           updatedOrders = data.purchaseOrders;
+        }
+        if (data.success && data.order) {
+          returnedOrder = { ...newOrder, ...data.order };
         }
       }
     } catch (e) {
@@ -436,7 +563,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
     }
 
-    return newOrder;
+    return returnedOrder;
   };
 
   const updateOrderStatus = (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => {
@@ -818,6 +945,56 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return unlockedVideoGames.includes(gameId);
   };
 
+  // 50-Questions games VIP Stage Gate Check
+  const isGame50VipGated = useCallback((gameId: number): boolean => {
+    const paid = settings.paidSettings;
+    if (!paid || paid.enabled === false) return false;
+    if (paid.customGame50Config?.[gameId]?.vipGateEnabled !== undefined) {
+      return !!paid.customGame50Config[gameId].vipGateEnabled;
+    }
+    if (Array.isArray(paid.vip50GamesGateIds)) {
+      return paid.vip50GamesGateIds.includes(gameId);
+    }
+    return !!paid.questionGateEnabled;
+  }, [settings.paidSettings]);
+
+  // 50-Questions games VIP Stage Threshold (e.g. stage 10)
+  const getGame50VipThreshold = useCallback((gameId: number): number => {
+    const paid = settings.paidSettings;
+    const custom = paid?.customGame50Config?.[gameId]?.vipStage;
+    if (typeof custom === 'number' && custom > 0) return custom;
+    if (typeof paid?.vip50StageThreshold === 'number' && paid.vip50StageThreshold > 0) {
+      return paid.vip50StageThreshold;
+    }
+    if (typeof paid?.questionGateNumber === 'number' && paid.questionGateNumber > 0) {
+      return paid.questionGateNumber;
+    }
+    return 10;
+  }, [settings.paidSettings]);
+
+  // 50-Questions games Timer Check
+  const isGame50TimerEnabled = useCallback((gameId: number): boolean => {
+    const paid = settings.paidSettings;
+    if (paid?.customGame50Config?.[gameId]?.timerEnabled !== undefined) {
+      return !!paid.customGame50Config[gameId].timerEnabled;
+    }
+    if (Array.isArray(paid?.timer50GamesIds)) {
+      return paid.timer50GamesIds.includes(gameId);
+    }
+    return false;
+  }, [settings.paidSettings]);
+
+  // 50-Questions games Timer Duration
+  const getGame50TimerDuration = useCallback((gameId: number): number => {
+    const paid = settings.paidSettings;
+    const custom = paid?.customGame50Config?.[gameId]?.timerSeconds;
+    if (typeof custom === 'number' && custom > 0) return custom;
+    if (typeof paid?.timer50DurationSeconds === 'number' && paid.timer50DurationSeconds > 0) {
+      return paid.timer50DurationSeconds;
+    }
+    return 20;
+  }, [settings.paidSettings]);
+
 
   // Admin lock state (Password 1993)
   const [isAdminUnlocked, setIsAdminUnlockedState] = useState<boolean>(() => {
@@ -986,7 +1163,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
 
       // Method 3: Also fetch from server API to include any visitor submissions stored on server disk
-      let serverSubmissions: { purchaseOrders?: any[]; contactMessages?: any[]; feedbacks?: any[] } = {};
+      let serverSubmissions: {
+        purchaseOrders?: any[];
+        contactMessages?: any[];
+        feedbacks?: any[];
+        codeIpBindings?: Record<string, string>;
+        codeActivationDetails?: Record<string, any>;
+        codeDeviceBindings?: Record<string, string>;
+      } = {};
       try {
         const serverRes = await fetch('/api/data');
         if (serverRes.ok) {
@@ -1005,7 +1189,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const hasAnyServerSubmissions =
         Boolean(serverSubmissions.purchaseOrders && serverSubmissions.purchaseOrders.length > 0) ||
         Boolean(serverSubmissions.contactMessages && serverSubmissions.contactMessages.length > 0) ||
-        Boolean(serverSubmissions.feedbacks && serverSubmissions.feedbacks.length > 0);
+        Boolean(serverSubmissions.feedbacks && serverSubmissions.feedbacks.length > 0) ||
+        Boolean(serverSubmissions.codeIpBindings && Object.keys(serverSubmissions.codeIpBindings).length > 0);
 
       if ((fetchedSettings && typeof fetchedSettings === 'object') || hasAnyServerSubmissions) {
         const effectiveRemote = fetchedSettings || {};
@@ -1078,6 +1263,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ...(localParsed.codeCustomerBindings || {}),
             ...(effectiveRemote.codeCustomerBindings || {}),
           },
+          codeDeviceBindings: {
+            ...(localParsed.codeDeviceBindings || {}),
+            ...(effectiveRemote.codeDeviceBindings || {}),
+            ...(serverSubmissions.codeDeviceBindings || {}),
+          },
+          codeIpBindings: {
+            ...(localParsed.codeIpBindings || {}),
+            ...(effectiveRemote.codeIpBindings || {}),
+            ...(serverSubmissions.codeIpBindings || {}),
+          },
+          codeActivationDetails: {
+            ...(localParsed.codeActivationDetails || {}),
+            ...(effectiveRemote.codeActivationDetails || {}),
+            ...(serverSubmissions.codeActivationDetails || {}),
+          },
           adSettings: {
             ...defaultSettings.adSettings,
             ...(effectiveRemote.adSettings || {}),
@@ -1089,6 +1289,29 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           feedbacks: mergedFeedbacks,
           contactMessages: mergedMessages,
         };
+
+        // Detect if new submissions arrived
+        const prevTotal = (settings.purchaseOrders?.length || 0) + (settings.feedbacks?.length || 0) + (settings.contactMessages?.length || 0);
+        const newTotal = merged.purchaseOrders.length + merged.feedbacks.length + merged.contactMessages.length;
+        if (newTotal > prevTotal && prevTotal > 0) {
+          try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+              const audioCtx = new AudioContextClass();
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+              osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.25); // A5
+              gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start();
+              osc.stop(audioCtx.currentTime + 0.4);
+            }
+          } catch {}
+        }
 
         saveSettings(merged);
         const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
@@ -1236,7 +1459,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   // Feedback Management Methods
-  const addFeedback = async (item: { name: string; email: string; rating: number; category?: string; message: string }) => {
+  const addFeedback = async (item: { name: string; email: string; rating: number; category?: string; message: string }): Promise<FeedbackItem> => {
     const newFeedback: FeedbackItem = {
       id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       name: item.name.trim() || 'فاعل خير مجهول',
@@ -1249,6 +1472,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     let updatedFeedbacks = [newFeedback, ...(settings.feedbacks || [])];
+    let returnedFeedback = newFeedback;
 
     try {
       const res = await fetch('/api/feedbacks', {
@@ -1263,6 +1487,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const data = await res.json();
         if (data.success && Array.isArray(data.feedbacks)) {
           updatedFeedbacks = data.feedbacks;
+        }
+        if (data.success && data.feedback) {
+          returnedFeedback = { ...newFeedback, ...data.feedback };
         }
       }
     } catch (e) {
@@ -1279,6 +1506,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (gistToken) {
       saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
     }
+
+    return returnedFeedback;
   };
 
   const updateFeedbackStatus = (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => {
@@ -1300,7 +1529,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   // Contact Messages Management Methods
-  const addContactMessage = async (item: { name: string; email: string; subject: string; message: string }) => {
+  const addContactMessage = async (item: { name: string; email: string; subject: string; message: string }): Promise<ContactMessage> => {
     const newMsg: ContactMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       name: item.name.trim() || 'صديق مجهول',
@@ -1312,6 +1541,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     let updatedMessages = [newMsg, ...(settings.contactMessages || [])];
+    let returnedMsg = newMsg;
 
     try {
       const res = await fetch('/api/messages', {
@@ -1326,6 +1556,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const data = await res.json();
         if (data.success && Array.isArray(data.contactMessages)) {
           updatedMessages = data.contactMessages;
+        }
+        if (data.success && data.message) {
+          returnedMsg = { ...newMsg, ...data.message };
         }
       }
     } catch (e) {
@@ -1342,6 +1575,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (gistToken) {
       saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
     }
+
+    return returnedMsg;
   };
 
   const updateContactMessageStatus = (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => {
@@ -1716,6 +1951,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         deleteContactMessage,
         addSkillTestResult,
         deleteSkillTestResult,
+        isGame50VipGated,
+        getGame50VipThreshold,
+        isGame50TimerEnabled,
+        getGame50TimerDuration,
+        unbindCodeIp,
       }}
     >
       {children}

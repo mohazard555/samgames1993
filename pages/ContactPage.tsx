@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { playSuccessSound } from '../utils/soundEffects';
+import { ContactMessage } from '../types';
+import { buildWhatsAppNotificationUrl, formatContactWhatsAppMessage } from '../utils/whatsappNotification';
 
 const ContactPage: React.FC = () => {
   const { settings, addContactMessage } = useSettings();
@@ -10,6 +12,7 @@ const ContactPage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [submittedMessage, setSubmittedMessage] = useState<ContactMessage | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,12 +23,13 @@ const ContactPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await addContactMessage({
+      const created = await addContactMessage({
         name: name.trim() || 'صديق الموقع',
         email: email.trim(),
         subject: subject.trim() || 'استفسار عام',
         message: message.trim(),
       });
+      setSubmittedMessage(created);
       playSuccessSound();
       setIsSent(true);
     } catch (error) {
@@ -46,8 +50,20 @@ const ContactPage: React.FC = () => {
     setEmail('');
     setSubject('');
     setMessage('');
+    setSubmittedMessage(null);
     setIsSent(false);
   };
+
+  const whatsappUrl = submittedMessage
+    ? buildWhatsAppNotificationUrl(
+        settings.whatsappUrl,
+        formatContactWhatsAppMessage(submittedMessage)
+      )
+    : '';
+
+  const directWhatsAppChatUrl = settings.whatsappUrl
+    ? buildWhatsAppNotificationUrl(settings.whatsappUrl, 'مرحباً إدارة ألعاب الأطفال ToysGame، أود الاستفسار والتواصل معكم بخصوص:')
+    : '';
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -81,6 +97,20 @@ const ContactPage: React.FC = () => {
               <span className="font-bold text-gray-800 text-sm">ToysGame / M.K Studio</span>
             </div>
 
+            {settings.whatsappUrl && (
+              <div className="space-y-1">
+                <span className="text-xs text-gray-500 font-bold block">واتساب الإدارة المباشر:</span>
+                <a
+                  href={directWhatsAppChatUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-black bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-lg hover:bg-emerald-200 transition-colors"
+                >
+                  <span>💬 محادثة واتساب فورية</span>
+                </a>
+              </div>
+            )}
+
             <div className="space-y-1">
               <span className="text-xs text-gray-500 font-bold block">قناتنا على يوتيوب:</span>
               <a
@@ -95,35 +125,68 @@ const ContactPage: React.FC = () => {
           </div>
 
           <div className="bg-sky-50 p-4 rounded-2xl border border-sky-200 text-xs text-sky-900 font-bold">
-            🛡️ جميع الرسائل ترسل وتخزن مباشرة في مركز الرسائل في لوحة التحكم.
+            🛡️ جميع الرسائل ترسل وتخزن مباشرة سحابياً في مركز الرسائل في لوحة التحكم وتتزامن مع Gist.
           </div>
         </div>
 
         {/* Contact Form */}
         <div className="md:col-span-2 bg-white p-6 sm:p-8 rounded-3xl shadow-xl border-4 border-sky-200">
           {isSent ? (
-            <div className="text-center p-8 bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 animate-fade-in space-y-4">
+            <div className="text-center p-6 sm:p-8 bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 animate-fade-in space-y-4">
               <span className="text-6xl block">✉️</span>
               <h2 className="text-2xl sm:text-3xl font-black text-emerald-800">تم إرسال رسالتك بنجاح!</h2>
               <p className="text-gray-700 font-bold text-sm sm:text-base">
-                شكراً لتواصلك معنا. تم حفظ الرسالة وستصل إلى إدارة الموقع للمتابعة.
+                شكراً لتواصلك معنا. تم حفظ الرسالة سحابياً وتصل مباشرة إلى إدارة الموقع للمتابعة.
               </p>
 
-              <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={handleReset}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95"
+              {/* Cloud & IP Verification Box */}
+              <div className="bg-white/80 border border-emerald-200 rounded-xl p-3 text-right text-xs space-y-1.5 shadow-sm max-w-md mx-auto">
+                <div className="flex justify-between items-center text-emerald-950 font-bold border-b border-emerald-100 pb-1">
+                  <span>حالة المزامنة السحابية:</span>
+                  <span className="text-emerald-700 font-black flex items-center gap-1">
+                    <span>✓ تم الحفظ والمزامنة السحابية</span>
+                  </span>
+                </div>
+                {submittedMessage?.clientIp && (
+                  <div className="flex justify-between items-center text-gray-600">
+                    <span>IP جهاز المُرسل:</span>
+                    <span className="font-mono text-emerald-800 font-black">{submittedMessage.clientIp}</span>
+                  </div>
+                )}
+                {submittedMessage?.deviceInfo && (
+                  <div className="flex justify-between items-center text-gray-600">
+                    <span>الجهاز:</span>
+                    <span className="text-gray-800 font-bold truncate max-w-[200px]">{submittedMessage.deviceInfo}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+                {/* WhatsApp Notification Button */}
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-5 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
                 >
-                  إرسال رسالة أخرى ✍️
-                </button>
+                  <span>📲 إرسال إشعار بالرسالة إلى واتساب الإدارة</span>
+                </a>
+
                 {settings.contactEmail && (
                   <button
                     onClick={handleSendViaEmailApp}
-                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95"
+                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm"
                   >
                     فتح في تطبيق البريد 📧
                   </button>
                 )}
+
+                <button
+                  onClick={handleReset}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm"
+                >
+                  إرسال رسالة أخرى ✍️
+                </button>
               </div>
             </div>
           ) : (

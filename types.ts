@@ -39,6 +39,9 @@ export interface FeedbackItem {
   message: string;
   status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل';
   createdAt: string;
+  clientIp?: string; // عنوان IP لجهاز المستخدم
+  deviceInfo?: string; // نوع الجهاز والمتصفح
+  gistUrl?: string; // رابط Gist المرتبط
 }
 
 export interface ContactMessage {
@@ -49,6 +52,9 @@ export interface ContactMessage {
   message: string;
   status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد';
   createdAt: string;
+  clientIp?: string; // عنوان IP لجهاز المستخدم
+  deviceInfo?: string; // نوع الجهاز والمتصفح
+  gistUrl?: string; // رابط Gist المرتبط
 }
 
 export interface SkillTestResult {
@@ -121,6 +127,11 @@ export interface PaidSettings {
   questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين في ألعاب الـ 50 سؤال
   questionGateNumber?: number; // رقم السؤال الذي يتطلب اشتراك لمتابعة اللعب (افتراضي: 15)
   vipTrialDurationSeconds?: number; // مدة التجربة المجانية لألعاب VIP بالثواني قبل طلب الاشتراك (افتراضي 60)
+  vip50GamesGateIds?: number[]; // قائمة معرّفات ألعاب الـ 50 سؤال التي تتطلب اشتراك VIP عند مرحلة معينة
+  vip50StageThreshold?: number; // رقم المرحلة الذي يتوقف عنده اللعب ويطلب اشتراك VIP (مثلاً المرحلة 10 أو 15)
+  timer50GamesIds?: number[]; // قائمة معرّفات ألعاب الـ 50 سؤال التي لها مؤقت زمني
+  timer50DurationSeconds?: number; // مدة المؤقت الزمني لكل سؤال/مرحلة بالثواني (افتراضي: 20 ثانية)
+  customGame50Config?: Record<number, { vipGateEnabled?: boolean; vipStage?: number; timerEnabled?: boolean; timerSeconds?: number }>;
   shamCash: ShamCashSettings;
   paypal: PaypalSettings;
   binancePay: BinancePaySettings;
@@ -144,6 +155,9 @@ export interface SubscriptionOrder {
   activationCode: string; // Unique generated activation code (e.g. "VIP-SHAM-8942-7719")
   barcodeValue?: string;
   activatedAt?: string;
+  clientIp?: string; // عنوان IP لجهاز المشتري
+  deviceInfo?: string; // نوع الجهاز والمتصفح
+  gistUrl?: string; // رابط Gist المرتبط
 }
 
 export interface Settings {
@@ -165,6 +179,8 @@ export interface Settings {
   freeActivationCode?: string; // كود التفعيل المجاني المعتمد الوحيد
   codeDeviceBindings?: Record<string, string>;
   codeCustomerBindings?: Record<string, string>;
+  codeIpBindings?: Record<string, string>; // ربط كل كود بعنوان IP الهاتف/الجهاز لمنع التلاعب
+  codeActivationDetails?: Record<string, { ip: string; deviceInfo?: string; activatedAt: string; customerName?: string; deviceFingerprint?: string }>;
   hiddenGameNames?: string[];
   newGameIds?: number[];
   adSettings: AdSettings;

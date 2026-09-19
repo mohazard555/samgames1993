@@ -35,6 +35,8 @@ const OrderQrThumbnail: React.FC<{ code: string }> = ({ code }) => {
 const SubscriptionOrdersManager: React.FC = () => {
   const {
     settings,
+    setSettings,
+    saveSettings,
     updateOrderStatus,
     deletePurchaseOrder,
     generateManualActivationCode,
@@ -45,6 +47,7 @@ const SubscriptionOrdersManager: React.FC = () => {
     generateFriendCode,
     revokeActivationCode,
     revokeFreeActivationCode,
+    unbindCodeIp,
     exportAllDataAsJSON,
     importAllDataFromJSON,
     loadFromGist,
@@ -70,6 +73,9 @@ const SubscriptionOrdersManager: React.FC = () => {
   // Approved Codes registry states
   const [codeSearchTerm, setCodeSearchTerm] = useState('');
   const [resetNotice, setResetNotice] = useState<string | null>(null);
+  const [codesDisplayMode, setCodesDisplayMode] = useState<'both' | 'available' | 'used'>('both');
+  const [unbindFeedback, setUnbindFeedback] = useState<string | null>(null);
+  const [reserveModalData, setReserveModalData] = useState<{ code: string; customerName: string } | null>(null);
 
   // JSON Import modal states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -80,6 +86,51 @@ const SubscriptionOrdersManager: React.FC = () => {
 
   const orders = settings.purchaseOrders || [];
   const approvedCodes = settings.approvedActivationCodes || [];
+
+  // Categorize codes into Available vs. Reserved/Activated (Bound to IP/Device)
+  const { usedCodesList, availableCodesList } = useMemo(() => {
+    const used: string[] = [];
+    const available: string[] = [];
+    const term = codeSearchTerm.trim().toUpperCase();
+
+    approvedCodes.forEach((code) => {
+      const boundIp = settings.codeIpBindings?.[code];
+      const boundDevice = settings.codeDeviceBindings?.[code];
+      const details = settings.codeActivationDetails?.[code];
+      const customer = settings.codeCustomerBindings?.[code];
+      const matchingOrder = orders.find(
+        (o) => o.activationCode?.trim().toUpperCase() === code.trim().toUpperCase() && o.status === 'موافق عليه'
+      );
+
+      const isReservedOrUsed = Boolean(boundIp || boundDevice || details || customer || matchingOrder);
+
+      if (term) {
+        const matchesCode = code.toUpperCase().includes(term);
+        const matchesCustomer = (customer || '').toUpperCase().includes(term);
+        const matchesIp = (boundIp || '').toUpperCase().includes(term);
+        const matchesDetails = (details?.customerName || '').toUpperCase().includes(term);
+        if (!matchesCode && !matchesCustomer && !matchesIp && !matchesDetails) {
+          return;
+        }
+      }
+
+      if (isReservedOrUsed) {
+        used.push(code);
+      } else {
+        available.push(code);
+      }
+    });
+
+    return { usedCodesList: used, availableCodesList: available };
+  }, [
+    approvedCodes,
+    settings.codeIpBindings,
+    settings.codeDeviceBindings,
+    settings.codeActivationDetails,
+    settings.codeCustomerBindings,
+    orders,
+    codeSearchTerm,
+  ]);
 
   // Filtered orders with search engine for name, phone, code, ID, etc.
   const filteredOrders = useMemo(() => {
@@ -718,6 +769,20 @@ const SubscriptionOrdersManager: React.FC = () => {
                       <span className="text-gray-700 italic">{order.notes}</span>
                     </div>
                   )}
+                  {(order.clientIp || order.deviceInfo) && (
+                    <div className="pt-1 flex flex-wrap items-center gap-2 text-[11px] text-gray-500 font-mono">
+                      {order.clientIp && (
+                        <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                          🌐 IP: <strong className="text-gray-800">{order.clientIp}</strong>
+                        </span>
+                      )}
+                      {order.deviceInfo && (
+                        <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 truncate max-w-[180px] font-sans text-gray-700">
+                          💻 {order.deviceInfo}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Activation Code & QR preview */}
@@ -785,18 +850,19 @@ const SubscriptionOrdersManager: React.FC = () => {
         </div>
       )}
 
-      {/* Approved Codes Registry */}
-      <div className="bg-gray-50 border border-gray-200 p-4 sm:p-5 rounded-3xl space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-200">
+      {/* Approved Codes Registry with Split Dual Lists */}
+      <div className="bg-gray-50 border border-gray-200 p-4 sm:p-5 rounded-3xl space-y-4">
+        {/* Header & Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200">
           <div>
             <h4 className="font-black text-sm sm:text-base text-gray-800 flex items-center gap-2">
-              <span>🔑 سجل أكواد التفعيل المعتمدة:</span>
+              <span>🔑 سجل وإدارة أكواد التفعيل VIP:</span>
               <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                {approvedCodes.length} كود مسجل
+                {approvedCodes.length} إجمالي الأكواد
               </span>
             </h4>
             <p className="text-[11px] text-gray-500 mt-0.5">
-              الأكواد الصالحة لتفعيل نسخة VIP للألعاب والبرامج بشكل دائم.
+              مقسمة إلى قائمتين منفصلتين: قائمة الأكواد المفعلة والمحجوزة (باللون الأزرق)، وقائمة الأكواد المتاحة.
             </p>
           </div>
 
@@ -813,84 +879,405 @@ const SubscriptionOrdersManager: React.FC = () => {
           </div>
         </div>
 
+        {/* Strict IP Security Notice Banner */}
+        <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white p-4 rounded-2xl border-2 border-blue-500/40 shadow-md space-y-2">
+          <div className="flex items-center gap-2 text-sky-300 font-black text-xs sm:text-sm">
+            <span className="text-lg animate-pulse">🛡️</span>
+            <span>تنبيه أمني صارم (الحماية بربط IP وبصمة الهاتف):</span>
+          </div>
+          <p className="text-[11px] sm:text-xs text-sky-100/90 leading-relaxed">
+            كل كود VIP يتم إدخاله في هاتف العميل يتم قفله وتوثيقه تلقائياً مع <strong>عنوان IP الهاتف وبصمته الرقمية</strong>. يُمنع منعاً باتاً استخدامه أو إدخاله على أي هاتف آخر، ويظهر للمستخدم تنبيه فوري بأنه مفعّل مسبقاً لحماية حقوقك ومنع تداول أو مشاركة الأكواد.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-sky-200/80">
+            <span className="flex items-center gap-1.5 bg-blue-900/60 px-2.5 py-1 rounded-lg border border-blue-700/50">
+              🔵 <strong>الأكواد المحجوزة والمفعلة:</strong> ملونة بالأزرق ومقفلة بالـ IP
+            </span>
+            <span className="flex items-center gap-1.5 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-700/50 text-emerald-200">
+              ✨ <strong>الأكواد المتاحة:</strong> جاهزة للتسليم للعملاء الجدد
+            </span>
+          </div>
+        </div>
+
         {resetNotice && (
           <div className="p-2.5 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold text-center animate-fade-in">
             {resetNotice}
           </div>
         )}
 
-        {/* Quick Search within Codes Registry */}
-        <div className="relative">
-          <input
-            type="text"
-            value={codeSearchTerm}
-            onChange={(e) => setCodeSearchTerm(e.target.value)}
-            placeholder="بحث سريع داخل سجل الأكواد بالرمز أو اسم الزبون..."
-            className="w-full py-2 pr-9 pl-9 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner"
-          />
-          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 text-xs pointer-events-none">
-            🔍
-          </span>
-          {codeSearchTerm && (
+        {unbindFeedback && (
+          <div className="p-2.5 bg-blue-100 border-2 border-blue-400 text-blue-900 rounded-xl text-xs font-bold text-center animate-fade-in shadow-sm">
+            {unbindFeedback}
+          </div>
+        )}
+
+        {/* Search & View Mode Selector */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="relative flex-1 w-full">
+            <input
+              type="text"
+              value={codeSearchTerm}
+              onChange={(e) => setCodeSearchTerm(e.target.value)}
+              placeholder="بحث سريع برمز الكود، اسم العميل، أو عنوان IP..."
+              className="w-full py-2 pr-9 pl-9 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-inner"
+            />
+            <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 text-xs pointer-events-none">
+              🔍
+            </span>
+            {codeSearchTerm && (
+              <button
+                type="button"
+                onClick={() => setCodeSearchTerm('')}
+                className="absolute inset-y-0 left-2.5 flex items-center text-xs font-bold text-gray-400 hover:text-gray-600 px-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Display Mode Tabs */}
+          <div className="flex items-center gap-1 bg-gray-200/80 p-1 rounded-xl text-xs font-bold shrink-0">
             <button
               type="button"
-              onClick={() => setCodeSearchTerm('')}
-              className="absolute inset-y-0 left-2.5 flex items-center text-xs font-bold text-gray-400 hover:text-gray-600 px-1"
+              onClick={() => setCodesDisplayMode('both')}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                codesDisplayMode === 'both'
+                  ? 'bg-white text-gray-900 shadow-sm font-black'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              ✕
+              عرض القائمتين معاً ({approvedCodes.length})
             </button>
+            <button
+              type="button"
+              onClick={() => setCodesDisplayMode('used')}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                codesDisplayMode === 'used'
+                  ? 'bg-blue-600 text-white shadow-sm font-black'
+                  : 'text-blue-900 hover:text-blue-950'
+              }`}
+            >
+              <span>🔵 المفعلة والمحجوزة</span>
+              <span className="bg-blue-100 text-blue-900 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                {usedCodesList.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCodesDisplayMode('available')}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                codesDisplayMode === 'available'
+                  ? 'bg-emerald-600 text-white shadow-sm font-black'
+                  : 'text-emerald-900 hover:text-emerald-950'
+              }`}
+            >
+              <span>✨ المتاحة</span>
+              <span className="bg-emerald-100 text-emerald-900 text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                {availableCodesList.length}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* DUAL LISTS CONTAINER */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* LIST 1: ACTIVATED & RESERVED CODES (BLUE STYLING) */}
+          {(codesDisplayMode === 'both' || codesDisplayMode === 'used') && (
+            <div className={`space-y-3 ${codesDisplayMode === 'used' ? 'lg:col-span-2' : ''}`}>
+              <div className="flex items-center justify-between bg-blue-100/80 border border-blue-300 px-3.5 py-2 rounded-2xl">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-blue-600 animate-pulse"></span>
+                  <h5 className="font-black text-xs sm:text-sm text-blue-950">
+                    1️⃣ قائمة الأكواد المفعلة والمحجوزة (المقترنة بـ IP)
+                  </h5>
+                </div>
+                <span className="text-xs font-black bg-blue-600 text-white px-2 py-0.5 rounded-lg font-mono shadow-xs">
+                  {usedCodesList.length} كود محجوز
+                </span>
+              </div>
+
+              {usedCodesList.length === 0 ? (
+                <div className="bg-blue-50/50 border border-dashed border-blue-200 p-6 rounded-2xl text-center text-xs text-blue-700 font-semibold">
+                  لا توجد أكواد مفعلة أو محجوزة حالياً. عند تفعيل أو حجز أي كود سيظهر هنا باللون الأزرق.
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-[480px] overflow-y-auto p-1">
+                  {usedCodesList.map((code) => {
+                    const boundIp = settings.codeIpBindings?.[code];
+                    const boundDevice = settings.codeDeviceBindings?.[code];
+                    const details = settings.codeActivationDetails?.[code];
+                    const customerName = settings.codeCustomerBindings?.[code] || details?.customerName;
+                    const matchingOrder = orders.find(
+                      (o) => o.activationCode?.trim().toUpperCase() === code.trim().toUpperCase()
+                    );
+
+                    return (
+                      <div
+                        key={code}
+                        className="bg-gradient-to-r from-blue-50 via-sky-50 to-blue-100/90 border-2 border-blue-400/90 rounded-2xl p-3 shadow-sm hover:shadow-md transition-all space-y-2 ring-1 ring-blue-300"
+                      >
+                        <div className="flex items-center justify-between gap-2 border-b border-blue-200/80 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-xs sm:text-sm text-blue-950 tracking-wider">
+                              {code}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(code)}
+                              className="text-[10px] bg-blue-200 hover:bg-blue-300 text-blue-950 font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                              title="نسخ الكود"
+                            >
+                              {copiedCode === code ? '✓ تم' : 'نسخ 📋'}
+                            </button>
+                          </div>
+
+                          <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                            <span>🔒</span>
+                            <span>محجوز ومقترن</span>
+                          </span>
+                        </div>
+
+                        {/* Binding metadata */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-blue-900">
+                          {customerName && (
+                            <div className="flex items-center gap-1 font-semibold truncate">
+                              <span className="text-blue-700">👤 العميل:</span>
+                              <strong className="text-blue-950 truncate">{customerName}</strong>
+                            </div>
+                          )}
+
+                          {boundIp && (
+                            <div className="flex items-center gap-1 font-mono">
+                              <span className="text-blue-700 font-sans font-semibold">🌐 IP الهاتف:</span>
+                              <span className="font-bold text-blue-950 bg-white/70 px-1.5 py-0.2 rounded border border-blue-200">
+                                {boundIp}
+                              </span>
+                            </div>
+                          )}
+
+                          {boundDevice && (
+                            <div className="flex items-center gap-1 font-mono truncate">
+                              <span className="text-blue-700 font-sans font-semibold">📱 بصمة الجهاز:</span>
+                              <span className="text-blue-950 truncate text-[10px]" title={boundDevice}>
+                                {boundDevice.slice(0, 16)}...
+                              </span>
+                            </div>
+                          )}
+
+                          {details?.activatedAt && (
+                            <div className="flex items-center gap-1 text-[10px] text-blue-800">
+                              <span>⏰ وقت التفعيل:</span>
+                              <span>{details.activatedAt}</span>
+                            </div>
+                          )}
+
+                          {matchingOrder && (
+                            <div className="flex items-center gap-1 text-[10px] text-blue-800">
+                              <span>📦 رقم الطلب:</span>
+                              <span className="font-mono">{matchingOrder.id}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions for Reserved/Used code */}
+                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-blue-200/60">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (
+                                confirm(
+                                  `هل أنت متأكد من فك ارتباط الـ IP والجهاز للكود (${code})؟\nسيعود الكود متاحاً للاستخدام من جديد.`
+                                )
+                              ) {
+                                const res = await unbindCodeIp(code);
+                                if (res.success) {
+                                  setUnbindFeedback(`✓ تم بنجاح فك ارتباط الكود (${code}) وأصبح متاحاً.`);
+                                } else {
+                                  setUnbindFeedback(`⚠️ ${res.message}`);
+                                }
+                                setTimeout(() => setUnbindFeedback(null), 4000);
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black text-[10px] rounded-lg transition-all active:scale-95 cursor-pointer shadow-xs flex items-center gap-1"
+                            title="فك ارتباط الـ IP وبصمة الجهاز لتحرير الكود"
+                          >
+                            <span>🔓 فك ارتباط الـ IP</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`هل أنت متأكد من حظر وحذف الكود (${code}) نهائياً؟`)) {
+                                revokeActivationCode(code);
+                              }
+                            }}
+                            className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                            title="حظر وإلغاء الكود"
+                          >
+                            ✕ حظر
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* LIST 2: AVAILABLE CODES (READY FOR DELIVERY) */}
+          {(codesDisplayMode === 'both' || codesDisplayMode === 'available') && (
+            <div className={`space-y-3 ${codesDisplayMode === 'available' ? 'lg:col-span-2' : ''}`}>
+              <div className="flex items-center justify-between bg-emerald-100/80 border border-emerald-300 px-3.5 py-2 rounded-2xl">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-600"></span>
+                  <h5 className="font-black text-xs sm:text-sm text-emerald-950">
+                    2️⃣ قائمة الأكواد المتاحة والجاهزة للتسليم
+                  </h5>
+                </div>
+                <span className="text-xs font-black bg-emerald-600 text-white px-2 py-0.5 rounded-lg font-mono shadow-xs">
+                  {availableCodesList.length} كود متاح
+                </span>
+              </div>
+
+              {availableCodesList.length === 0 ? (
+                <div className="bg-emerald-50/50 border border-dashed border-emerald-200 p-6 rounded-2xl text-center text-xs text-emerald-700 font-semibold">
+                  لا توجد أكواد متاحة حالياً. يمكنك توليد أكواد جديدة من قسم التوليد أعلاه.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[480px] overflow-y-auto p-1">
+                  {availableCodesList.map((code) => (
+                    <div
+                      key={code}
+                      className="bg-white hover:bg-emerald-50/40 border border-emerald-200 hover:border-emerald-400 rounded-xl p-2.5 shadow-sm transition-all flex flex-col justify-between gap-2"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-mono font-bold text-xs text-emerald-950 truncate">{code}</span>
+                        <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded border border-emerald-300 shrink-0">
+                          ✨ متاح
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-gray-100">
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(code)}
+                          className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                        >
+                          {copiedCode === code ? '✓ تم النسخ' : 'نسخ 📋'}
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => setReserveModalData({ code, customerName: '' })}
+                            className="px-2 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold text-[10px] rounded-lg transition-colors cursor-pointer"
+                            title="حجز هذا الكود لعميل محدد ونقله للقائمة الزرقاء"
+                          >
+                            حجز لعميل 👤
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`هل أنت متأكد من حذف الكود (${code})؟`)) {
+                                revokeActivationCode(code);
+                              }
+                            }}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded text-[10px] cursor-pointer"
+                            title="حذف"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        {displayedApprovedCodes.length === 0 ? (
-          <div className="text-center py-6 text-xs text-gray-500 bg-white rounded-2xl border border-gray-200">
-            لا توجد أكواد مطابقة لبحثك في السجل.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-96 overflow-y-auto p-1">
-            {displayedApprovedCodes.map((code) => {
-              const customerName = settings.codeCustomerBindings?.[code];
-              const isBoundToCustomer = Boolean(customerName);
-              return (
-                <div
-                  key={code}
-                  className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border shadow-sm text-xs font-mono font-bold ${
-                    isBoundToCustomer
-                      ? 'bg-blue-50 text-blue-900 border-blue-200 ring-1 ring-blue-300'
-                      : 'bg-white text-gray-800 border-gray-300'
-                  }`}
+        {/* Modal: Reserve Code for a Specific Customer */}
+        {reserveModalData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+            <div className="bg-white rounded-3xl p-5 w-full max-w-md shadow-2xl border-2 border-blue-400 space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2 text-blue-950 font-black text-sm">
+                  <span>🔵</span>
+                  <span>حجز كود لعميل ونقله للقائمة المحجوزة</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReserveModalData(null)}
+                  className="text-gray-400 hover:text-gray-700 font-bold text-sm"
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate">{code}</div>
-                    {isBoundToCustomer && (
-                      <div className="text-[10px] text-blue-700 font-sans font-semibold mt-0.5 truncate">
-                        👤 {customerName}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(code)}
-                      className="p-1 hover:bg-gray-200/60 rounded text-gray-600 cursor-pointer"
-                      title="نسخ"
-                    >
-                      {copiedCode === code ? '✓' : '📋'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        revokeActivationCode(code);
-                      }}
-                      className="p-1 hover:bg-red-100 rounded text-red-500 cursor-pointer"
-                      title="إلغاء وحظر الكود"
-                    >
-                      ✕
-                    </button>
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-500 block mb-1">الكود المختار:</label>
+                  <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl font-mono font-black text-sm text-blue-900 text-center">
+                    {reserveModalData.code}
                   </div>
                 </div>
-              );
-            })}
+
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">
+                    اسم العميل أو رقم هاتفه <span className="text-red-500">*</span>:
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={reserveModalData.customerName}
+                    onChange={(e) =>
+                      setReserveModalData({ ...reserveModalData, customerName: e.target.value })
+                    }
+                    placeholder="مثال: أحمد محمد (0991234567)"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setReserveModalData(null)}
+                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!reserveModalData.customerName.trim()) {
+                      alert('يرجى كتابة اسم العميل لحجز الكود له');
+                      return;
+                    }
+                    const { code, customerName } = reserveModalData;
+                    setSettings((prev) => {
+                      const updated = {
+                        ...prev,
+                        codeCustomerBindings: {
+                          ...(prev.codeCustomerBindings || {}),
+                          [code]: customerName.trim(),
+                        },
+                      };
+                      saveSettings(updated);
+                      return updated;
+                    });
+                    setReserveModalData(null);
+                    setUnbindFeedback(`✓ تم حجز الكود (${code}) للعميل (${customerName.trim()}) ولُوّن بالأزرق.`);
+                    setTimeout(() => setUnbindFeedback(null), 4000);
+                  }}
+                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-sm cursor-pointer"
+                >
+                  تأكيد الحجز بالأزرق 🔵
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -25,17 +25,31 @@ function getStoredSubmissions() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf-8');
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      return {
+        purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],
+        contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
+        feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
+        codeIpBindings: parsed.codeIpBindings && typeof parsed.codeIpBindings === 'object' ? parsed.codeIpBindings : {},
+        codeActivationDetails: parsed.codeActivationDetails && typeof parsed.codeActivationDetails === 'object' ? parsed.codeActivationDetails : {},
+      };
     }
   } catch (e) {
     console.warn('Error reading submissions file:', e);
   }
-  return { purchaseOrders: [], contactMessages: [], feedbacks: [] };
+  return { purchaseOrders: [], contactMessages: [], feedbacks: [], codeIpBindings: {}, codeActivationDetails: {} };
 }
 
 function saveStoredSubmissions(data: any) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    const payload = {
+      purchaseOrders: data.purchaseOrders || [],
+      contactMessages: data.contactMessages || [],
+      feedbacks: data.feedbacks || [],
+      codeIpBindings: data.codeIpBindings || {},
+      codeActivationDetails: data.codeActivationDetails || {},
+    };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), 'utf-8');
   } catch (e) {
     console.warn('Error writing submissions file:', e);
   }
@@ -73,6 +87,37 @@ function saveStoredGistConfig(config: { gistToken?: string; gistUrl?: string }) 
     console.warn('Error writing gist config:', e);
     return config;
   }
+}
+
+function getClientIp(req: express.Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',')[0].trim();
+  }
+  if (Array.isArray(forwarded) && forwarded.length > 0) {
+    return forwarded[0].trim();
+  }
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.trim()) {
+    return realIp.trim();
+  }
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (typeof cfIp === 'string' && cfIp.trim()) {
+    return cfIp.trim();
+  }
+  return req.socket?.remoteAddress || req.ip || '127.0.0.1';
+}
+
+function getDeviceInfo(req: express.Request): string {
+  const ua = (req.headers['user-agent'] || '').toLowerCase();
+  if (ua.includes('android')) return 'هاتف أندرويد (Android)';
+  if (ua.includes('iphone')) return 'هاتف آيفون (iPhone)';
+  if (ua.includes('ipad')) return 'جهاز آيباد (iPad)';
+  if (ua.includes('windows')) return 'كمبيوتر (Windows)';
+  if (ua.includes('macintosh') || ua.includes('mac os')) return 'كمبيوتر (Mac)';
+  if (ua.includes('linux')) return 'كمبيوتر (Linux)';
+  if (ua.includes('mobile')) return 'هاتف محمول';
+  return 'متصفح ويب';
 }
 
 // API Routes
@@ -129,20 +174,39 @@ app.post('/api/gist-config', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
   try {
-    const order = req.body;
-    if (!order || !order.id) {
+    const rawOrder = req.body;
+    if (!rawOrder || !rawOrder.id) {
       return res.status(400).json({ success: false, message: 'Invalid order data' });
     }
+
+    const clientIp = getClientIp(req);
+    const deviceInfo = getDeviceInfo(req);
+    const storedGist = getStoredGistConfig();
+
+    // Auto-capture token from header if sent
+    const headerToken = req.headers['x-gist-token'] as string;
+    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
+      saveStoredGistConfig({ gistToken: headerToken.trim() });
+    }
+
+    const order = {
+      ...rawOrder,
+      clientIp: rawOrder.clientIp || clientIp,
+      deviceInfo: rawOrder.deviceInfo || deviceInfo,
+      gistUrl: storedGist.gistUrl,
+      createdAt: rawOrder.createdAt || new Date().toLocaleString('ar-EG'),
+      serverReceivedAt: new Date().toISOString(),
+    };
+
     const submissions = getStoredSubmissions();
     submissions.purchaseOrders = [order, ...(submissions.purchaseOrders || [])].filter(
       (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
     );
     saveStoredSubmissions(submissions);
 
-    // Auto-sync to GitHub Gist using request headers, body or server stored config
-    const storedGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
 
     let syncedToGist = false;
     let gistError: string | null = null;
@@ -171,19 +235,38 @@ app.post('/api/orders', async (req, res) => {
 
 app.post('/api/messages', async (req, res) => {
   try {
-    const message = req.body;
-    if (!message || !message.id) {
+    const rawMessage = req.body;
+    if (!rawMessage || !rawMessage.id) {
       return res.status(400).json({ success: false, message: 'Invalid message data' });
     }
+
+    const clientIp = getClientIp(req);
+    const deviceInfo = getDeviceInfo(req);
+    const storedGist = getStoredGistConfig();
+
+    const headerToken = req.headers['x-gist-token'] as string;
+    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
+      saveStoredGistConfig({ gistToken: headerToken.trim() });
+    }
+
+    const message = {
+      ...rawMessage,
+      clientIp: rawMessage.clientIp || clientIp,
+      deviceInfo: rawMessage.deviceInfo || deviceInfo,
+      gistUrl: storedGist.gistUrl,
+      createdAt: rawMessage.createdAt || new Date().toLocaleString('ar-EG'),
+      serverReceivedAt: new Date().toISOString(),
+    };
+
     const submissions = getStoredSubmissions();
     submissions.contactMessages = [message, ...(submissions.contactMessages || [])].filter(
       (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
     );
     saveStoredSubmissions(submissions);
 
-    const storedGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
 
     let syncedToGist = false;
     let gistError: string | null = null;
@@ -212,19 +295,38 @@ app.post('/api/messages', async (req, res) => {
 
 app.post('/api/feedbacks', async (req, res) => {
   try {
-    const feedback = req.body;
-    if (!feedback || !feedback.id) {
+    const rawFeedback = req.body;
+    if (!rawFeedback || !rawFeedback.id) {
       return res.status(400).json({ success: false, message: 'Invalid feedback data' });
     }
+
+    const clientIp = getClientIp(req);
+    const deviceInfo = getDeviceInfo(req);
+    const storedGist = getStoredGistConfig();
+
+    const headerToken = req.headers['x-gist-token'] as string;
+    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
+      saveStoredGistConfig({ gistToken: headerToken.trim() });
+    }
+
+    const feedback = {
+      ...rawFeedback,
+      clientIp: rawFeedback.clientIp || clientIp,
+      deviceInfo: rawFeedback.deviceInfo || deviceInfo,
+      gistUrl: storedGist.gistUrl,
+      createdAt: rawFeedback.createdAt || new Date().toLocaleString('ar-EG'),
+      serverReceivedAt: new Date().toISOString(),
+    };
+
     const submissions = getStoredSubmissions();
     submissions.feedbacks = [feedback, ...(submissions.feedbacks || [])].filter(
       (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
     );
     saveStoredSubmissions(submissions);
 
-    const storedGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || storedGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || storedGist.gistUrl || '').trim();
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
 
     let syncedToGist = false;
     let gistError: string | null = null;
@@ -251,10 +353,136 @@ app.post('/api/feedbacks', async (req, res) => {
   }
 });
 
+// VIP Code Activation Endpoint with Strict IP & Device Binding
+app.post('/api/activate-vip', async (req, res) => {
+  try {
+    const { code, deviceFingerprint, customerName } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال كود التفعيل' });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const clientIp = getClientIp(req);
+    const deviceInfo = getDeviceInfo(req);
+    const submissions = getStoredSubmissions();
+
+    submissions.codeIpBindings = submissions.codeIpBindings || {};
+    submissions.codeActivationDetails = submissions.codeActivationDetails || {};
+
+    const boundIp = submissions.codeIpBindings[cleanCode];
+    const details = submissions.codeActivationDetails[cleanCode];
+
+    // Check if code is already bound to a different IP
+    if (boundIp && boundIp !== clientIp) {
+      // If bound to a different IP and not matching fingerprint, strictly block
+      const boundFingerprint = details?.deviceFingerprint;
+      if (!boundFingerprint || boundFingerprint !== deviceFingerprint) {
+        return res.status(403).json({
+          success: false,
+          reason: 'IP_MISMATCH',
+          boundIp,
+          activatedAt: details?.activatedAt,
+          message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مفعّل مسبقاً ومقترن بهاتف وجهاز آخر (IP: ${boundIp}). يمنع منعاً باتاً استخدامه على أكثر من جهاز لمنع التلاعب وتداول الأكواد.`,
+        });
+      }
+    }
+
+    // Bind or reaffirm this code to the current IP and device
+    const nowAr = new Date().toLocaleString('ar-EG');
+    submissions.codeIpBindings[cleanCode] = clientIp;
+    submissions.codeActivationDetails[cleanCode] = {
+      ip: clientIp,
+      deviceInfo,
+      activatedAt: details?.activatedAt || nowAr,
+      lastSeenAt: nowAr,
+      customerName: customerName || details?.customerName,
+      deviceFingerprint: deviceFingerprint || details?.deviceFingerprint,
+    };
+
+    // Also update any matching purchase orders
+    if (Array.isArray(submissions.purchaseOrders)) {
+      submissions.purchaseOrders = submissions.purchaseOrders.map((po: any) => {
+        if (po.activationCode?.toUpperCase() === cleanCode) {
+          return {
+            ...po,
+            clientIp: po.clientIp || clientIp,
+            deviceInfo: po.deviceInfo || deviceInfo,
+            activatedAt: po.activatedAt || nowAr,
+          };
+        }
+        return po;
+      });
+    }
+
+    saveStoredSubmissions(submissions);
+
+    // Sync with Gist immediately so all devices/instances are updated
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+
+    if (gistToken && gistUrl) {
+      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+        console.warn('Gist sync on code activation warning:', err.message);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `🎉 تهانينا! تم تفعيل كود VIP بنجاح وتم ربطه بهذا الهاتف (IP: ${clientIp}) مدى الحياة.`,
+      code: cleanCode,
+      clientIp,
+      deviceInfo,
+      activatedAt: nowAr,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Admin unbind endpoint
+app.post('/api/unbind-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, message: 'الكود مطلوب' });
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const submissions = getStoredSubmissions();
+
+    if (submissions.codeIpBindings && submissions.codeIpBindings[cleanCode]) {
+      delete submissions.codeIpBindings[cleanCode];
+    }
+    if (submissions.codeActivationDetails && submissions.codeActivationDetails[cleanCode]) {
+      delete submissions.codeActivationDetails[cleanCode];
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+
+    if (gistToken && gistUrl) {
+      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+        console.warn('Gist sync on unbind warning:', err.message);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `تم فك ارتباط الـ IP للكود (${cleanCode}) بنجاح، وأصبح جاهزاً ومتاحاً للربط بجهاز جديد.`,
+      code: cleanCode,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Full state synchronization endpoint
 app.post('/api/sync-all', async (req, res) => {
   try {
-    const { purchaseOrders, contactMessages, feedbacks, gistToken, gistUrl } = req.body;
+    const { purchaseOrders, contactMessages, feedbacks, codeIpBindings, codeActivationDetails, gistToken, gistUrl } = req.body;
     const submissions = getStoredSubmissions();
 
     if (Array.isArray(purchaseOrders)) {
@@ -274,6 +502,18 @@ app.post('/api/sync-all', async (req, res) => {
         ...feedbacks,
         ...(submissions.feedbacks || []),
       ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    }
+    if (codeIpBindings && typeof codeIpBindings === 'object') {
+      submissions.codeIpBindings = {
+        ...(submissions.codeIpBindings || {}),
+        ...codeIpBindings,
+      };
+    }
+    if (codeActivationDetails && typeof codeActivationDetails === 'object') {
+      submissions.codeActivationDetails = {
+        ...(submissions.codeActivationDetails || {}),
+        ...codeActivationDetails,
+      };
     }
 
     saveStoredSubmissions(submissions);
@@ -373,6 +613,14 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
       ...(localData.feedbacks || []),
       ...((currentSettings as any).feedbacks || []),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+    codeIpBindings: {
+      ...((currentSettings as any).codeIpBindings || {}),
+      ...(localData.codeIpBindings || {}),
+    },
+    codeActivationDetails: {
+      ...((currentSettings as any).codeActivationDetails || {}),
+      ...(localData.codeActivationDetails || {}),
+    },
   };
 
   const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -400,6 +648,8 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     purchaseOrders: merged.purchaseOrders,
     contactMessages: merged.contactMessages,
     feedbacks: merged.feedbacks,
+    codeIpBindings: merged.codeIpBindings,
+    codeActivationDetails: merged.codeActivationDetails,
   });
 
   console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks.`);
@@ -423,6 +673,25 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+
+    // Periodic 60-second (1 minute) background sync to GitHub Gist
+    setInterval(async () => {
+      try {
+        const config = getStoredGistConfig();
+        if (config.gistToken && config.gistUrl) {
+          const submissions = getStoredSubmissions();
+          const hasAny =
+            (submissions.purchaseOrders?.length || 0) > 0 ||
+            (submissions.contactMessages?.length || 0) > 0 ||
+            (submissions.feedbacks?.length || 0) > 0;
+          if (hasAny) {
+            await syncToGistHelper(config.gistUrl, config.gistToken, submissions);
+          }
+        }
+      } catch (e: any) {
+        // silent background sync
+      }
+    }, 60000);
   });
 }
 

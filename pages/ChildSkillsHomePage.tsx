@@ -4,6 +4,7 @@ import { CHILD_SKILLS_GAMES } from '../data/childSkillsGamesData';
 import { ChildSkillsStats, GameCategory } from '../types/childSkillsTypes';
 import { getChildSkillsStats } from '../utils/childSkillsStorage';
 import { ChildSkillsAchievementsModal } from '../components/child-skills/ChildSkillsAchievementsModal';
+import { useSettings } from '../contexts/SettingsContext';
 
 const CATEGORIES: { id: GameCategory | 'all'; label: string; icon: string }[] = [
   { id: 'all', label: 'الكل', icon: '🌟' },
@@ -17,6 +18,7 @@ const CATEGORIES: { id: GameCategory | 'all'; label: string; icon: string }[] = 
 
 const ChildSkillsHomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { isVipActive, isGame50VipGated, getGame50VipThreshold, isGame50TimerEnabled, getGame50TimerDuration } = useSettings();
   const [stats, setStats] = useState<ChildSkillsStats>(getChildSkillsStats());
   const [selectedCategory, setSelectedCategory] = useState<GameCategory | 'all'>('all');
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
@@ -131,6 +133,10 @@ const ChildSkillsHomePage: React.FC = () => {
             const stars = prog?.stars || 0;
             // Progressive unlocking: first 10 games unlocked, then unlocked as child completes games
             const isUnlocked = stats.completedGamesCount >= game.minUnlockGames || game.minUnlockGames === 0;
+            const isVipGated = isGame50VipGated(game.id);
+            const vipThreshold = getGame50VipThreshold(game.id);
+            const isTimerOn = isGame50TimerEnabled(game.id);
+            const timerSec = getGame50TimerDuration(game.id);
 
             return (
               <div
@@ -146,9 +152,33 @@ const ChildSkillsHomePage: React.FC = () => {
                     : 'bg-gray-100/80 border-gray-300 opacity-65 cursor-not-allowed'
                 }`}
               >
-                {/* Number Badge */}
-                <div className="absolute top-3 left-3 bg-sky-100 text-sky-800 text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-sky-200">
-                  {game.id}
+                {/* Number Badge & Feature Badges */}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                  <div className="bg-sky-100 text-sky-800 text-[11px] font-black w-7 h-7 rounded-full flex items-center justify-center border border-sky-200">
+                    {game.id}
+                  </div>
+                  {isTimerOn && (
+                    <span
+                      className="bg-sky-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5"
+                      title={`مؤقت زمني: ${timerSec} ثانية`}
+                    >
+                      <span>⏱️</span>
+                      <span>{timerSec}ث</span>
+                    </span>
+                  )}
+                  {isVipGated && (
+                    <span
+                      className={`text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-xs flex items-center gap-0.5 ${
+                        isVipActive
+                          ? 'bg-amber-400 text-gray-950'
+                          : 'bg-amber-500 text-gray-950 ring-1 ring-amber-600'
+                      }`}
+                      title={`مطلوب اشتراك VIP بعد مرحلة ${vipThreshold}`}
+                    >
+                      <span>👑</span>
+                      <span>م{vipThreshold}+</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Stars / Lock Status & 50 Stages Badge */}

@@ -6,13 +6,29 @@ import { getGame50Stages } from '../data/childSkills50Stages';
 import { DifficultyLevel, ChildSkillChallenge } from '../types/childSkillsTypes';
 import { GamePlayEngine } from '../components/child-skills/GamePlayEngine';
 import { recordStageWin, recordGameWin, getChildSkillsStats } from '../utils/childSkillsStorage';
+import { useSettings } from '../contexts/SettingsContext';
+import VipSubscriptionModal from '../components/VipSubscriptionModal';
 
 const ChildSkillsGamePage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
 
+  const {
+    isVipActive,
+    isGame50VipGated,
+    getGame50VipThreshold,
+    isGame50TimerEnabled,
+    getGame50TimerDuration,
+  } = useSettings();
+
   const numericId = parseInt(gameId || '1', 10);
   const game = CHILD_SKILLS_GAMES.find((g) => g.id === numericId);
+
+  // VIP & Timer configurations for this 50-questions game
+  const isVipGated = isGame50VipGated(numericId);
+  const vipThreshold = getGame50VipThreshold(numericId);
+  const isTimerEnabled = isGame50TimerEnabled(numericId);
+  const timerDuration = getGame50TimerDuration(numericId);
 
   // All 50 unique stages for this game
   const stages50: ChildSkillChallenge[] = useMemo(() => {
@@ -29,6 +45,15 @@ const ChildSkillsGamePage: React.FC = () => {
   const [stageFilter, setStageFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
   const [unlockedBadgeTitle, setUnlockedBadgeTitle] = useState<string | null>(null);
 
+  // VIP Subscription modal state
+  const [isVipModalOpen, setIsVipModalOpen] = useState(false);
+  const [vipModalTab, setVipModalTab] = useState<'buy' | 'activate'>('buy');
+
+  // Timer state
+  const [timeLeft, setTimeLeft] = useState<number>(timerDuration);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [isTimedOut, setIsTimedOut] = useState(false);
+
   // Load completed stages from storage
   const [completedStages, setCompletedStages] = useState<number[]>(() => {
     const stats = getChildSkillsStats();
@@ -40,6 +65,9 @@ const ChildSkillsGamePage: React.FC = () => {
   const currentDifficulty: DifficultyLevel =
     currentStageNumber <= 15 ? 'easy' : currentStageNumber <= 35 ? 'medium' : 'hard';
 
+  // Check if current stage is VIP locked for the child
+  const isCurrentStageVipLocked = !isVipActive && isVipGated && currentStageNumber >= vipThreshold;
+
   const currentChallenge = stages50[currentStageIndex];
   const isLastChallenge = currentStageIndex >= stages50.length - 1;
 
@@ -50,6 +78,41 @@ const ChildSkillsGamePage: React.FC = () => {
       setCompletedStages(stats.gamesProgress[numericId].completedStages || []);
     }
   }, [numericId]);
+
+  // Reset timer on stage change
+  useEffect(() => {
+    if (isTimerEnabled) {
+      setTimeLeft(timerDuration);
+      setIsTimedOut(false);
+      setIsTimerRunning(true);
+    }
+  }, [currentStageIndex, isTimerEnabled, timerDuration]);
+
+  // Countdown Interval Effect
+  useEffect(() => {
+    if (!isTimerEnabled || !isTimerRunning || isCurrentStageVipLocked || isCompletedAllStages) {
+      return;
+    }
+
+    if (timeLeft <= 0) {
+      setIsTimedOut(true);
+      setIsTimerRunning(false);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsTimedOut(true);
+          setIsTimerRunning(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isTimerEnabled, isTimerRunning, timeLeft, isCurrentStageVipLocked, isCompletedAllStages]);
 
   // If game not found
   if (!game || stages50.length === 0) {
@@ -69,14 +132,24 @@ const ChildSkillsGamePage: React.FC = () => {
 
   // Jump to specific difficulty section
   const handleDifficultySectionJump = (diff: DifficultyLevel) => {
-    if (diff === 'easy') setCurrentStageIndex(0);
-    else if (diff === 'medium') setCurrentStageIndex(15);
-    else setCurrentStageIndex(35);
+    let targetIndex = 0;
+    if (diff === 'easy') targetIndex = 0;
+    else if (diff === 'medium') targetIndex = 15;
+    else targetIndex = 35;
+
+    // Check if jumping into a VIP-gated stage
+    if (!isVipActive && isVipGated && targetIndex + 1 >= vipThreshold) {
+      setVipModalTab('buy');
+      setIsVipModalOpen(true);
+    }
+
+    setCurrentStageIndex(targetIndex);
     setIsCompletedAllStages(false);
   };
 
   // Called when child answers correctly in a stage
   const handleCorrect = () => {
+    setIsTimerRunning(false);
     setSessionStars((s) => s + 1);
 
     // Record stage win in storage
@@ -116,7 +189,13 @@ const ChildSkillsGamePage: React.FC = () => {
         console.log(e);
       }
     } else {
-      setCurrentStageIndex((idx) => idx + 1);
+      const nextIndex = currentStageIndex + 1;
+      // Check if moving into VIP gate
+      if (!isVipActive && isVipGated && nextIndex + 1 >= vipThreshold) {
+        setVipModalTab('buy');
+        setIsVipModalOpen(true);
+      }
+      setCurrentStageIndex(nextIndex);
     }
   };
 
@@ -131,6 +210,17 @@ const ChildSkillsGamePage: React.FC = () => {
     setCurrentStageIndex(0);
     setIsCompletedAllStages(false);
     setUnlockedBadgeTitle(null);
+    if (isTimerEnabled) {
+      setTimeLeft(timerDuration);
+      setIsTimedOut(false);
+      setIsTimerRunning(true);
+    }
+  };
+
+  const handleRetryAfterTimeout = () => {
+    setTimeLeft(timerDuration);
+    setIsTimedOut(false);
+    setIsTimerRunning(true);
   };
 
   // Filter stages for stage selector modal
@@ -270,15 +360,138 @@ const ChildSkillsGamePage: React.FC = () => {
           </div>
         </div>
 
-        {/* 🎮 Game Play Board */}
-        {!isCompletedAllStages && currentChallenge ? (
-          <GamePlayEngine
-            challenge={currentChallenge}
-            difficulty={currentDifficulty}
-            onCorrectAnswer={handleCorrect}
-            onNextChallenge={handleNextChallenge}
-            isLastChallenge={isLastChallenge}
-          />
+        {/* 🎮 Game Play Board or VIP Barrier / Timeout Card */}
+        {isCurrentStageVipLocked ? (
+          /* 👑 VIP Subscription Gate Barrier Card */
+          <div className="w-full max-w-xl mx-auto bg-white/95 rounded-3xl p-6 sm:p-8 shadow-2xl border-4 border-amber-400 text-center animate-fadeIn">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-tr from-amber-400 to-amber-200 rounded-3xl flex items-center justify-center text-5xl shadow-lg border-2 border-amber-300 animate-bounce">
+              👑
+            </div>
+
+            <span className="inline-block px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full font-black text-xs mb-2">
+              🔒 مرحلة VIP حصرية (مرحلة {currentStageNumber} من 50)
+            </span>
+
+            <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 bg-clip-text text-transparent mb-3">
+              اشترك في النسخة الذهبية لمتابعة التحدي!
+            </h2>
+
+            <p className="text-sm sm:text-base text-gray-700 font-bold leading-relaxed mb-6">
+              رائع يا بطل! لقد أنهيت المراحل المجانية الأولى من لعبة <span className="text-indigo-600 font-black">"{game.title}"</span>. للمتابعة وتخطي المراحل من {vipThreshold} إلى 50 والحصول على كافة الأوسمة، اشترك في باقة VIP أو أدخل كود التفعيل الخاص بك.
+            </p>
+
+            {/* Quick Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+              <button
+                onClick={() => {
+                  setVipModalTab('buy');
+                  setIsVipModalOpen(true);
+                }}
+                className="py-3.5 px-6 bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black text-sm sm:text-base rounded-2xl shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>👑</span>
+                <span>الحصول على اشتراك VIP الآن</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setVipModalTab('activate');
+                  setIsVipModalOpen(true);
+                }}
+                className="py-3.5 px-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border-2 border-indigo-200 font-black text-sm rounded-2xl shadow-xs transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>🔑</span>
+                <span>لدي كود تفعيل جاهز</span>
+              </button>
+            </div>
+
+            {/* Free Stage Navigation */}
+            <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
+              <button
+                onClick={() => setCurrentStageIndex(0)}
+                className="text-sky-600 hover:text-sky-800 font-black hover:underline cursor-pointer"
+              >
+                ↺ العودة للمرحلة 1
+              </button>
+              <button
+                onClick={() => navigate('/my-child-skills')}
+                className="text-gray-600 hover:text-gray-900 font-black hover:underline cursor-pointer"
+              >
+                🏠 تصفح ألعاب أخرى
+              </button>
+            </div>
+          </div>
+        ) : isTimedOut ? (
+          /* ⌛ Timeout Alert Card */
+          <div className="w-full max-w-lg mx-auto bg-white/95 rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-sky-300 text-center animate-fadeIn">
+            <div className="text-6xl mb-3 animate-pulse">⌛</div>
+            <h2 className="text-2xl font-black text-sky-950 mb-2">
+              انتهى وقت المرحلة!
+            </h2>
+            <p className="text-sm sm:text-base text-gray-700 font-bold mb-6">
+              لقد انقضت الـ <span className="text-sky-600 font-black">{timerDuration} ثانية</span> المخصصة لهذه المرحلة. لا تقلق يا بطل، يمكنك إعادة المحاولة الآن والتركيز لحلها بسرعة! ⚡
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={handleRetryAfterTimeout}
+                className="py-3 px-8 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black rounded-2xl shadow-md transition-transform active:scale-95 cursor-pointer"
+              >
+                إعادة المحاولة مع المؤقت ↺
+              </button>
+
+              <button
+                onClick={() => navigate('/my-child-skills')}
+                className="py-3 px-6 bg-gray-100 hover:bg-gray-200 text-gray-800 font-black rounded-2xl shadow-xs transition-transform active:scale-95 cursor-pointer"
+              >
+                العودة للقائمة 🏠
+              </button>
+            </div>
+          </div>
+        ) : !isCompletedAllStages && currentChallenge ? (
+          <div className="space-y-4">
+            {/* ⏱️ Animated Timer Bar if Enabled */}
+            {isTimerEnabled && (
+              <div className="max-w-xl mx-auto bg-white/90 backdrop-blur-xs p-2.5 sm:p-3 rounded-2xl border-2 border-sky-200 shadow-xs flex items-center gap-3">
+                <div
+                  className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 shrink-0 transition-colors ${
+                    timeLeft <= 5
+                      ? 'bg-rose-500 text-white animate-pulse'
+                      : timeLeft <= 10
+                      ? 'bg-amber-400 text-gray-950'
+                      : 'bg-sky-500 text-white'
+                  }`}
+                >
+                  <span>⏱️</span>
+                  <span>{timeLeft} ثانية</span>
+                </div>
+
+                {/* Shrinking Countdown Visual Bar */}
+                <div className="flex-1 bg-gray-200 h-2.5 rounded-full overflow-hidden p-0.5">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-linear ${
+                      timeLeft <= 5
+                        ? 'bg-rose-500'
+                        : timeLeft <= 10
+                        ? 'bg-amber-500'
+                        : 'bg-gradient-to-r from-sky-400 to-indigo-500'
+                    }`}
+                    style={{
+                      width: `${Math.max(0, Math.min(100, (timeLeft / timerDuration) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <GamePlayEngine
+              challenge={currentChallenge}
+              difficulty={currentDifficulty}
+              onCorrectAnswer={handleCorrect}
+              onNextChallenge={handleNextChallenge}
+              isLastChallenge={isLastChallenge}
+            />
+          </div>
         ) : isCompletedAllStages ? (
           /* 🏆 50-Stage Full Completion Grand Celebration Card */
           <div className="w-full max-w-lg mx-auto bg-white/95 rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-amber-300 text-center animate-fadeIn">
@@ -425,11 +638,19 @@ const ChildSkillsGamePage: React.FC = () => {
                   const num = stage.stageNumber || 1;
                   const isCurrent = currentStageNumber === num;
                   const isFinished = completedStages.includes(num);
+                  const isStageVip = !isVipActive && isVipGated && num >= vipThreshold;
 
                   return (
                     <button
                       key={stage.id}
                       onClick={() => {
+                        if (isStageVip) {
+                          setVipModalTab('buy');
+                          setIsVipModalOpen(true);
+                          setIsStagesModalOpen(false);
+                          setCurrentStageIndex(num - 1);
+                          return;
+                        }
                         setCurrentStageIndex(num - 1);
                         setIsCompletedAllStages(false);
                         setIsStagesModalOpen(false);
@@ -437,6 +658,8 @@ const ChildSkillsGamePage: React.FC = () => {
                       className={`relative p-2 rounded-2xl font-black flex flex-col items-center justify-center transition-all cursor-pointer active:scale-95 shadow-xs ${
                         isCurrent
                           ? 'bg-gradient-to-b from-sky-500 to-indigo-600 text-white ring-3 ring-sky-300 scale-105 shadow-md'
+                          : isStageVip
+                          ? 'bg-amber-50/90 border-2 border-amber-400 text-amber-950 hover:bg-amber-100'
                           : isFinished
                           ? 'bg-amber-50 border-2 border-amber-300 text-amber-950 hover:bg-amber-100'
                           : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -444,7 +667,7 @@ const ChildSkillsGamePage: React.FC = () => {
                     >
                       <span className="text-xs sm:text-sm">{num}</span>
                       <span className="text-[10px]">
-                        {isFinished ? '⭐' : num <= 15 ? '🟢' : num <= 35 ? '🟡' : '🔴'}
+                        {isStageVip ? '🔒👑' : isFinished ? '⭐' : num <= 15 ? '🟢' : num <= 35 ? '🟡' : '🔴'}
                       </span>
                     </button>
                   );
@@ -464,6 +687,13 @@ const ChildSkillsGamePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 👑 VIP Subscription Modal */}
+      <VipSubscriptionModal
+        isOpen={isVipModalOpen}
+        onClose={() => setIsVipModalOpen(false)}
+        initialTab={vipModalTab}
+      />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { playSuccessSound } from '../utils/soundEffects';
+import { FeedbackItem } from '../types';
+import { buildWhatsAppNotificationUrl, formatFeedbackWhatsAppMessage } from '../utils/whatsappNotification';
 
 const FeedbackPage: React.FC = () => {
   const { settings, addFeedback } = useSettings();
@@ -11,6 +13,7 @@ const FeedbackPage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [submittedFeedback, setSubmittedFeedback] = useState<FeedbackItem | null>(null);
 
   const categories = [
     'اقتراح لعبة جديدة 🎮',
@@ -37,13 +40,14 @@ const FeedbackPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      await addFeedback({
+      const created = await addFeedback({
         name: name.trim() || 'صديق مجهول',
         email: email.trim(),
         rating,
         category,
         message: message.trim(),
       });
+      setSubmittedFeedback(created);
       playSuccessSound();
       setIsSent(true);
     } catch (error) {
@@ -66,8 +70,16 @@ const FeedbackPage: React.FC = () => {
     setEmail('');
     setRating(5);
     setMessage('');
+    setSubmittedFeedback(null);
     setIsSent(false);
   };
+
+  const whatsappUrl = submittedFeedback
+    ? buildWhatsAppNotificationUrl(
+        settings.whatsappUrl,
+        formatFeedbackWhatsAppMessage(submittedFeedback)
+      )
+    : '';
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-xl border-4 border-amber-300">
@@ -80,28 +92,61 @@ const FeedbackPage: React.FC = () => {
       </div>
 
       {isSent ? (
-        <div className="text-center p-8 bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 animate-fade-in space-y-4">
+        <div className="text-center p-6 sm:p-8 bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-300 animate-fade-in space-y-4">
           <span className="text-6xl block">🎉</span>
           <h2 className="text-2xl sm:text-3xl font-black text-emerald-800">شكراً جزيلاً لمشاركتك!</h2>
           <p className="text-gray-700 font-bold">
-            تم استلام رأيك بنجاح ووصل مباشرة إلى لوحة تحكم إدارة التطبيق للمراجعة والاهتمام.
+            تم استلام رأيك وحفظه سحابياً في داتا الموقع، ومزامنته مع Gist لتظهر مباشرة لدى الإدارة.
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={handleReset}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95"
+          {/* Cloud & IP Verification Box */}
+          <div className="bg-white/80 border border-emerald-200 rounded-xl p-3 text-right text-xs space-y-1.5 shadow-sm max-w-md mx-auto">
+            <div className="flex justify-between items-center text-emerald-950 font-bold border-b border-emerald-100 pb-1">
+              <span>حالة المزامنة السحابية:</span>
+              <span className="text-emerald-700 font-black flex items-center gap-1">
+                <span>✓ تم الحفظ والمزامنة السحابية</span>
+              </span>
+            </div>
+            {submittedFeedback?.clientIp && (
+              <div className="flex justify-between items-center text-gray-600">
+                <span>IP جهاز المُرسل:</span>
+                <span className="font-mono text-emerald-800 font-black">{submittedFeedback.clientIp}</span>
+              </div>
+            )}
+            {submittedFeedback?.deviceInfo && (
+              <div className="flex justify-between items-center text-gray-600">
+                <span>الجهاز:</span>
+                <span className="text-gray-800 font-bold truncate max-w-[200px]">{submittedFeedback.deviceInfo}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            {/* WhatsApp Notification Button */}
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 px-5 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
             >
-              إرسال رأي آخر ✍️
-            </button>
+              <span>📲 إرسال إشعار برأيك إلى واتساب الإدارة</span>
+            </a>
+
             {settings.feedbackEmail && (
               <button
                 onClick={handleSendEmailCopy}
-                className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95"
+                className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm"
               >
                 إرسال نسخة عبر الإيميل 📧
               </button>
             )}
+
+            <button
+              onClick={handleReset}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2.5 px-4 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm"
+            >
+              إرسال رأي آخر ✍️
+            </button>
           </div>
         </div>
       ) : (

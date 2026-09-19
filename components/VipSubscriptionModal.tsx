@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { useSettings } from '../contexts/SettingsContext';
 import ShamCashQrCard, { ShamCashLogoSvg } from './ShamCashQrCard';
+import { buildWhatsAppNotificationUrl, formatOrderWhatsAppMessage } from '../utils/whatsappNotification';
 
 interface VipSubscriptionModalProps {
   isOpen: boolean;
@@ -164,9 +165,11 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
   // Activation Code States
   const [inputCode, setInputCode] = useState('');
+  const [isActivating, setIsActivating] = useState(false);
   const [activationFeedback, setActivationFeedback] = useState<{
     type: 'success' | 'error';
     text: string;
+    isSecurityMismatch?: boolean;
   } | null>(null);
 
   if (!isOpen) return null;
@@ -231,37 +234,51 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
   };
 
   // Handle VIP Activation Code
-  const handleActivateCode = (e: React.FormEvent) => {
+  const handleActivateCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setActivationFeedback(null);
-    const result = activateVip(inputCode);
+    setIsActivating(true);
 
-    if (result.success) {
-      setActivationFeedback({ type: 'success', text: result.message });
-      try {
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 },
+    try {
+      const result = await activateVip(inputCode);
+
+      if (result.success) {
+        setActivationFeedback({ type: 'success', text: result.message });
+        try {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+          });
+        } catch {}
+      } else {
+        const isSecurityMismatch = result.reason === 'IP_MISMATCH' || result.reason === 'DEVICE_MISMATCH';
+        setActivationFeedback({
+          type: 'error',
+          text: result.message,
+          isSecurityMismatch,
         });
-      } catch {}
-    } else {
-      setActivationFeedback({ type: 'error', text: result.message });
+      }
+    } catch (err: any) {
+      setActivationFeedback({
+        type: 'error',
+        text: err.message || 'حدث خطأ أثناء محاولة التفعيل، يرجى المحاولة لاحقاً.',
+      });
+    } finally {
+      setIsActivating(false);
     }
   };
 
-  const whatsappMessage = submittedOrder
-    ? encodeURIComponent(
-        `مرحباً، قمت بتحويل مبلغ ${targetPrice} ${targetCurrency} عبر ${methodConfig.name} لشراء النسخة الكاملة لتطبيق الألعاب.\nرقم الطلب: ${submittedOrder.id}\nالاسم: ${submittedOrder.customerName}\nرقم عملية التحويل: ${submittedOrder.transactionId}\nيرجى تزويدي بكود التفعيل.`
+  const whatsappHref = submittedOrder
+    ? buildWhatsAppNotificationUrl(
+        settings.whatsappUrl,
+        formatOrderWhatsAppMessage({
+          ...submittedOrder,
+          amount: targetPrice,
+          currency: targetCurrency,
+        })
       )
     : '';
-
-  const customWa = settings.whatsappUrl?.trim();
-  const whatsappHref = customWa
-    ? (customWa.startsWith('http')
-        ? `${customWa.includes('?') ? customWa + '&' : customWa + '?'}text=${whatsappMessage}`
-        : `https://wa.me/${customWa}?text=${whatsappMessage}`)
-    : `https://wa.me/?text=${whatsappMessage}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto animate-fade-in select-none">
@@ -334,6 +351,10 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                   </h3>
                   <div className="bg-gray-800/80 p-4 rounded-2xl border border-gray-700 text-right space-y-2 text-xs sm:text-sm max-w-md mx-auto">
                     <div className="flex justify-between border-b border-gray-700/60 pb-1.5">
+                      <span className="text-gray-400">حالة المزامنة:</span>
+                      <span className="text-emerald-400 font-bold">محفوظ ومزامن سحابياً ✓</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-700/60 pb-1.5">
                       <span className="text-gray-400">رقم الطلب:</span>
                       <span className="font-mono font-bold text-amber-400">{submittedOrder.id}</span>
                     </div>
@@ -345,14 +366,26 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                       <span className="text-gray-400">رقم العملية:</span>
                       <span className="font-mono font-bold text-cyan-300">{submittedOrder.transactionId}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between border-b border-gray-700/60 pb-1.5">
                       <span className="text-gray-400">المبلغ:</span>
                       <span className="font-bold text-emerald-400">{submittedOrder.amount} {submittedOrder.currency}</span>
                     </div>
+                    {submittedOrder.clientIp && (
+                      <div className="flex justify-between border-b border-gray-700/60 pb-1.5">
+                        <span className="text-gray-400">IP جهاز المشتري:</span>
+                        <span className="font-mono text-cyan-300">{submittedOrder.clientIp}</span>
+                      </div>
+                    )}
+                    {submittedOrder.deviceInfo && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">نوع الجهاز:</span>
+                        <span className="text-gray-300 truncate max-w-[200px]">{submittedOrder.deviceInfo}</span>
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xs sm:text-sm text-gray-300 max-w-md mx-auto leading-relaxed">
-                    تم تسجيل طلبك وسيتم التحقق من الإشعار وتزويدك بكود التفعيل الخاص بجهازك لتشغيل النسخة الكاملة فوراً.
+                    تم تسجيل وحفظ طلبك سحابياً، وسيتم التحقق من إشعار التحويل وتزويدك بكود التفعيل فوراً لتشغيل النسخة الكاملة.
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-2.5 justify-center pt-2">
@@ -360,9 +393,9 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
                       href={whatsappHref}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg"
+                      className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 shadow-lg"
                     >
-                      <span>💬 مراسلة الإدارة عبر واتساب للتفعيل السريع</span>
+                      <span>📲 إرسال إشعار فوري بالطلب إلى واتساب الإدارة</span>
                     </a>
                     <button
                       onClick={() => {
@@ -808,21 +841,42 @@ const VipSubscriptionModal: React.FC<VipSubscriptionModalProps> = ({
 
                     {activationFeedback && (
                       <div
-                        className={`p-3 rounded-xl text-xs font-bold ${
+                        className={`p-3.5 rounded-2xl text-xs font-bold leading-relaxed space-y-1 ${
                           activationFeedback.type === 'success'
-                            ? 'bg-emerald-950/60 border border-emerald-500 text-emerald-300'
-                            : 'bg-red-950/60 border border-red-500 text-red-300'
+                            ? 'bg-emerald-950/80 border-2 border-emerald-500 text-emerald-200'
+                            : activationFeedback.isSecurityMismatch
+                            ? 'bg-red-950/90 border-2 border-red-500 text-red-100 shadow-lg shadow-red-950/50'
+                            : 'bg-red-950/70 border border-red-500 text-red-200'
                         }`}
                       >
-                        {activationFeedback.text}
+                        <div className="flex items-start gap-2">
+                          <span className="text-base shrink-0">
+                            {activationFeedback.type === 'success'
+                              ? '✅'
+                              : activationFeedback.isSecurityMismatch
+                              ? '🛡️'
+                              : '❌'}
+                          </span>
+                          <span>{activationFeedback.text}</span>
+                        </div>
+                        {activationFeedback.isSecurityMismatch && (
+                          <div className="text-[11px] font-normal text-red-300/90 pt-1 border-t border-red-800/50">
+                            🔒 نظام الحماية: يتم قفل كل كود تفعيل تلقائياً مع عنوان IP والجهاز الأول المستخدم لمنع مشاركة أو تداول الأكواد.
+                          </div>
+                        )}
                       </div>
                     )}
 
                     <button
                       type="submit"
-                      className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-gray-950 font-black text-sm sm:text-base rounded-2xl shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                      disabled={isActivating || !inputCode.trim()}
+                      className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-gray-950 font-black text-sm sm:text-base rounded-2xl shadow-lg transition-all active:scale-98 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
-                      <span>تفعيل النسخة المدفوعة الآن 🚀</span>
+                      {isActivating ? (
+                        <span>جاري التحقق وربط الكود بـ IP الهاتف... ⏳</span>
+                      ) : (
+                        <span>تفعيل النسخة المدفوعة الآن 🚀</span>
+                      )}
                     </button>
                   </div>
                 </form>
