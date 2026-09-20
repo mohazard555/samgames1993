@@ -36,12 +36,25 @@ function getStoredSubmissions() {
         skillTestResults: Array.isArray(parsed.skillTestResults) ? parsed.skillTestResults : [],
         codeIpBindings: parsed.codeIpBindings && typeof parsed.codeIpBindings === 'object' ? parsed.codeIpBindings : {},
         codeActivationDetails: parsed.codeActivationDetails && typeof parsed.codeActivationDetails === 'object' ? parsed.codeActivationDetails : {},
+        codeCustomerBindings: parsed.codeCustomerBindings && typeof parsed.codeCustomerBindings === 'object' ? parsed.codeCustomerBindings : {},
+        codeDeviceBindings: parsed.codeDeviceBindings && typeof parsed.codeDeviceBindings === 'object' ? parsed.codeDeviceBindings : {},
+        approvedActivationCodes: Array.isArray(parsed.approvedActivationCodes) ? parsed.approvedActivationCodes : [],
       };
     }
   } catch (e) {
     console.warn('Error reading submissions file:', e);
   }
-  return { purchaseOrders: [], contactMessages: [], feedbacks: [], skillTestResults: [], codeIpBindings: {}, codeActivationDetails: {} };
+  return {
+    purchaseOrders: [],
+    contactMessages: [],
+    feedbacks: [],
+    skillTestResults: [],
+    codeIpBindings: {},
+    codeActivationDetails: {},
+    codeCustomerBindings: {},
+    codeDeviceBindings: {},
+    approvedActivationCodes: [],
+  };
 }
 
 function saveStoredSubmissions(data: any) {
@@ -53,6 +66,9 @@ function saveStoredSubmissions(data: any) {
       skillTestResults: data.skillTestResults || [],
       codeIpBindings: data.codeIpBindings || {},
       codeActivationDetails: data.codeActivationDetails || {},
+      codeCustomerBindings: data.codeCustomerBindings || {},
+      codeDeviceBindings: data.codeDeviceBindings || {},
+      approvedActivationCodes: data.approvedActivationCodes || [],
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), 'utf-8');
   } catch (e) {
@@ -566,10 +582,108 @@ app.post('/api/unbind-code', async (req, res) => {
   }
 });
 
+// Admin reserve code for a customer endpoint
+app.post('/api/reserve-code', async (req, res) => {
+  try {
+    const { code, customerName } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, message: 'الكود مطلوب' });
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const cleanCustomer = (customerName || '').trim();
+    const submissions = getStoredSubmissions();
+
+    if (!submissions.codeCustomerBindings) {
+      submissions.codeCustomerBindings = {};
+    }
+
+    if (cleanCustomer) {
+      submissions.codeCustomerBindings[cleanCode] = cleanCustomer;
+    } else {
+      delete submissions.codeCustomerBindings[cleanCode];
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+
+    if (gistToken && gistUrl) {
+      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+        console.warn('Gist sync on reserve-code warning:', err.message);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: cleanCustomer
+        ? `✓ تم حجز الكود (${cleanCode}) للعميل (${cleanCustomer}) ومزامنته سحابياً بنجاح.`
+        : `✓ تم إلغاء حجز الكود (${cleanCode}) بنجاح.`,
+      code: cleanCode,
+      customerName: cleanCustomer,
+      codeCustomerBindings: submissions.codeCustomerBindings,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Admin unreserve code endpoint
+app.post('/api/unreserve-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({ success: false, message: 'الكود مطلوب' });
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const submissions = getStoredSubmissions();
+
+    if (submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) {
+      delete submissions.codeCustomerBindings[cleanCode];
+    }
+
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+
+    if (gistToken && gistUrl) {
+      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+        console.warn('Gist sync on unreserve warning:', err.message);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `تم إلغاء حجز الكود (${cleanCode}) وإعادته للقائمة المتاحة.`,
+      code: cleanCode,
+      codeCustomerBindings: submissions.codeCustomerBindings,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Full state synchronization endpoint
 app.post('/api/sync-all', async (req, res) => {
   try {
-    const { purchaseOrders, contactMessages, feedbacks, skillTestResults, codeIpBindings, codeActivationDetails, gistToken, gistUrl, replace } = req.body;
+    const {
+      purchaseOrders,
+      contactMessages,
+      feedbacks,
+      skillTestResults,
+      codeIpBindings,
+      codeActivationDetails,
+      codeCustomerBindings,
+      codeDeviceBindings,
+      approvedActivationCodes,
+      settings,
+      gistToken,
+      gistUrl,
+      replace,
+    } = req.body;
     const submissions = getStoredSubmissions();
 
     if (Array.isArray(purchaseOrders)) {
@@ -632,6 +746,35 @@ app.post('/api/sync-all', async (req, res) => {
         };
       }
     }
+    if (codeCustomerBindings && typeof codeCustomerBindings === 'object') {
+      if (replace) {
+        submissions.codeCustomerBindings = codeCustomerBindings;
+      } else {
+        submissions.codeCustomerBindings = {
+          ...(submissions.codeCustomerBindings || {}),
+          ...codeCustomerBindings,
+        };
+      }
+    }
+    if (codeDeviceBindings && typeof codeDeviceBindings === 'object') {
+      if (replace) {
+        submissions.codeDeviceBindings = codeDeviceBindings;
+      } else {
+        submissions.codeDeviceBindings = {
+          ...(submissions.codeDeviceBindings || {}),
+          ...codeDeviceBindings,
+        };
+      }
+    }
+    if (Array.isArray(approvedActivationCodes) && approvedActivationCodes.length > 0) {
+      if (replace) {
+        submissions.approvedActivationCodes = approvedActivationCodes;
+      } else {
+        submissions.approvedActivationCodes = Array.from(
+          new Set([...(submissions.approvedActivationCodes || []), ...approvedActivationCodes])
+        );
+      }
+    }
 
     saveStoredSubmissions(submissions);
 
@@ -646,7 +789,11 @@ app.post('/api/sync-all', async (req, res) => {
     let syncedToGist = false;
     if (activeToken && activeUrl) {
       try {
-        await syncToGistHelper(activeUrl, activeToken, submissions);
+        const fullPayloadToSync = {
+          ...submissions,
+          ...(settings && typeof settings === 'object' ? settings : {}),
+        };
+        await syncToGistHelper(activeUrl, activeToken, fullPayloadToSync);
         syncedToGist = true;
       } catch (e: any) {
         console.warn('Background sync-all Gist error:', e.message);
@@ -874,6 +1021,23 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
   // Safety safeguard: never wipe existing Gist config if we have existing keys
   const merged = {
     ...currentSettings,
+    ...(localData.siteName ? { siteName: localData.siteName } : {}),
+    ...(localData.logoUrl ? { logoUrl: localData.logoUrl } : {}),
+    ...(localData.subscriptionUrl ? { subscriptionUrl: localData.subscriptionUrl } : {}),
+    ...(localData.whatsappUrl !== undefined ? { whatsappUrl: localData.whatsappUrl } : {}),
+    ...(localData.youtubeUrls ? { youtubeUrls: localData.youtubeUrls } : {}),
+    ...(localData.backgroundMusicUrl ? { backgroundMusicUrl: localData.backgroundMusicUrl } : {}),
+    ...(localData.backgroundMusicEnabled !== undefined ? { backgroundMusicEnabled: localData.backgroundMusicEnabled } : {}),
+    ...(localData.videoWaitTime !== undefined ? { videoWaitTime: localData.videoWaitTime } : {}),
+    ...(localData.videoRequiredGameIds ? { videoRequiredGameIds: localData.videoRequiredGameIds } : {}),
+    ...(localData.requireSubscriptionAndVideos !== undefined ? { requireSubscriptionAndVideos: localData.requireSubscriptionAndVideos } : {}),
+    ...(localData.paidSettings ? { paidSettings: { ...((currentSettings as any).paidSettings || {}), ...localData.paidSettings } } : {}),
+    ...(localData.adSettings ? { adSettings: { ...((currentSettings as any).adSettings || {}), ...localData.adSettings } } : {}),
+    ...(localData.googleAdSettings ? { googleAdSettings: { ...((currentSettings as any).googleAdSettings || {}), ...localData.googleAdSettings } } : {}),
+    ...(Array.isArray(localData.approvedActivationCodes) && localData.approvedActivationCodes.length > 0
+      ? { approvedActivationCodes: localData.approvedActivationCodes }
+      : {}),
+    ...(localData.freeActivationCode !== undefined ? { freeActivationCode: localData.freeActivationCode } : {}),
     purchaseOrders: [
       ...(localData.purchaseOrders || []),
       ...((currentSettings as any).purchaseOrders || []),
@@ -897,6 +1061,14 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     codeActivationDetails: {
       ...((currentSettings as any).codeActivationDetails || {}),
       ...(localData.codeActivationDetails || {}),
+    },
+    codeCustomerBindings: {
+      ...((currentSettings as any).codeCustomerBindings || {}),
+      ...(localData.codeCustomerBindings || {}),
+    },
+    codeDeviceBindings: {
+      ...((currentSettings as any).codeDeviceBindings || {}),
+      ...(localData.codeDeviceBindings || {}),
     },
   };
 
@@ -928,6 +1100,9 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     skillTestResults: merged.skillTestResults,
     codeIpBindings: merged.codeIpBindings,
     codeActivationDetails: merged.codeActivationDetails,
+    codeCustomerBindings: merged.codeCustomerBindings,
+    codeDeviceBindings: merged.codeDeviceBindings,
+    approvedActivationCodes: merged.approvedActivationCodes,
   });
 
   console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks, ${merged.skillTestResults.length} skill test results.`);

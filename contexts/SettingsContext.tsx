@@ -161,6 +161,8 @@ interface SettingsContextType {
   generateBatchCodes: (count: number) => string[];
   resetApprovedCodesTo100: () => string[];
   generateFriendCode: (friendName: string) => string;
+  reserveCodeForCustomer: (code: string, customerName: string) => Promise<void>;
+  unreserveCodeForCustomer: (code: string) => Promise<void>;
   revokeActivationCode: (code: string) => void;
   revokeFreeActivationCode: () => void;
   // Reset all settings data to original defaults
@@ -1160,6 +1162,111 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         console.warn('Could not save lightweight settings to localStorage:', innerErr);
       }
     }
+
+    // Automatically synchronize with backend server and Gist
+    try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
+      fetch('/api/sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newSettings,
+          settings: newSettings,
+          gistToken: activeToken,
+          gistUrl: activeUrl,
+        }),
+      }).catch((e) => console.warn('Background sync-all error:', e));
+    } catch (e) {
+      console.warn('Failed to dispatch server sync:', e);
+    }
+  };
+
+  const reserveCodeForCustomer = async (code: string, customerName: string) => {
+    const cleanCode = code.trim().toUpperCase();
+    const cleanCustomer = customerName.trim();
+    const updatedBindings = {
+      ...(settings.codeCustomerBindings || {}),
+    };
+    if (cleanCustomer) {
+      updatedBindings[cleanCode] = cleanCustomer;
+    } else {
+      delete updatedBindings[cleanCode];
+    }
+
+    const updatedSettings: Settings = {
+      ...settings,
+      codeCustomerBindings: updatedBindings,
+    };
+
+    saveSettings(updatedSettings);
+
+    try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
+      await fetch('/api/reserve-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
+        },
+        body: JSON.stringify({
+          code: cleanCode,
+          customerName: cleanCustomer,
+          gistToken: activeToken,
+          gistUrl: activeUrl,
+        }),
+      });
+    } catch (e) {
+      console.warn('Server reserve-code error:', e);
+    }
+
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    if (activeToken) {
+      saveToGist(updatedSettings).catch(() => {});
+    }
+  };
+
+  const unreserveCodeForCustomer = async (code: string) => {
+    const cleanCode = code.trim().toUpperCase();
+    const updatedBindings = {
+      ...(settings.codeCustomerBindings || {}),
+    };
+    delete updatedBindings[cleanCode];
+
+    const updatedSettings: Settings = {
+      ...settings,
+      codeCustomerBindings: updatedBindings,
+    };
+
+    saveSettings(updatedSettings);
+
+    try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
+      await fetch('/api/unreserve-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
+        },
+        body: JSON.stringify({
+          code: cleanCode,
+          gistToken: activeToken,
+          gistUrl: activeUrl,
+        }),
+      });
+    } catch (e) {
+      console.warn('Server unreserve-code error:', e);
+    }
+
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    if (activeToken) {
+      saveToGist(updatedSettings).catch(() => {});
+    }
   };
 
   const setGistUrl = (url: string) => {
@@ -1366,6 +1473,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           codeCustomerBindings: {
             ...(localParsed.codeCustomerBindings || {}),
             ...(effectiveRemote.codeCustomerBindings || {}),
+            ...(serverSubmissions.codeCustomerBindings || {}),
           },
           codeDeviceBindings: {
             ...(localParsed.codeDeviceBindings || {}),
@@ -2107,6 +2215,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         generateBatchCodes,
         resetApprovedCodesTo100,
         generateFriendCode,
+        reserveCodeForCustomer,
+        unreserveCodeForCustomer,
         revokeActivationCode,
         revokeFreeActivationCode,
         exportAllDataAsJSON,

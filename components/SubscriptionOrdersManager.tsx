@@ -48,6 +48,8 @@ const SubscriptionOrdersManager: React.FC = () => {
     revokeActivationCode,
     revokeFreeActivationCode,
     unbindCodeIp,
+    reserveCodeForCustomer,
+    unreserveCodeForCustomer,
     exportAllDataAsJSON,
     importAllDataFromJSON,
     loadFromGist,
@@ -1079,7 +1081,24 @@ const SubscriptionOrdersManager: React.FC = () => {
                         </div>
 
                         {/* Actions for Reserved/Used code */}
-                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-blue-200/60">
+                        <div className="flex items-center justify-end flex-wrap gap-1.5 pt-1 border-t border-blue-200/60">
+                          {customer && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`هل تريد إلغاء حجز الكود (${code}) للعميل (${customer}) وإعادته للقائمة المتاحة؟`)) {
+                                  await unreserveCodeForCustomer(code);
+                                  setUnbindFeedback(`✓ تم إلغاء حجز الكود (${code}) وإعادته للأكواد المتاحة.`);
+                                  setTimeout(() => setUnbindFeedback(null), 4000);
+                                }
+                              }}
+                              className="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold text-[10px] rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                              title="إلغاء حجز هذا الكود للعميل"
+                            >
+                              <span>👤 إلغاء حجز العميل</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={async () => {
@@ -1251,25 +1270,18 @@ const SubscriptionOrdersManager: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!reserveModalData.customerName.trim()) {
                       alert('يرجى كتابة اسم العميل لحجز الكود له');
                       return;
                     }
                     const { code, customerName } = reserveModalData;
-                    setSettings((prev) => {
-                      const updated = {
-                        ...prev,
-                        codeCustomerBindings: {
-                          ...(prev.codeCustomerBindings || {}),
-                          [code]: customerName.trim(),
-                        },
-                      };
-                      saveSettings(updated);
-                      return updated;
-                    });
                     setReserveModalData(null);
-                    setUnbindFeedback(`✓ تم حجز الكود (${code}) للعميل (${customerName.trim()}) ولُوّن بالأزرق.`);
+                    setUnbindFeedback(`⏳ جاري حجز الكود (${code}) ومزامنته سحابياً...`);
+                    
+                    await reserveCodeForCustomer(code, customerName.trim());
+                    
+                    setUnbindFeedback(`✓ تم حجز الكود (${code}) للعميل (${customerName.trim()}) ومزامنته سحابياً ولُوّن بالأزرق 🔵.`);
                     setTimeout(() => setUnbindFeedback(null), 4000);
                   }}
                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-sm cursor-pointer"
