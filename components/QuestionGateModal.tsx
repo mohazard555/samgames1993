@@ -25,10 +25,10 @@ export const QuestionGateModal: React.FC<QuestionGateModalProps> = ({
 
   if (!isOpen || isVipActive) return null;
 
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!quickCode.trim()) return;
-    const res = activateVip(quickCode);
+    const res = await activateVip(quickCode);
     setCodeStatus(res);
     if (res.success) {
       setTimeout(() => {

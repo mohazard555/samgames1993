@@ -365,21 +365,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return {
         success: false,
         reason: 'DEVICE_MISMATCH',
-        message: '⚠️ تنبيه أمني: هذا الكود مفعّل مسبقاً على هاتف وجهاز آخر ولا يمكن تفعيله على هاتف ثانٍ منعاً للتلاعب والتداول.',
+        message: '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بهاتف آخر ولا يمكن استخدامه على هذا الجهاز نهائياً منعاً للتلاعب والغش.',
       };
     }
 
-    // 1. Check if code exists in approved codes list
-    const isApprovedCode = settings.approvedActivationCodes?.some(
-      (c) => c.trim().toUpperCase() === code
-    );
+    // 1. Check if code exists in approved codes list or customer bindings
+    const isApprovedCode =
+      settings.approvedActivationCodes?.some((c) => c.trim().toUpperCase() === code) ||
+      Boolean(settings.codeCustomerBindings?.[code]);
 
     // 2. Check if code exists in any purchase order that is approved or valid
     const matchingOrder = settings.purchaseOrders?.find(
       (o) => o.activationCode?.trim().toUpperCase() === code
     );
 
-    // 3. Algorithmic fallback: codes starting with VIP- and having 3 parts
+    // 3. Algorithmic format check (VIP-XXXX-XXXX)
     const isAlgorithmicValid = /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(code);
 
     if (!isApprovedCode && (!matchingOrder || matchingOrder.status === 'مرفوض') && !isAlgorithmicValid) {
@@ -395,18 +395,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     let serverActivatedAt = new Date().toLocaleString('ar-EG');
 
     try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
       const res = await fetch('/api/activate-vip', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
         body: JSON.stringify({
           code,
           deviceFingerprint: deviceId,
           customerName: customerName || settings.codeCustomerBindings?.[code],
-          gistToken,
-          gistUrl,
+          gistToken: activeToken,
+          gistUrl: activeUrl,
         }),
       });
 
@@ -419,7 +422,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           boundIp: data.boundIp,
           message:
             data.message ||
-            '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بـ IP وبصمة جهاز هاتف آخر ويمنع منعاً باتاً إدخاله بهاتف آخر منعاً للتلاعب والغش.',
+            '⚠️ تنبيه أمني مشدد: هذا الكود محجوز أو مفعّل مسبقاً ومقترن بـ IP وبصمة هاتف آخر ولا يمكن استخدامه على هذا الجهاز.',
         };
       }
 
@@ -429,7 +432,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (apiErr) {
       console.warn('Backend /api/activate-vip request error:', apiErr);
       // If offline, also check local settings bindings
-      if (settings.codeIpBindings?.[code] && settings.codeDeviceBindings?.[code] !== deviceId) {
+      if (settings.codeDeviceBindings?.[code] && settings.codeDeviceBindings?.[code] !== deviceId) {
         return {
           success: false,
           reason: 'DEVICE_MISMATCH',
@@ -2204,6 +2207,33 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       } finally {
         if (isMounted) {
           setIsInitialLoading(false);
+        }
+      }
+
+      // 4. Verify VIP validity for current device against server bindings
+      const currentVipActive = localStorage.getItem('toysGameVipActive') === 'true';
+      const currentVipCode = localStorage.getItem('toysGameVipCode') || '';
+      if (currentVipActive && currentVipCode) {
+        try {
+          const verifyRes = await fetch('/api/verify-vip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: currentVipCode, deviceFingerprint: getDeviceId() }),
+          });
+          if (verifyRes.ok) {
+            const verifyData = await verifyRes.json();
+            if (verifyData.valid === false) {
+              console.warn('VIP code is bound to another device! Revoking VIP on this device.');
+              localStorage.removeItem('toysGameVipActive');
+              localStorage.removeItem('toysGameVipCode');
+              if (isMounted) {
+                setIsVipActiveState(false);
+                setVipActivationCodeState('');
+              }
+            }
+          }
+        } catch (vErr) {
+          console.warn('VIP verification check failed:', vErr);
         }
       }
     };

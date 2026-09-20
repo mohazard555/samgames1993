@@ -3049,6 +3049,11 @@ const SettingsPage: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-gray-800 text-base">{res.name}</span>
+                        {res.testRound && (
+                          <span className="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-extrabold">
+                            {res.testRound === 1 ? 'الاختبار 1' : res.testRound === 2 ? 'الاختبار 2' : 'الاختبار 3'}
+                          </span>
+                        )}
                         {res.country && (
                           <span className="text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold">
                             {res.country}

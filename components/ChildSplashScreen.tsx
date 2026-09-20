@@ -60,7 +60,7 @@ const ChildSplashScreen: React.FC<ChildSplashScreenProps> = ({ onDismiss }) => {
 
         {/* Childish fun hint */}
         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-3 mb-4 text-xs sm:text-sm font-bold text-amber-800">
-          🚀 نحضر لك ألعاب الذكاء، السباقات، وأصوات الحيوانات الرائعة!
+          🚀 نحضر لك أفضل الألعاب التعليمية والذكاء والممتعة لكل ما يناسب طفلك! 🌟
         </div>
 
         {/* Direct entry button if network is slow */}

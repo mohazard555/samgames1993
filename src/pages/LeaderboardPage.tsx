@@ -1,10 +1,27 @@
-import React from 'main' in React; // wait, import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
 
 export const LeaderboardPage: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, loadFromGist } = useSettings();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const results = settings.skillTestResults || [];
+
+  // Refresh latest results on mount
+  useEffect(() => {
+    loadFromGist(true).catch(() => {});
+  }, []);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await loadFromGist(true);
+    } catch (e) {
+      console.warn('Refresh leaderboard error:', e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Sort by score descending, then percentage
   const sortedResults = [...results].sort((a, b) => b.score - a.score || b.percentage - a.percentage);
@@ -24,19 +41,31 @@ export const LeaderboardPage: React.FC = () => {
         <p className="text-xs sm:text-sm font-bold text-gray-700">
           هل تريد إرسال نتيجتك والانضمام إلى لوحة الشرف؟ خض التحدي الآن!
         </p>
-        <Link
-          to="/skill-test"
-          className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black py-2.5 px-6 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm"
-        >
-          🧠 ابدأ تحدي اختبر مهاراتك الآن
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 px-3 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            title="تحديث النتائج مباشرة من السيرفر"
+          >
+            <span>🔄</span>
+            <span>{isRefreshing ? 'جاري التحديث...' : 'تحديث اللوحة'}</span>
+          </button>
+          <Link
+            to="/skill-test"
+            className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-black py-2.5 px-5 rounded-xl shadow transition-transform active:scale-95 text-xs sm:text-sm whitespace-nowrap"
+          >
+            🧠 ابدأ تحدي اختبر مهاراتك
+          </Link>
+        </div>
       </div>
 
       {sortedResults.length === 0 ? (
         <div className="bg-white p-12 rounded-3xl shadow-md border border-gray-200 text-center space-y-4">
           <span className="text-6xl block">🏅</span>
           <h3 className="text-xl font-black text-gray-800">لا توجد نتائج مسجلة حتى الآن</h3>
-          <p className="text-gray-500 text-sm">كن أول البطل الأبطال الذين ينهون التحدي ويسجلون اسمعهم هنا!</p>
+          <p className="text-gray-500 text-sm">كن أول الأبطال الذين ينهون التحدي ويسجلون أسماءهم هنا!</p>
           <div className="pt-2">
             <Link
               to="/skill-test"
@@ -51,6 +80,14 @@ export const LeaderboardPage: React.FC = () => {
           {sortedResults.map((res, index) => {
             const isTop3 = index < 3;
             const rankBadge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+            const roundBadge =
+              res.testRound === 1
+                ? 'الاختبار 1'
+                : res.testRound === 2
+                ? 'الاختبار 2'
+                : res.testRound === 3
+                ? 'الاختبار 3'
+                : null;
 
             return (
               <div
@@ -66,8 +103,13 @@ export const LeaderboardPage: React.FC = () => {
                     {rankBadge}
                   </div>
                   <div>
-                    <h3 className="text-base sm:text-lg font-black text-gray-800 flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-gray-800 flex items-center flex-wrap gap-2">
                       <span>{res.name}</span>
+                      {roundBadge && (
+                        <span className="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full font-extrabold">
+                          {roundBadge}
+                        </span>
+                      )}
                       {res.country && (
                         <span className="text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold">
                           📍 {res.country}

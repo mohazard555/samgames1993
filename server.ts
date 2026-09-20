@@ -351,6 +351,42 @@ app.post('/api/gist-config', async (req, res) => {
   });
 });
 
+// GET endpoints for all submissions
+app.get('/api/orders', (req, res) => {
+  const submissions = getStoredSubmissions();
+  res.json({
+    success: true,
+    purchaseOrders: submissions.purchaseOrders || [],
+    codeCustomerBindings: submissions.codeCustomerBindings || {},
+    codeIpBindings: submissions.codeIpBindings || {},
+    codeDeviceBindings: submissions.codeDeviceBindings || {},
+  });
+});
+
+app.get('/api/messages', (req, res) => {
+  const submissions = getStoredSubmissions();
+  res.json({
+    success: true,
+    contactMessages: submissions.contactMessages || [],
+  });
+});
+
+app.get('/api/feedbacks', (req, res) => {
+  const submissions = getStoredSubmissions();
+  res.json({
+    success: true,
+    feedbacks: submissions.feedbacks || [],
+  });
+});
+
+app.get('/api/skill-tests', (req, res) => {
+  const submissions = getStoredSubmissions();
+  res.json({
+    success: true,
+    skillTestResults: submissions.skillTestResults || [],
+  });
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
     const rawOrder = req.body;
@@ -620,6 +656,7 @@ app.post('/api/activate-vip', async (req, res) => {
     }
 
     const cleanCode = code.trim().toUpperCase();
+    const cleanFingerprint = (deviceFingerprint || '').trim();
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
 
@@ -656,6 +693,27 @@ app.post('/api/activate-vip', async (req, res) => {
       ...(remoteData.codeCustomerBindings || {}),
       ...(submissions.codeCustomerBindings || {}),
     };
+    submissions.approvedActivationCodes = Array.from(
+      new Set([
+        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : []),
+        ...(Array.isArray(submissions.approvedActivationCodes) ? submissions.approvedActivationCodes : []),
+      ])
+    );
+
+    // Verify code validity (must be in approved codes, customer bindings, or purchase orders)
+    const isApproved =
+      (submissions.approvedActivationCodes && submissions.approvedActivationCodes.includes(cleanCode)) ||
+      Boolean(submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) ||
+      Boolean(submissions.purchaseOrders && submissions.purchaseOrders.some((p: any) => p.activationCode?.toUpperCase() === cleanCode)) ||
+      /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(cleanCode);
+
+    if (!isApproved) {
+      return res.status(400).json({
+        success: false,
+        reason: 'INVALID_CODE',
+        message: 'كود التفعيل غير صالح أو غير معتمد. يرجى مراجعة الإدارة أو التأكد من إدخال الرمز بشكل دقيق.',
+      });
+    }
 
     const boundIp = submissions.codeIpBindings[cleanCode];
     const boundFingerprint =
@@ -663,8 +721,19 @@ app.post('/api/activate-vip', async (req, res) => {
       submissions.codeActivationDetails[cleanCode]?.deviceFingerprint;
     const details = submissions.codeActivationDetails[cleanCode];
 
-    // STRICT CHECK: If code is already bound to another phone / IP / fingerprint
-    if (boundIp && boundIp !== clientIp) {
+    // STRICT CHECK 1: If code is already bound to another device fingerprint
+    if (boundFingerprint && boundFingerprint !== cleanFingerprint) {
+      return res.status(403).json({
+        success: false,
+        reason: 'DEVICE_MISMATCH',
+        boundIp: boundIp || 'هاتف آخر',
+        activatedAt: details?.activatedAt,
+        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) محجوز ومقترن بجهاز وهاتف آخر ولا يمكن استخدامه على هذا الجهاز منعاً للغش والتداول.`,
+      });
+    }
+
+    // STRICT CHECK 2: If code is already bound to another IP
+    if (boundIp && boundIp !== clientIp && boundFingerprint !== cleanFingerprint) {
       return res.status(403).json({
         success: false,
         reason: 'IP_MISMATCH',
@@ -674,21 +743,11 @@ app.post('/api/activate-vip', async (req, res) => {
       });
     }
 
-    if (boundFingerprint && deviceFingerprint && boundFingerprint !== deviceFingerprint) {
-      return res.status(403).json({
-        success: false,
-        reason: 'DEVICE_MISMATCH',
-        boundIp: boundIp || 'هاتف آخر',
-        activatedAt: details?.activatedAt,
-        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مقترن ببصمة جهاز وهاتف آخر ولا يمكن استخدامه على هذا الجهاز منعاً للغش.`,
-      });
-    }
-
-    // Bind this code to the current IP and device
+    // Bind this code to the current IP and device fingerprint permanently
     const nowAr = new Date().toLocaleString('ar-EG');
     submissions.codeIpBindings[cleanCode] = clientIp;
-    if (deviceFingerprint) {
-      submissions.codeDeviceBindings[cleanCode] = deviceFingerprint;
+    if (cleanFingerprint) {
+      submissions.codeDeviceBindings[cleanCode] = cleanFingerprint;
     }
     submissions.codeActivationDetails[cleanCode] = {
       ip: clientIp,
@@ -696,7 +755,7 @@ app.post('/api/activate-vip', async (req, res) => {
       activatedAt: details?.activatedAt || nowAr,
       lastSeenAt: nowAr,
       customerName: customerName || submissions.codeCustomerBindings?.[cleanCode] || details?.customerName,
-      deviceFingerprint: deviceFingerprint || details?.deviceFingerprint,
+      deviceFingerprint: cleanFingerprint || details?.deviceFingerprint,
     };
 
     // Ensure code is in approvedActivationCodes
@@ -744,6 +803,35 @@ app.post('/api/activate-vip', async (req, res) => {
   }
 });
 
+// Endpoint to verify VIP device validity on client startup
+app.post('/api/verify-vip', (req, res) => {
+  try {
+    const { code, deviceFingerprint } = req.body;
+    if (!code || typeof code !== 'string') {
+      return res.json({ valid: false, reason: 'EMPTY_CODE' });
+    }
+    const cleanCode = code.trim().toUpperCase();
+    const cleanDevice = (deviceFingerprint || '').trim();
+    const submissions = getStoredSubmissions();
+
+    const boundFingerprint =
+      submissions.codeDeviceBindings?.[cleanCode] ||
+      submissions.codeActivationDetails?.[cleanCode]?.deviceFingerprint;
+
+    if (boundFingerprint && cleanDevice && boundFingerprint !== cleanDevice) {
+      return res.json({
+        valid: false,
+        reason: 'DEVICE_MISMATCH',
+        message: 'كود التفعيل مقترن بجهاز آخر وتم إيقاف تفعيله على هذا الجهاز',
+      });
+    }
+
+    return res.json({ valid: true });
+  } catch (err: any) {
+    res.json({ valid: true });
+  }
+});
+
 // Admin unbind endpoint
 app.post('/api/unbind-code', async (req, res) => {
   try {
@@ -757,8 +845,14 @@ app.post('/api/unbind-code', async (req, res) => {
     if (submissions.codeIpBindings && submissions.codeIpBindings[cleanCode]) {
       delete submissions.codeIpBindings[cleanCode];
     }
+    if (submissions.codeDeviceBindings && submissions.codeDeviceBindings[cleanCode]) {
+      delete submissions.codeDeviceBindings[cleanCode];
+    }
     if (submissions.codeActivationDetails && submissions.codeActivationDetails[cleanCode]) {
       delete submissions.codeActivationDetails[cleanCode];
+    }
+    if (submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) {
+      delete submissions.codeCustomerBindings[cleanCode];
     }
 
     saveStoredSubmissions(submissions);
@@ -775,8 +869,11 @@ app.post('/api/unbind-code', async (req, res) => {
 
     res.json({
       success: true,
-      message: `تم فك ارتباط الـ IP للكود (${cleanCode}) بنجاح، وأصبح جاهزاً ومتاحاً للربط بجهاز جديد.`,
+      message: `✓ تم فك ارتباط الكود (${cleanCode}) بنجاح وإلغاء حجز الـ IP والبصمة ليصبح متاحاً من جديد.`,
       code: cleanCode,
+      codeDeviceBindings: submissions.codeDeviceBindings,
+      codeIpBindings: submissions.codeIpBindings,
+      codeCustomerBindings: submissions.codeCustomerBindings,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

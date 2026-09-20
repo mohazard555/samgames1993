@@ -65,6 +65,7 @@ export interface SkillTestResult {
   score: number;
   total: number;
   percentage: number;
+  testRound?: number; // رقم الاختبار: 1 (الأول) أو 2 (الثاني) أو 3 (الثالث)
   createdAt: string;
   clientIp?: string; // عنوان IP لجهاز المتسابق
   deviceInfo?: string; // نوع الجهاز والمتصفح
