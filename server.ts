@@ -151,14 +151,159 @@ function getDeviceInfo(req: express.Request): string {
   return 'متصفح ويب';
 }
 
+// Helper to fetch latest data directly from GitHub Gist
+async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
+  const activeGist = getStoredGistConfig();
+  const rawUrl = (url || activeGist.gistUrl || DEFAULT_GIST_URL).trim();
+  const rawToken = (token || activeGist.gistToken || DEFAULT_GIST_TOKEN).trim();
+
+  const gistIdMatch = rawUrl.match(/([a-f0-9]{32})/i);
+  const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
+  const fileMatch = rawUrl.match(/\/([^\/?#]+\.json)/i);
+  const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
+
+  const requestHeaders: Record<string, string> = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'ToysGame-Sync-Server/1.0',
+  };
+
+  if (rawToken && rawToken.length > 5) {
+    requestHeaders.Authorization =
+      rawToken.startsWith('ghp_') || rawToken.startsWith('github_pat_')
+        ? `Bearer ${rawToken}`
+        : `token ${rawToken}`;
+  }
+
+  let result: any = null;
+
+  try {
+    const apiRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
+      headers: requestHeaders,
+    });
+    if (apiRes.ok) {
+      const gistData = await apiRes.json();
+      const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0] as any;
+      if (targetFile) {
+        if (targetFile.content && !targetFile.truncated) {
+          try {
+            result = JSON.parse(targetFile.content);
+          } catch {}
+        } else if (targetFile.raw_url) {
+          const rawRes = await fetch(`${targetFile.raw_url}?_t=${Date.now()}`, {
+            headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
+          });
+          if (rawRes.ok) {
+            result = await rawRes.json();
+          }
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn('Gist API fetch error:', err.message);
+  }
+
+  if (!result || Object.keys(result).length === 0) {
+    try {
+      const fallbackRes = await fetch(
+        `https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`,
+        { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' } }
+      );
+      if (fallbackRes.ok) {
+        result = await fallbackRes.json();
+      }
+    } catch {}
+  }
+
+  return result || {};
+}
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-app.get('/api/data', (req, res) => {
-  const submissions = getStoredSubmissions();
-  res.json({ success: true, ...submissions });
+app.get('/api/data', async (req, res) => {
+  try {
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || activeGist.gistUrl || '').trim();
+
+    let remoteData: any = {};
+    if (gistUrl && gistToken) {
+      remoteData = await fetchGistDataHelper(gistUrl, gistToken);
+    }
+
+    const localSubmissions = getStoredSubmissions();
+
+    // Merge purchase orders
+    const mergedOrders = [
+      ...(localSubmissions.purchaseOrders || []),
+      ...(Array.isArray(remoteData.purchaseOrders) ? remoteData.purchaseOrders : []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+    // Merge contact messages
+    const mergedMessages = [
+      ...(localSubmissions.contactMessages || []),
+      ...(Array.isArray(remoteData.contactMessages) ? remoteData.contactMessages : []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+    // Merge feedbacks
+    const mergedFeedbacks = [
+      ...(localSubmissions.feedbacks || []),
+      ...(Array.isArray(remoteData.feedbacks) ? remoteData.feedbacks : []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+    // Merge skill test results
+    const mergedSkills = [
+      ...(localSubmissions.skillTestResults || []),
+      ...(Array.isArray(remoteData.skillTestResults) ? remoteData.skillTestResults : []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+    // Merge code bindings
+    const mergedCodeIpBindings = {
+      ...(remoteData.codeIpBindings || {}),
+      ...(localSubmissions.codeIpBindings || {}),
+    };
+    const mergedCodeActivationDetails = {
+      ...(remoteData.codeActivationDetails || {}),
+      ...(localSubmissions.codeActivationDetails || {}),
+    };
+    const mergedCodeCustomerBindings = {
+      ...(remoteData.codeCustomerBindings || {}),
+      ...(localSubmissions.codeCustomerBindings || {}),
+    };
+    const mergedCodeDeviceBindings = {
+      ...(remoteData.codeDeviceBindings || {}),
+      ...(localSubmissions.codeDeviceBindings || {}),
+    };
+
+    const mergedApprovedCodes = Array.from(
+      new Set([
+        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : []),
+        ...(Array.isArray(localSubmissions.approvedActivationCodes) ? localSubmissions.approvedActivationCodes : []),
+        ...Object.keys(mergedCodeCustomerBindings),
+        ...Object.keys(mergedCodeIpBindings),
+      ].filter((c) => typeof c === 'string' && c.trim().length > 0))
+    );
+
+    const mergedState = {
+      purchaseOrders: mergedOrders,
+      contactMessages: mergedMessages,
+      feedbacks: mergedFeedbacks,
+      skillTestResults: mergedSkills,
+      codeIpBindings: mergedCodeIpBindings,
+      codeActivationDetails: mergedCodeActivationDetails,
+      codeCustomerBindings: mergedCodeCustomerBindings,
+      codeDeviceBindings: mergedCodeDeviceBindings,
+      approvedActivationCodes: mergedApprovedCodes,
+    };
+
+    saveStoredSubmissions(mergedState);
+    res.json({ success: true, ...mergedState });
+  } catch (err: any) {
+    const submissions = getStoredSubmissions();
+    res.json({ success: true, ...submissions });
+  }
 });
 
 // Gist Configuration Endpoints
@@ -477,40 +622,88 @@ app.post('/api/activate-vip', async (req, res) => {
     const cleanCode = code.trim().toUpperCase();
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
-    const submissions = getStoredSubmissions();
 
-    submissions.codeIpBindings = submissions.codeIpBindings || {};
-    submissions.codeActivationDetails = submissions.codeActivationDetails || {};
+    // 1. Fetch latest Gist data first to ensure cross-device lock is 100% up-to-date
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
 
-    const boundIp = submissions.codeIpBindings[cleanCode];
-    const details = submissions.codeActivationDetails[cleanCode];
-
-    // Check if code is already bound to a different IP
-    if (boundIp && boundIp !== clientIp) {
-      // If bound to a different IP and not matching fingerprint, strictly block
-      const boundFingerprint = details?.deviceFingerprint;
-      if (!boundFingerprint || boundFingerprint !== deviceFingerprint) {
-        return res.status(403).json({
-          success: false,
-          reason: 'IP_MISMATCH',
-          boundIp,
-          activatedAt: details?.activatedAt,
-          message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مفعّل مسبقاً ومقترن بهاتف وجهاز آخر (IP: ${boundIp}). يمنع منعاً باتاً استخدامه على أكثر من جهاز لمنع التلاعب وتداول الأكواد.`,
-        });
+    let remoteData: any = {};
+    if (gistUrl && gistToken) {
+      try {
+        remoteData = await fetchGistDataHelper(gistUrl, gistToken);
+      } catch (err) {
+        console.warn('Gist fetch in /api/activate-vip warning:', err);
       }
     }
 
-    // Bind or reaffirm this code to the current IP and device
+    const submissions = getStoredSubmissions();
+
+    // Merge latest remote bindings into local submissions
+    submissions.codeIpBindings = {
+      ...(remoteData.codeIpBindings || {}),
+      ...(submissions.codeIpBindings || {}),
+    };
+    submissions.codeDeviceBindings = {
+      ...(remoteData.codeDeviceBindings || {}),
+      ...(submissions.codeDeviceBindings || {}),
+    };
+    submissions.codeActivationDetails = {
+      ...(remoteData.codeActivationDetails || {}),
+      ...(submissions.codeActivationDetails || {}),
+    };
+    submissions.codeCustomerBindings = {
+      ...(remoteData.codeCustomerBindings || {}),
+      ...(submissions.codeCustomerBindings || {}),
+    };
+
+    const boundIp = submissions.codeIpBindings[cleanCode];
+    const boundFingerprint =
+      submissions.codeDeviceBindings[cleanCode] ||
+      submissions.codeActivationDetails[cleanCode]?.deviceFingerprint;
+    const details = submissions.codeActivationDetails[cleanCode];
+
+    // STRICT CHECK: If code is already bound to another phone / IP / fingerprint
+    if (boundIp && boundIp !== clientIp) {
+      return res.status(403).json({
+        success: false,
+        reason: 'IP_MISMATCH',
+        boundIp,
+        activatedAt: details?.activatedAt,
+        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مفعّل مسبقاً ومقترن بهاتف وجهاز آخر (IP: ${boundIp}). يمنع منعاً باتاً تداوله أو إدخاله على هاتف ثانٍ منعاً للغش والتلاعب.`,
+      });
+    }
+
+    if (boundFingerprint && deviceFingerprint && boundFingerprint !== deviceFingerprint) {
+      return res.status(403).json({
+        success: false,
+        reason: 'DEVICE_MISMATCH',
+        boundIp: boundIp || 'هاتف آخر',
+        activatedAt: details?.activatedAt,
+        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مقترن ببصمة جهاز وهاتف آخر ولا يمكن استخدامه على هذا الجهاز منعاً للغش.`,
+      });
+    }
+
+    // Bind this code to the current IP and device
     const nowAr = new Date().toLocaleString('ar-EG');
     submissions.codeIpBindings[cleanCode] = clientIp;
+    if (deviceFingerprint) {
+      submissions.codeDeviceBindings[cleanCode] = deviceFingerprint;
+    }
     submissions.codeActivationDetails[cleanCode] = {
       ip: clientIp,
       deviceInfo,
       activatedAt: details?.activatedAt || nowAr,
       lastSeenAt: nowAr,
-      customerName: customerName || details?.customerName,
+      customerName: customerName || submissions.codeCustomerBindings?.[cleanCode] || details?.customerName,
       deviceFingerprint: deviceFingerprint || details?.deviceFingerprint,
     };
+
+    // Ensure code is in approvedActivationCodes
+    if (!submissions.approvedActivationCodes) submissions.approvedActivationCodes = [];
+    if (!submissions.approvedActivationCodes.includes(cleanCode)) {
+      submissions.approvedActivationCodes.push(cleanCode);
+    }
 
     // Also update any matching purchase orders
     if (Array.isArray(submissions.purchaseOrders)) {
@@ -529,15 +722,13 @@ app.post('/api/activate-vip', async (req, res) => {
 
     saveStoredSubmissions(submissions);
 
-    // Sync with Gist immediately so all devices/instances are updated
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
+    // Sync to Gist synchronously
     if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+      } catch (err: any) {
         console.warn('Gist sync on code activation warning:', err.message);
-      });
+      }
     }
 
     res.json({
@@ -609,6 +800,12 @@ app.post('/api/reserve-code', async (req, res) => {
 
     if (cleanCustomer) {
       submissions.codeCustomerBindings[cleanCode] = cleanCustomer;
+      if (!submissions.approvedActivationCodes) {
+        submissions.approvedActivationCodes = [];
+      }
+      if (!submissions.approvedActivationCodes.includes(cleanCode)) {
+        submissions.approvedActivationCodes.push(cleanCode);
+      }
     } else {
       delete submissions.codeCustomerBindings[cleanCode];
     }
@@ -620,9 +817,11 @@ app.post('/api/reserve-code', async (req, res) => {
     const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
 
     if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+      } catch (err: any) {
         console.warn('Gist sync on reserve-code warning:', err.message);
-      });
+      }
     }
 
     res.json({
@@ -633,6 +832,7 @@ app.post('/api/reserve-code', async (req, res) => {
       code: cleanCode,
       customerName: cleanCustomer,
       codeCustomerBindings: submissions.codeCustomerBindings,
+      approvedActivationCodes: submissions.approvedActivationCodes,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

@@ -412,14 +412,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        // Server rejected due to IP mismatch!
+        // Server rejected due to IP or Device mismatch!
         return {
           success: false,
           reason: data.reason || 'IP_MISMATCH',
           boundIp: data.boundIp,
           message:
             data.message ||
-            '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بـ IP هاتف آخر ويمنع منعا باتا إدخاله بهاتف آخر منعاً للتلاعب.',
+            '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بـ IP وبصمة جهاز هاتف آخر ويمنع منعاً باتاً إدخاله بهاتف آخر منعاً للتلاعب والغش.',
         };
       }
 
@@ -427,7 +427,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       if (data.deviceInfo) serverDevice = data.deviceInfo;
       if (data.activatedAt) serverActivatedAt = data.activatedAt;
     } catch (apiErr) {
-      console.warn('Backend /api/activate-vip request failed, relying on client fingerprinting:', apiErr);
+      console.warn('Backend /api/activate-vip request error:', apiErr);
+      // If offline, also check local settings bindings
+      if (settings.codeIpBindings?.[code] && settings.codeDeviceBindings?.[code] !== deviceId) {
+        return {
+          success: false,
+          reason: 'DEVICE_MISMATCH',
+          message: '⚠️ تنبيه أمني مشدد: هذا الكود مقترن بهاتف آخر ولا يمكن استخدامه على هذا الجهاز.',
+        };
+      }
     }
 
     // Bind code to device & IP in local and cloud state
@@ -1211,8 +1219,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       delete updatedBindings[cleanCode];
     }
 
+    const currentCodes = settings.approvedActivationCodes || [];
+    const updatedCodes = currentCodes.includes(cleanCode)
+      ? currentCodes
+      : [cleanCode, ...currentCodes];
+
     const updatedSettings: Settings = {
       ...settings,
+      approvedActivationCodes: updatedCodes,
       codeCustomerBindings: updatedBindings,
     };
 
@@ -1476,12 +1490,19 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : []),
             ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
           ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
-          approvedActivationCodes:
-            Array.isArray(effectiveRemote.approvedActivationCodes) && effectiveRemote.approvedActivationCodes.length > 0
-              ? effectiveRemote.approvedActivationCodes
-              : Array.isArray(localParsed.approvedActivationCodes) && localParsed.approvedActivationCodes.length > 0
-              ? localParsed.approvedActivationCodes
-              : DEFAULT_100_ACTIVATION_CODES,
+          approvedActivationCodes: Array.from(
+            new Set([
+              ...(Array.isArray(effectiveRemote.approvedActivationCodes) ? effectiveRemote.approvedActivationCodes : []),
+              ...(Array.isArray(serverSubmissions.approvedActivationCodes) ? serverSubmissions.approvedActivationCodes : []),
+              ...(Array.isArray(localParsed.approvedActivationCodes) ? localParsed.approvedActivationCodes : []),
+              ...Object.keys(effectiveRemote.codeCustomerBindings || {}),
+              ...Object.keys(serverSubmissions.codeCustomerBindings || {}),
+              ...Object.keys(localParsed.codeCustomerBindings || {}),
+              ...Object.keys(effectiveRemote.codeIpBindings || {}),
+              ...Object.keys(serverSubmissions.codeIpBindings || {}),
+              ...DEFAULT_100_ACTIVATION_CODES,
+            ].filter((c) => typeof c === 'string' && c.trim().length > 0))
+          ),
           freeActivationCode:
             effectiveRemote.freeActivationCode ||
             localParsed.freeActivationCode ||

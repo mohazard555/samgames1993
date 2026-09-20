@@ -95,7 +95,18 @@ const SubscriptionOrdersManager: React.FC = () => {
     const available: string[] = [];
     const term = codeSearchTerm.trim().toUpperCase();
 
-    approvedCodes.forEach((code) => {
+    const allKnownCodes = Array.from(
+      new Set([
+        ...(settings.approvedActivationCodes || []),
+        ...Object.keys(settings.codeCustomerBindings || {}),
+        ...Object.keys(settings.codeIpBindings || {}),
+        ...Object.keys(settings.codeActivationDetails || {}),
+        ...Object.keys(settings.codeDeviceBindings || {}),
+        ...(orders || []).map((o) => o.activationCode?.trim().toUpperCase()).filter(Boolean) as string[],
+      ].filter((c) => typeof c === 'string' && c.trim().length > 0))
+    );
+
+    allKnownCodes.forEach((code) => {
       const boundIp = settings.codeIpBindings?.[code];
       const boundDevice = settings.codeDeviceBindings?.[code];
       const details = settings.codeActivationDetails?.[code];
@@ -125,7 +136,7 @@ const SubscriptionOrdersManager: React.FC = () => {
 
     return { usedCodesList: used, availableCodesList: available };
   }, [
-    approvedCodes,
+    settings.approvedActivationCodes,
     settings.codeIpBindings,
     settings.codeDeviceBindings,
     settings.codeActivationDetails,
