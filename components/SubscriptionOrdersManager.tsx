@@ -1082,11 +1082,11 @@ const SubscriptionOrdersManager: React.FC = () => {
 
                         {/* Actions for Reserved/Used code */}
                         <div className="flex items-center justify-end flex-wrap gap-1.5 pt-1 border-t border-blue-200/60">
-                          {customer && (
+                          {customerName && (
                             <button
                               type="button"
                               onClick={async () => {
-                                if (confirm(`هل تريد إلغاء حجز الكود (${code}) للعميل (${customer}) وإعادته للقائمة المتاحة؟`)) {
+                                if (confirm(`هل تريد إلغاء حجز الكود (${code}) للعميل (${customerName}) وإعادته للقائمة المتاحة؟`)) {
                                   await unreserveCodeForCustomer(code);
                                   setUnbindFeedback(`✓ تم إلغاء حجز الكود (${code}) وإعادته للأكواد المتاحة.`);
                                   setTimeout(() => setUnbindFeedback(null), 4000);
