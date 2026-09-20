@@ -1,1 +1,8 @@
-{"purchaseOrders":[],"contactMessages":[],"feedbacks":[]}
+{
+  "purchaseOrders": [],
+  "contactMessages": [],
+  "feedbacks": [],
+  "skillTestResults": [],
+  "codeIpBindings": {},
+  "codeActivationDetails": {}
+}

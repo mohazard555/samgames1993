@@ -193,18 +193,19 @@ const GamePage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const game = GAMES.find(g => g.id.toString() === gameId);
 
-  const { settings, isVipActive } = useSettings();
-  const isVipPaidGame =
-    settings.paidSettings?.enabled &&
-    Array.isArray(settings.paidSettings?.paidGameIds) &&
-    settings.paidSettings.paidGameIds.includes(game ? game.id : 0);
+  const { settings, isVipActive, isGameVip, getGameVipConfig } = useSettings();
+  const currentId = game ? game.id : 0;
+  const isVipPaidGame = isGameVip(currentId);
+  const vipConfig = getGameVipConfig(currentId);
+  const isTimerMode = vipConfig.restrictionType === 'timer';
 
-  const trialDuration = settings.paidSettings?.vipTrialDurationSeconds || 60;
+  const trialDuration = vipConfig.timerSeconds || settings.paidSettings?.vipTrialDurationSeconds || 20;
   const [timeLeft, setTimeLeft] = useState<number>(trialDuration);
   const [showVipModal, setShowVipModal] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isVipPaidGame || isVipActive) return;
+    if (!isVipPaidGame || isVipActive || !isTimerMode) return;
+    setTimeLeft(trialDuration);
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -218,7 +219,7 @@ const GamePage: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isVipPaidGame, isVipActive]);
+  }, [isVipPaidGame, isVipActive, isTimerMode, trialDuration]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -259,12 +260,12 @@ const GamePage: React.FC = () => {
         </span>
       </div>
 
-      {isVipPaidGame && !isVipActive && (
+      {isVipPaidGame && !isVipActive && isTimerMode && (
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3.5 rounded-2xl shadow-md flex items-center justify-between flex-wrap gap-2 animate-pulse">
           <div className="flex items-center gap-2">
-            <span className="text-xl">⏰</span>
+            <span className="text-xl">⏱️</span>
             <div>
-              <span className="font-black text-xs sm:text-sm block">تجربة مجانية مؤقتة لألعاب VIP:</span>
+              <span className="font-black text-xs sm:text-sm block">مؤقت تجربة مجانية لألعاب VIP:</span>
               <span className="text-xs opacity-95">متبقي {formatTime(timeLeft)} قبل طلب تفعيل النسخة المدفوعة</span>
             </div>
           </div>
@@ -278,10 +279,29 @@ const GamePage: React.FC = () => {
         </div>
       )}
 
+      {isVipPaidGame && !isVipActive && !isTimerMode && (
+        <div className="bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 p-3 rounded-2xl shadow-sm flex items-center justify-between flex-wrap gap-2 border border-amber-300">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">👑</span>
+            <div>
+              <span className="font-black text-xs sm:text-sm block">لعبة مشمولة باشتراك VIP:</span>
+              <span className="text-xs text-amber-900">متاح لك تجربة مجانية حتى السؤال/المرحلة رقم {vipConfig.questionLimit || 10}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowVipModal(true)}
+            className="px-3.5 py-1.5 bg-amber-950 text-white font-black text-xs rounded-xl shadow-sm hover:bg-amber-900 transition-colors cursor-pointer"
+          >
+            تفعيل النسخة الكاملة 🔑
+          </button>
+        </div>
+      )}
+
       <GameComponent gameName={game.name} />
 
       <VipSubscriptionModal
-        isOpen={showVipModal || (isVipPaidGame && !isVipActive && timeLeft <= 0)}
+        isOpen={showVipModal || (isVipPaidGame && !isVipActive && isTimerMode && timeLeft <= 0)}
         onClose={() => {
           if (isVipActive) {
             setShowVipModal(false);

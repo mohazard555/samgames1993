@@ -66,6 +66,9 @@ export interface SkillTestResult {
   total: number;
   percentage: number;
   createdAt: string;
+  clientIp?: string; // عنوان IP لجهاز المتسابق
+  deviceInfo?: string; // نوع الجهاز والمتصفح
+  gistUrl?: string; // رابط Gist المرتبط
 }
 
 export interface ShamCashSettings {
@@ -117,6 +120,14 @@ export interface OtherPaymentMethod {
   currencySymbol?: string;
 }
 
+export type VipGameRestrictionType = 'timer' | 'question_limit';
+
+export interface GameVipConfig {
+  restrictionType: VipGameRestrictionType; // 'timer' (مؤقت زمني) أو 'question_limit' (عدد محدد من الأسئلة/المراحل)
+  timerSeconds?: number; // مدة المؤقت الزمني بالثواني (افتراضي: 20 أو 30 أو 60 ثانية)
+  questionLimit?: number; // عدد الأسئلة/المراحل المجانية المتاحة قبل طلب اشتراك VIP (افتراضي: 10)
+}
+
 export interface PaidSettings {
   enabled: boolean; // تفعيل نظام النسخة المدفوعة VIP
   price: number; // السعر الافتراضي العام e.g. 3
@@ -124,7 +135,9 @@ export interface PaidSettings {
   currencySymbol?: string; // رمز العملة e.g. "$" أو "ل.س"
   periodName: string; // e.g. "تفعيل دائم مدى الحياة"
   paidGameIds: number[]; // الألعاب التي تحتاج اشتراك مدفوع لتفتح
-  questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين في ألعاب الـ 50 سؤال
+  gameVipConfigs?: Record<number, GameVipConfig>; // تخصيص كل لعبة مدفوعة: هل تُعرض بمؤقت زمني أم بعدد أسئلة/مراحل محددة
+  defaultRestrictionType?: VipGameRestrictionType; // النوع الافتراضي للألعاب المضافة حديثاً
+  questionGateEnabled?: boolean; // تفعيل شرط الاشتراك عند الوصول لسؤال معين
   questionGateNumber?: number; // رقم السؤال الذي يتطلب اشتراك لمتابعة اللعب (افتراضي: 15)
   vipTrialDurationSeconds?: number; // مدة التجربة المجانية لألعاب VIP بالثواني قبل طلب الاشتراك (افتراضي 60)
   vip50GamesGateIds?: number[]; // قائمة معرّفات ألعاب الـ 50 سؤال التي تتطلب اشتراك VIP عند مرحلة معينة

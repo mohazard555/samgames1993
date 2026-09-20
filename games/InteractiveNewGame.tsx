@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NEW_GAMES_REGISTRY, GameDefinition, QuizQuestion, ComparisonRound } from './newGamesData';
+import { GAMES } from '../constants';
 import { getAuthentic50Items } from './banks/allBanks';
 import { getQuestionVisual, getOptionEmoji } from '../src/utils/questionVisuals';
 import { useSettings } from '../contexts/SettingsContext';
@@ -48,8 +49,15 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
     description: `العب وتعلم مع لعبة ${gameName} الممتعة للأبطال الصغار!`,
   };
   const gameDef: GameDefinition = NEW_GAMES_REGISTRY[gameName] || fallbackDef;
-  const { settings, isVipActive } = useSettings();
+  const { settings, isVipActive, isGameVip, getGameVipConfig } = useSettings();
   const [isVipModalOpen, setIsVipModalOpen] = useState(false);
+
+  const matchedGame = GAMES.find((g) => g.name === gameName);
+  const currentGameId = matchedGame ? matchedGame.id : 0;
+  const isVip = isGameVip(currentGameId);
+  const vipConfig = getGameVipConfig(currentGameId);
+  const isQuestionMode = vipConfig.restrictionType === 'question_limit';
+  const gateNumber = vipConfig.questionLimit || settings.paidSettings?.questionGateNumber || 10;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -61,11 +69,11 @@ export const InteractiveNewGame: React.FC<InteractiveNewGameProps> = ({ gameName
   const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
   const [shuffledComparisons, setShuffledComparisons] = useState<ComparisonRound[]>([]);
 
-  const gateNumber = settings.paidSettings?.questionGateNumber ?? 15;
   const isQuestionGated =
     !isVipActive &&
     Boolean(settings.paidSettings?.enabled) &&
-    settings.paidSettings?.questionGateEnabled !== false &&
+    isVip &&
+    isQuestionMode &&
     currentIndex + 1 >= gateNumber;
 
   const loadGameData = (def: GameDefinition) => {

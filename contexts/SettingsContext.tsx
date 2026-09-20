@@ -1,9 +1,11 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
-import { Settings, FeedbackItem, ContactMessage, SkillTestResult } from '../types';
+import { Settings, FeedbackItem, ContactMessage, SkillTestResult, GameVipConfig, VipGameRestrictionType } from '../types';
 import { saveAudioToCache, getAudioFromCache, clearAudioCache } from '../utils/audioStorage';
 
 export const DEFAULT_GIST_URL =
   'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
+
+export const DEFAULT_GIST_TOKEN = '';
 
 export const DEFAULT_100_ACTIVATION_CODES: string[] = Array.from({ length: 100 }, (_, i) => {
   const num = (i + 1).toString().padStart(4, '0');
@@ -21,6 +23,8 @@ const defaultPaidSettings: Settings['paidSettings'] = {
   currencySymbol: '$',
   periodName: 'تفعيل دائم مدى الحياة',
   paidGameIds: [1, 5, 12, 18, 25, 30, 40, 50], // Initial premium/VIP games
+  gameVipConfigs: {},
+  defaultRestrictionType: 'question_limit',
   questionGateEnabled: true, // تفعيل طلب الاشتراك عند الوصول لسؤال محدد
   questionGateNumber: 15, // السؤال رقم 15
   vipTrialDurationSeconds: 60, // دقيقة واحدة تجربة مجانية لألعاب VIP
@@ -111,6 +115,7 @@ const defaultSettings: Settings = {
   },
   feedbacks: [],
   contactMessages: [],
+  skillTestResults: [],
 };
 
 
@@ -198,6 +203,10 @@ interface SettingsContextType {
   deleteContactMessage: (id: string) => void;
   addSkillTestResult: (item: { name: string; age: string; country: string; score: number; total: number }) => Promise<void>;
   deleteSkillTestResult: (id: string) => void;
+  // Per-game VIP restriction helpers (Timer or Question limit)
+  isGameVip: (gameId: number) => boolean;
+  getGameVipConfig: (gameId: number) => GameVipConfig;
+  setGameVipConfig: (gameId: number, config: Partial<GameVipConfig>) => void;
   // 50 Questions VIP Gate & Timer helpers
   isGame50VipGated: (gameId: number) => boolean;
   getGame50VipThreshold: (gameId: number) => number;
@@ -214,7 +223,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const [gistToken, setGistTokenState] = useState<string>(() => {
-    return localStorage.getItem('gistToken') || '';
+    const saved = localStorage.getItem('gistToken');
+    if (saved && saved.trim()) return saved.trim();
+    return DEFAULT_GIST_TOKEN;
   });
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -278,6 +289,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
           feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
           contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
+          skillTestResults: Array.isArray(parsed.skillTestResults) ? parsed.skillTestResults : [],
         };
       }
       return defaultSettings;
@@ -960,55 +972,124 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return unlockedVideoGames.includes(gameId);
   };
 
-  // 50-Questions games VIP Stage Gate Check
-  const isGame50VipGated = useCallback((gameId: number): boolean => {
+  // Check whether any game is VIP gated
+  const isGameVip = useCallback((gameId: number): boolean => {
     const paid = settings.paidSettings;
     if (!paid || paid.enabled === false) return false;
-    if (paid.customGame50Config?.[gameId]?.vipGateEnabled !== undefined) {
-      return !!paid.customGame50Config[gameId].vipGateEnabled;
-    }
-    if (Array.isArray(paid.vip50GamesGateIds)) {
-      return paid.vip50GamesGateIds.includes(gameId);
-    }
-    return !!paid.questionGateEnabled;
-  }, [settings.paidSettings]);
-
-  // 50-Questions games VIP Stage Threshold (e.g. stage 10)
-  const getGame50VipThreshold = useCallback((gameId: number): number => {
-    const paid = settings.paidSettings;
-    const custom = paid?.customGame50Config?.[gameId]?.vipStage;
-    if (typeof custom === 'number' && custom > 0) return custom;
-    if (typeof paid?.vip50StageThreshold === 'number' && paid.vip50StageThreshold > 0) {
-      return paid.vip50StageThreshold;
-    }
-    if (typeof paid?.questionGateNumber === 'number' && paid.questionGateNumber > 0) {
-      return paid.questionGateNumber;
-    }
-    return 10;
-  }, [settings.paidSettings]);
-
-  // 50-Questions games Timer Check
-  const isGame50TimerEnabled = useCallback((gameId: number): boolean => {
-    const paid = settings.paidSettings;
-    if (paid?.customGame50Config?.[gameId]?.timerEnabled !== undefined) {
-      return !!paid.customGame50Config[gameId].timerEnabled;
-    }
-    if (Array.isArray(paid?.timer50GamesIds)) {
-      return paid.timer50GamesIds.includes(gameId);
+    const list = paid.paidGameIds || [];
+    if (list.includes(gameId)) return true;
+    // Check if child skill game (id <= 40 maps to 8000 + id, or 8888 for overall)
+    if (gameId <= 40 && (list.includes(8000 + gameId) || list.includes(8888))) return true;
+    if (gameId > 8000 && list.includes(gameId - 8000)) return true;
+    // Check legacy lists
+    if (Array.isArray(paid.vip50GamesGateIds) && (paid.vip50GamesGateIds.includes(gameId) || (gameId > 8000 && paid.vip50GamesGateIds.includes(gameId - 8000)))) {
+      return true;
     }
     return false;
   }, [settings.paidSettings]);
 
+  // Get configuration for a VIP game (whether Timer or Question/Stage limit)
+  const getGameVipConfig = useCallback((gameId: number): GameVipConfig => {
+    const paid = settings.paidSettings;
+    // Direct or mapped lookup
+    const cfg = paid?.gameVipConfigs?.[gameId] || (gameId > 8000 ? paid?.gameVipConfigs?.[gameId - 8000] : undefined) || (gameId <= 40 ? paid?.gameVipConfigs?.[8000 + gameId] : undefined);
+    if (cfg) {
+      return {
+        restrictionType: cfg.restrictionType || 'timer',
+        timerSeconds: typeof cfg.timerSeconds === 'number' && cfg.timerSeconds > 0 ? cfg.timerSeconds : (paid?.timer50DurationSeconds || 20),
+        questionLimit: typeof cfg.questionLimit === 'number' && cfg.questionLimit > 0 ? cfg.questionLimit : (paid?.vip50StageThreshold || 10),
+      };
+    }
+    // Check legacy 50 config if available
+    const legacy = paid?.customGame50Config?.[gameId] || (gameId > 8000 ? paid?.customGame50Config?.[gameId - 8000] : undefined);
+    if (legacy) {
+      return {
+        restrictionType: legacy.timerEnabled ? 'timer' : 'question_limit',
+        timerSeconds: legacy.timerSeconds || 20,
+        questionLimit: legacy.vipStage || 10,
+      };
+    }
+    // Legacy fallback based on timer50GamesIds
+    if (Array.isArray(paid?.timer50GamesIds) && (paid.timer50GamesIds.includes(gameId) || (gameId > 8000 && paid.timer50GamesIds.includes(gameId - 8000)))) {
+      return {
+        restrictionType: 'timer',
+        timerSeconds: paid?.timer50DurationSeconds || 20,
+        questionLimit: paid?.vip50StageThreshold || 10,
+      };
+    }
+    return {
+      restrictionType: 'timer',
+      timerSeconds: paid?.timer50DurationSeconds || 20,
+      questionLimit: paid?.vip50StageThreshold || 10,
+    };
+  }, [settings.paidSettings]);
+
+  // Update configuration for a specific VIP game
+  const setGameVipConfig = useCallback((gameId: number, config: Partial<GameVipConfig>) => {
+    setSettings((prev) => {
+      const paid = prev.paidSettings;
+      if (!paid) return prev;
+      const currentConfigs = paid.gameVipConfigs || {};
+      const existing = currentConfigs[gameId] || {
+        restrictionType: 'timer',
+        timerSeconds: 20,
+        questionLimit: 10,
+      };
+      const updatedConfig: GameVipConfig = {
+        ...existing,
+        ...config,
+      };
+      const newConfigs = {
+        ...currentConfigs,
+        [gameId]: updatedConfig,
+      };
+      // If game is a child skill (<= 40 or > 8000), mirror it
+      if (gameId <= 40) {
+        newConfigs[8000 + gameId] = updatedConfig;
+      } else if (gameId > 8000 && gameId <= 8040) {
+        newConfigs[gameId - 8000] = updatedConfig;
+      }
+      return {
+        ...prev,
+        paidSettings: {
+          ...paid,
+          gameVipConfigs: newConfigs,
+        },
+      };
+    });
+  }, [setSettings]);
+
+  // 50-Questions games VIP Stage Gate Check
+  const isGame50VipGated = useCallback((gameId: number): boolean => {
+    const paid = settings.paidSettings;
+    if (!paid || paid.enabled === false) return false;
+    const isVip = isGameVip(gameId);
+    if (!isVip) return false;
+    const config = getGameVipConfig(gameId);
+    return config.restrictionType === 'question_limit';
+  }, [settings.paidSettings, isGameVip, getGameVipConfig]);
+
+  // 50-Questions games VIP Stage Threshold (e.g. stage 10)
+  const getGame50VipThreshold = useCallback((gameId: number): number => {
+    const config = getGameVipConfig(gameId);
+    return config.questionLimit || 10;
+  }, [getGameVipConfig]);
+
+  // 50-Questions games Timer Check
+  const isGame50TimerEnabled = useCallback((gameId: number): boolean => {
+    const paid = settings.paidSettings;
+    if (!paid || paid.enabled === false) return false;
+    const isVip = isGameVip(gameId);
+    if (!isVip) return false;
+    const config = getGameVipConfig(gameId);
+    return config.restrictionType === 'timer';
+  }, [settings.paidSettings, isGameVip, getGameVipConfig]);
+
   // 50-Questions games Timer Duration
   const getGame50TimerDuration = useCallback((gameId: number): number => {
-    const paid = settings.paidSettings;
-    const custom = paid?.customGame50Config?.[gameId]?.timerSeconds;
-    if (typeof custom === 'number' && custom > 0) return custom;
-    if (typeof paid?.timer50DurationSeconds === 'number' && paid.timer50DurationSeconds > 0) {
-      return paid.timer50DurationSeconds;
-    }
-    return 20;
-  }, [settings.paidSettings]);
+    const config = getGameVipConfig(gameId);
+    return config.timerSeconds || 20;
+  }, [getGameVipConfig]);
 
 
   // Admin lock state (Password 1993)
@@ -1115,7 +1196,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       setIsSyncing(true);
     }
     const { gistId, filename, unpinnedRawUrl } = extractGistInfo(targetUrl);
-    const activeToken = gistToken || localStorage.getItem('gistToken') || '';
+    const activeToken = gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN;
 
     try {
       let fetchedSettings: Partial<Settings> | null = null;
@@ -1182,6 +1263,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         purchaseOrders?: any[];
         contactMessages?: any[];
         feedbacks?: any[];
+        skillTestResults?: any[];
         codeIpBindings?: Record<string, string>;
         codeActivationDetails?: Record<string, any>;
         codeDeviceBindings?: Record<string, string>;
@@ -1205,6 +1287,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         Boolean(serverSubmissions.purchaseOrders && serverSubmissions.purchaseOrders.length > 0) ||
         Boolean(serverSubmissions.contactMessages && serverSubmissions.contactMessages.length > 0) ||
         Boolean(serverSubmissions.feedbacks && serverSubmissions.feedbacks.length > 0) ||
+        Boolean(serverSubmissions.skillTestResults && serverSubmissions.skillTestResults.length > 0) ||
         Boolean(serverSubmissions.codeIpBindings && Object.keys(serverSubmissions.codeIpBindings).length > 0);
 
       if ((fetchedSettings && typeof fetchedSettings === 'object') || hasAnyServerSubmissions) {
@@ -1225,6 +1308,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           ...(Array.isArray(effectiveRemote.contactMessages) ? effectiveRemote.contactMessages : []),
           ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : []),
           ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
+        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+        const mergedSkillResults: SkillTestResult[] = [
+          ...(Array.isArray(effectiveRemote.skillTestResults) ? effectiveRemote.skillTestResults : []),
+          ...(Array.isArray(serverSubmissions.skillTestResults) ? serverSubmissions.skillTestResults : []),
+          ...(Array.isArray(localParsed.skillTestResults) ? localParsed.skillTestResults : []),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         let safeMusicUrl = effectiveRemote.backgroundMusicUrl || localParsed.backgroundMusicUrl || defaultSettings.backgroundMusicUrl;
@@ -1303,11 +1392,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           },
           feedbacks: mergedFeedbacks,
           contactMessages: mergedMessages,
+          skillTestResults: mergedSkillResults,
         };
 
         // Detect if new submissions arrived
-        const prevTotal = (settings.purchaseOrders?.length || 0) + (settings.feedbacks?.length || 0) + (settings.contactMessages?.length || 0);
-        const newTotal = merged.purchaseOrders.length + merged.feedbacks.length + merged.contactMessages.length;
+        const prevTotal = (settings.purchaseOrders?.length || 0) + (settings.feedbacks?.length || 0) + (settings.contactMessages?.length || 0) + (settings.skillTestResults?.length || 0);
+        const newTotal = merged.purchaseOrders.length + merged.feedbacks.length + merged.contactMessages.length + merged.skillTestResults.length;
         if (newTotal > prevTotal && prevTotal > 0) {
           try {
             const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -1343,8 +1433,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         const hasUnsyncedServerOrders = (serverSubmissions.purchaseOrders || []).some(
           (so: any) => !(effectiveRemote.purchaseOrders || []).some((ro: any) => ro.id === so.id)
         );
+        const hasUnsyncedServerSkills = (serverSubmissions.skillTestResults || []).some(
+          (ss: any) => !(effectiveRemote.skillTestResults || []).some((rs: any) => rs.id === ss.id)
+        );
 
-        if ((hasUnsyncedServerFeedbacks || hasUnsyncedServerMessages || hasUnsyncedServerOrders) && activeToken) {
+        if ((hasUnsyncedServerFeedbacks || hasUnsyncedServerMessages || hasUnsyncedServerOrders || hasUnsyncedServerSkills) && activeToken) {
           saveToGist(merged).catch((e) => console.warn('Auto-push pending server submissions to Gist failed:', e));
         }
 
@@ -1364,7 +1457,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const saveToGist = async (overrideSettings?: Settings): Promise<boolean> => {
     setSyncError(null);
     const targetUrl = (gistUrl || DEFAULT_GIST_URL).trim();
-    const targetToken = (gistToken || localStorage.getItem('gistToken') || '').trim();
+    const targetToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
 
     if (!targetUrl) {
       setSyncError('رابط Gist غير محدد.');
@@ -1653,25 +1746,49 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    const updatedResults = [newResult, ...(settings.skillTestResults || [])];
+    let updatedResults = [newResult, ...(settings.skillTestResults || [])];
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+
+    try {
+      const res = await fetch('/api/skill-tests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': gistUrl } : {}),
+        },
+        body: JSON.stringify({ ...newResult, gistToken: activeToken, gistUrl }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.skillTestResults)) {
+          updatedResults = data.skillTestResults;
+        }
+      }
+    } catch (e) {
+      console.warn('API post skill test failed, using local:', e);
+    }
+
     const newSettings: Settings = {
       ...settings,
       skillTestResults: updatedResults,
     };
     saveSettings(newSettings);
 
-    if (gistToken) {
-      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
-    }
+    // Auto-sync to Gist
+    saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
   };
 
   const deleteSkillTestResult = (id: string) => {
     const updatedResults = (settings.skillTestResults || []).filter((res) => res.id !== id);
     const newSettings = { ...settings, skillTestResults: updatedResults };
     saveSettings(newSettings);
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
-    }
+
+    // Call server API
+    fetch(`/api/skill-tests/${id}`, {
+      method: 'DELETE',
+    }).catch((e) => console.warn('Skill test delete server error:', e));
+
+    saveToGist(newSettings).catch(() => {});
   };
 
   // Export all application data as a complete JSON backup file
@@ -1834,6 +1951,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           purchaseOrders: finalOrders,
           contactMessages: finalMessages,
           feedbacks: finalFeedbacks,
+          skillTestResults: finalSkillResults,
           gistToken,
           gistUrl,
         }),
@@ -2021,6 +2139,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         deleteContactMessage,
         addSkillTestResult,
         deleteSkillTestResult,
+        isGameVip,
+        getGameVipConfig,
+        setGameVipConfig,
         isGame50VipGated,
         getGame50VipThreshold,
         isGame50TimerEnabled,

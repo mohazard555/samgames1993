@@ -1,6 +1,7 @@
 import React from 'react';
 import { Game } from './types';
 import { CHILDREN_STORIES } from './data/childrenStoriesData';
+import { CHILD_SKILLS_GAMES } from './data/childSkillsGamesData';
 import {
   PuzzlePieceIcon,
   RocketLaunchIcon,
@@ -368,6 +369,18 @@ Object.entries(gameNamesByCategory).forEach(([category, names]) => {
       color: colors[currentId % colors.length]
     });
     gameCounter++;
+  });
+});
+
+// Add the 40 Child Skills Games (50 stages each) with distinct IDs
+CHILD_SKILLS_GAMES.forEach((csGame) => {
+  list.push({
+    id: 8000 + csGame.id,
+    name: `مهارات طفلي: ${csGame.title} (${csGame.icon})`,
+    description: `${csGame.shortDesc} - مهارة ${csGame.skill} (50 مرحلة)`,
+    category: 'تنمية مهارات',
+    color: csGame.color || 'from-amber-400 to-orange-500',
+    customRoute: `/my-child-skills/${csGame.id}`,
   });
 });
 

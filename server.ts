@@ -13,6 +13,9 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'submissions.json');
 const GIST_CONFIG_FILE = path.join(DATA_DIR, 'gist_config.json');
 
+const DEFAULT_GIST_TOKEN = process.env.GIST_TOKEN || '';
+const DEFAULT_GIST_URL = 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
+
 if (!fs.existsSync(DATA_DIR)) {
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -30,6 +33,7 @@ function getStoredSubmissions() {
         purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],
         contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
         feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
+        skillTestResults: Array.isArray(parsed.skillTestResults) ? parsed.skillTestResults : [],
         codeIpBindings: parsed.codeIpBindings && typeof parsed.codeIpBindings === 'object' ? parsed.codeIpBindings : {},
         codeActivationDetails: parsed.codeActivationDetails && typeof parsed.codeActivationDetails === 'object' ? parsed.codeActivationDetails : {},
       };
@@ -37,7 +41,7 @@ function getStoredSubmissions() {
   } catch (e) {
     console.warn('Error reading submissions file:', e);
   }
-  return { purchaseOrders: [], contactMessages: [], feedbacks: [], codeIpBindings: {}, codeActivationDetails: {} };
+  return { purchaseOrders: [], contactMessages: [], feedbacks: [], skillTestResults: [], codeIpBindings: {}, codeActivationDetails: {} };
 }
 
 function saveStoredSubmissions(data: any) {
@@ -46,6 +50,7 @@ function saveStoredSubmissions(data: any) {
       purchaseOrders: data.purchaseOrders || [],
       contactMessages: data.contactMessages || [],
       feedbacks: data.feedbacks || [],
+      skillTestResults: data.skillTestResults || [],
       codeIpBindings: data.codeIpBindings || {},
       codeActivationDetails: data.codeActivationDetails || {},
     };
@@ -61,16 +66,16 @@ function getStoredGistConfig(): { gistToken: string; gistUrl: string } {
       const content = fs.readFileSync(GIST_CONFIG_FILE, 'utf-8');
       const parsed = JSON.parse(content);
       return {
-        gistToken: parsed.gistToken || process.env.GIST_TOKEN || '',
-        gistUrl: parsed.gistUrl || process.env.GIST_URL || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
+        gistToken: (parsed.gistToken && parsed.gistToken.trim()) ? parsed.gistToken.trim() : (process.env.GIST_TOKEN || DEFAULT_GIST_TOKEN),
+        gistUrl: (parsed.gistUrl && parsed.gistUrl.trim()) ? parsed.gistUrl.trim() : (process.env.GIST_URL || DEFAULT_GIST_URL),
       };
     }
   } catch (e) {
     console.warn('Error reading gist config:', e);
   }
   return {
-    gistToken: process.env.GIST_TOKEN || '',
-    gistUrl: process.env.GIST_URL || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
+    gistToken: process.env.GIST_TOKEN || DEFAULT_GIST_TOKEN,
+    gistUrl: process.env.GIST_URL || DEFAULT_GIST_URL,
   };
 }
 
@@ -137,11 +142,12 @@ app.get('/api/gist-config', (req, res) => {
   const pendingCount =
     (submissions.purchaseOrders?.length || 0) +
     (submissions.contactMessages?.length || 0) +
-    (submissions.feedbacks?.length || 0);
+    (submissions.feedbacks?.length || 0) +
+    (submissions.skillTestResults?.length || 0);
 
   res.json({
-    gistUrl: config.gistUrl || 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json',
-    gistToken: config.gistToken || '',
+    gistUrl: config.gistUrl || DEFAULT_GIST_URL,
+    gistToken: config.gistToken || DEFAULT_GIST_TOKEN,
     hasToken: Boolean(config.gistToken && config.gistToken.length > 5),
     pendingSubmissionsCount: pendingCount,
   });
@@ -157,7 +163,8 @@ app.post('/api/gist-config', async (req, res) => {
     const hasAnySubmissions =
       (submissions.purchaseOrders && submissions.purchaseOrders.length > 0) ||
       (submissions.contactMessages && submissions.contactMessages.length > 0) ||
-      (submissions.feedbacks && submissions.feedbacks.length > 0);
+      (submissions.feedbacks && submissions.feedbacks.length > 0) ||
+      (submissions.skillTestResults && submissions.skillTestResults.length > 0);
 
     if (hasAnySubmissions) {
       syncToGistHelper(updated.gistUrl, updated.gistToken, submissions)
@@ -354,6 +361,85 @@ app.post('/api/feedbacks', async (req, res) => {
   }
 });
 
+// Skill Test Results Endpoint (نتائج تحدي المهارات ولوحة الشرف)
+app.post('/api/skill-tests', async (req, res) => {
+  try {
+    const rawResult = req.body;
+    if (!rawResult || !rawResult.id) {
+      return res.status(400).json({ success: false, message: 'بيانات نتيجة التحدي غير صالحة' });
+    }
+
+    const clientIp = getClientIp(req);
+    const deviceInfo = getDeviceInfo(req);
+    const storedGist = getStoredGistConfig();
+
+    const headerToken = req.headers['x-gist-token'] as string;
+    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
+      saveStoredGistConfig({ gistToken: headerToken.trim() });
+    }
+
+    const result = {
+      ...rawResult,
+      clientIp: rawResult.clientIp || clientIp,
+      deviceInfo: rawResult.deviceInfo || deviceInfo,
+      gistUrl: storedGist.gistUrl,
+      createdAt: rawResult.createdAt || new Date().toLocaleString('ar-EG'),
+      serverReceivedAt: new Date().toISOString(),
+    };
+
+    const submissions = getStoredSubmissions();
+    submissions.skillTestResults = [result, ...(submissions.skillTestResults || [])].filter(
+      (item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)
+    );
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
+    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+
+    let syncedToGist = false;
+    let gistError: string | null = null;
+
+    if (gistToken && gistUrl) {
+      try {
+        await syncToGistHelper(gistUrl, gistToken, submissions);
+        syncedToGist = true;
+      } catch (syncErr: any) {
+        gistError = syncErr.message;
+        console.warn('Gist sync on skill test failed:', syncErr.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      result,
+      syncedToGist,
+      gistError,
+      skillTestResults: submissions.skillTestResults,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete('/api/skill-tests/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const submissions = getStoredSubmissions();
+    submissions.skillTestResults = (submissions.skillTestResults || []).filter((item: any) => item.id !== id);
+    saveStoredSubmissions(submissions);
+
+    const activeGist = getStoredGistConfig();
+    if (activeGist.gistToken && activeGist.gistUrl) {
+      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
+    }
+
+    res.json({ success: true, skillTestResults: submissions.skillTestResults });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // VIP Code Activation Endpoint with Strict IP & Device Binding
 app.post('/api/activate-vip', async (req, res) => {
   try {
@@ -483,7 +569,7 @@ app.post('/api/unbind-code', async (req, res) => {
 // Full state synchronization endpoint
 app.post('/api/sync-all', async (req, res) => {
   try {
-    const { purchaseOrders, contactMessages, feedbacks, codeIpBindings, codeActivationDetails, gistToken, gistUrl, replace } = req.body;
+    const { purchaseOrders, contactMessages, feedbacks, skillTestResults, codeIpBindings, codeActivationDetails, gistToken, gistUrl, replace } = req.body;
     const submissions = getStoredSubmissions();
 
     if (Array.isArray(purchaseOrders)) {
@@ -513,6 +599,16 @@ app.post('/api/sync-all', async (req, res) => {
         submissions.feedbacks = [
           ...feedbacks,
           ...(submissions.feedbacks || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+      }
+    }
+    if (Array.isArray(skillTestResults)) {
+      if (replace) {
+        submissions.skillTestResults = skillTestResults;
+      } else {
+        submissions.skillTestResults = [
+          ...skillTestResults,
+          ...(submissions.skillTestResults || []),
         ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
       }
     }
@@ -790,6 +886,10 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
       ...(localData.feedbacks || []),
       ...((currentSettings as any).feedbacks || []),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+    skillTestResults: [
+      ...(localData.skillTestResults || []),
+      ...((currentSettings as any).skillTestResults || []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
     codeIpBindings: {
       ...((currentSettings as any).codeIpBindings || {}),
       ...(localData.codeIpBindings || {}),
@@ -825,11 +925,12 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     purchaseOrders: merged.purchaseOrders,
     contactMessages: merged.contactMessages,
     feedbacks: merged.feedbacks,
+    skillTestResults: merged.skillTestResults,
     codeIpBindings: merged.codeIpBindings,
     codeActivationDetails: merged.codeActivationDetails,
   });
 
-  console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks.`);
+  console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks, ${merged.skillTestResults.length} skill test results.`);
   return merged;
 }
 
@@ -860,7 +961,8 @@ async function startServer() {
           const hasAny =
             (submissions.purchaseOrders?.length || 0) > 0 ||
             (submissions.contactMessages?.length || 0) > 0 ||
-            (submissions.feedbacks?.length || 0) > 0;
+            (submissions.feedbacks?.length || 0) > 0 ||
+            (submissions.skillTestResults?.length || 0) > 0;
           if (hasAny) {
             await syncToGistHelper(config.gistUrl, config.gistToken, submissions);
           }

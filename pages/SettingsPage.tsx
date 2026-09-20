@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
-import { Settings, FeedbackItem, ContactMessage } from '../types';
+import { Settings, FeedbackItem, ContactMessage, GameVipConfig } from '../types';
 import { GAMES } from '../constants';
 import { CHILD_SKILLS_GAMES } from '../data/childSkillsGamesData';
 import { LockClosedIcon, VideoCameraIcon, CheckCircleIcon, KeyIcon } from '../components/Icons';
@@ -147,27 +147,6 @@ const SettingsPage: React.FC = () => {
       return matchSearch && matchCat;
     });
   }, [paidGameSearch, paidGameCategoryFilter]);
-
-  // 50-Questions Child Skills Games Filters & Categories
-  const [childSkillsSearch, setChildSkillsSearch] = useState('');
-  const [childSkillsCatFilter, setChildSkillsCatFilter] = useState('الكل');
-
-  const childSkillsCategories = useMemo(() => {
-    const cats = new Set<string>();
-    CHILD_SKILLS_GAMES.forEach((g) => cats.add(g.category));
-    return ['الكل', ...Array.from(cats)];
-  }, []);
-
-  const filteredChildSkillsGames = useMemo(() => {
-    return CHILD_SKILLS_GAMES.filter((game) => {
-      const matchSearch =
-        !childSkillsSearch ||
-        game.title.toLowerCase().includes(childSkillsSearch.toLowerCase()) ||
-        game.skill.toLowerCase().includes(childSkillsSearch.toLowerCase());
-      const matchCat = childSkillsCatFilter === 'الكل' || game.category === childSkillsCatFilter;
-      return matchSearch && matchCat;
-    });
-  }, [childSkillsSearch, childSkillsCatFilter]);
 
   const pendingOrdersCount =
     localSettings.purchaseOrders?.filter((o) => o.status === 'معلق').length || 0;
@@ -343,18 +322,59 @@ const SettingsPage: React.FC = () => {
     });
   };
 
-  // Paid VIP games toggling
+  // Paid VIP games toggling & per-game configuration (Timer vs Question limit)
   const toggleGamePaidRequirement = (gameId: number) => {
     setLocalSettings((prev) => {
       const current = prev.paidSettings?.paidGameIds || [];
-      const updated = current.includes(gameId)
+      const isCurrentlyPaid = current.includes(gameId);
+      const updated = isCurrentlyPaid
         ? current.filter((id) => id !== gameId)
         : [...current, gameId];
+
+      const existingConfigs = prev.paidSettings?.gameVipConfigs || {};
+      const newConfigs = { ...existingConfigs };
+      if (!isCurrentlyPaid && !newConfigs[gameId]) {
+        newConfigs[gameId] = {
+          restrictionType: 'question_limit',
+          timerSeconds: 20,
+          questionLimit: 10,
+        };
+      }
       return {
         ...prev,
         paidSettings: {
           ...prev.paidSettings!,
           paidGameIds: updated,
+          gameVipConfigs: newConfigs,
+        },
+      };
+    });
+  };
+
+  const updateGameVipConfig = (gameId: number, update: Partial<GameVipConfig>) => {
+    setLocalSettings((prev) => {
+      const existingConfigs = prev.paidSettings?.gameVipConfigs || {};
+      const current = existingConfigs[gameId] || {
+        restrictionType: 'question_limit',
+        timerSeconds: 20,
+        questionLimit: 10,
+      };
+      const updatedConfig: GameVipConfig = { ...current, ...update };
+      const newConfigs = {
+        ...existingConfigs,
+        [gameId]: updatedConfig,
+      };
+      // If it's a child skills game, mirror IDs
+      if (gameId <= 40) {
+        newConfigs[8000 + gameId] = updatedConfig;
+      } else if (gameId > 8000 && gameId <= 8040) {
+        newConfigs[gameId - 8000] = updatedConfig;
+      }
+      return {
+        ...prev,
+        paidSettings: {
+          ...prev.paidSettings!,
+          gameVipConfigs: newConfigs,
         },
       };
     });
@@ -362,13 +382,27 @@ const SettingsPage: React.FC = () => {
 
   const selectAllPaidGames = () => {
     const allIds = GAMES.map((g) => g.id);
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        paidGameIds: allIds,
-      },
-    }));
+    setLocalSettings((prev) => {
+      const existingConfigs = prev.paidSettings?.gameVipConfigs || {};
+      const newConfigs = { ...existingConfigs };
+      allIds.forEach((id) => {
+        if (!newConfigs[id]) {
+          newConfigs[id] = {
+            restrictionType: 'question_limit',
+            timerSeconds: 20,
+            questionLimit: 10,
+          };
+        }
+      });
+      return {
+        ...prev,
+        paidSettings: {
+          ...prev.paidSettings!,
+          paidGameIds: allIds,
+          gameVipConfigs: newConfigs,
+        },
+      };
+    });
   };
 
   const clearAllPaidGames = () => {
@@ -379,6 +413,26 @@ const SettingsPage: React.FC = () => {
         paidGameIds: [],
       },
     }));
+  };
+
+  const setAllVipMode = (mode: 'timer' | 'question_limit') => {
+    setLocalSettings((prev) => {
+      const paid = prev.paidSettings;
+      if (!paid) return prev;
+      const existingConfigs = paid.gameVipConfigs || {};
+      const newConfigs = { ...existingConfigs };
+      (paid.paidGameIds || []).forEach((id) => {
+        const cur = newConfigs[id] || { restrictionType: 'timer', timerSeconds: 20, questionLimit: 10 };
+        newConfigs[id] = { ...cur, restrictionType: mode };
+      });
+      return {
+        ...prev,
+        paidSettings: {
+          ...paid,
+          gameVipConfigs: newConfigs,
+        },
+      };
+    });
   };
 
   const selectCategoryPaidGames = (cat: string) => {
@@ -394,92 +448,6 @@ const SettingsPage: React.FC = () => {
         },
       };
     });
-  };
-
-  // 50-Questions Child Skills Games VIP & Timer Handlers
-  const toggleChildSkillsVip = (gameId: number) => {
-    setLocalSettings((prev) => {
-      const current = prev.paidSettings?.vip50GamesGateIds || [];
-      const updated = current.includes(gameId)
-        ? current.filter((id) => id !== gameId)
-        : [...current, gameId];
-      return {
-        ...prev,
-        paidSettings: {
-          ...prev.paidSettings!,
-          vip50GamesGateIds: updated,
-        },
-      };
-    });
-  };
-
-  const selectAllChildSkillsVip = () => {
-    const allIds = CHILD_SKILLS_GAMES.map((g) => g.id);
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        vip50GamesGateIds: allIds,
-      },
-    }));
-  };
-
-  const selectFirst10ChildSkillsVip = () => {
-    const first10 = CHILD_SKILLS_GAMES.slice(0, 10).map((g) => g.id);
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        vip50GamesGateIds: first10,
-      },
-    }));
-  };
-
-  const clearAllChildSkillsVip = () => {
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        vip50GamesGateIds: [],
-      },
-    }));
-  };
-
-  const toggleChildSkillsTimer = (gameId: number) => {
-    setLocalSettings((prev) => {
-      const current = prev.paidSettings?.timer50GamesIds || [];
-      const updated = current.includes(gameId)
-        ? current.filter((id) => id !== gameId)
-        : [...current, gameId];
-      return {
-        ...prev,
-        paidSettings: {
-          ...prev.paidSettings!,
-          timer50GamesIds: updated,
-        },
-      };
-    });
-  };
-
-  const selectAllChildSkillsTimer = () => {
-    const allIds = CHILD_SKILLS_GAMES.map((g) => g.id);
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        timer50GamesIds: allIds,
-      },
-    }));
-  };
-
-  const clearAllChildSkillsTimer = () => {
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        timer50GamesIds: [],
-      },
-    }));
   };
 
 
@@ -2830,7 +2798,7 @@ const SettingsPage: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={selectAllPaidGames}
@@ -2844,6 +2812,22 @@ const SettingsPage: React.FC = () => {
                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-colors"
                   >
                     إلغاء التحديد (مجانية) 🔓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllVipMode('timer')}
+                    className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-900 text-xs font-bold rounded-xl border border-sky-200 transition-colors"
+                    title="ضبط كل ألعاب VIP لتظهر بنظام المؤقت الزمني"
+                  >
+                    الكل مؤقت ⏱️
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllVipMode('question_limit')}
+                    className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-bold rounded-xl border border-emerald-200 transition-colors"
+                    title="ضبط كل ألعاب VIP لتظهر بنظام عدد محدد من الأسئلة/المراحل"
+                  >
+                    الكل عدد محدد 🔢
                   </button>
                 </div>
               </div>
@@ -2866,7 +2850,7 @@ const SettingsPage: React.FC = () => {
                       onClick={() => setPaidGameCategoryFilter(cat)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
                         paidGameCategoryFilter === cat
-                          ? 'bg-amber-500 text-gray-950 font-black'
+                          ? 'bg-amber-500 text-gray-950 font-black shadow-xs'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -2876,293 +2860,148 @@ const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Games Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+              {/* Games Grid with Per-Game Timer vs Question Limit Options */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[560px] overflow-y-auto pr-1">
                 {filteredPaidGames.map((game) => {
                   const isPaid = localSettings.paidSettings?.paidGameIds?.includes(game.id) || false;
+                  const vipConfig = localSettings.paidSettings?.gameVipConfigs?.[game.id] || {
+                    restrictionType: 'question_limit',
+                    timerSeconds: 20,
+                    questionLimit: 10,
+                  };
+                  const mode = vipConfig.restrictionType || 'question_limit';
+                  const timerSec = vipConfig.timerSeconds || 20;
+                  const questionsCount = vipConfig.questionLimit || 10;
+
                   return (
                     <div
                       key={game.id}
-                      onClick={() => toggleGamePaidRequirement(game.id)}
-                      className={`p-3 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between gap-2 select-none ${
+                      className={`rounded-2xl border-2 transition-all p-3.5 flex flex-col justify-between gap-2.5 select-none ${
                         isPaid
-                          ? 'bg-amber-50/80 border-amber-400 shadow-sm'
+                          ? 'bg-amber-50/70 border-amber-400 shadow-sm'
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-2xl shrink-0">{game.icon}</span>
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-xs text-gray-900 truncate">{game.name}</h4>
-                          <span className="text-[10px] text-gray-400">{game.category}</span>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0 flex items-center gap-1">
-                        {isPaid ? (
-                          <span className="bg-amber-500 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1">
-                            <span>🔒 مدفوعة VIP</span>
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-gray-400 font-bold px-2 py-0.5">
-                            مجانية
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 🎯 50-Questions (Child Skills) VIP Gate & Timer Manager */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-md border-4 border-indigo-200 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-indigo-100">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">🎯</span>
-                  <div>
-                    <h3 className="text-lg font-black text-indigo-950 flex items-center gap-2">
-                      <span>ألعاب الـ 50 سؤال/مرحلة (مهارات طفلي) - اشتراك VIP والمؤقت الزمني</span>
-                      <span className="text-xs bg-indigo-100 text-indigo-900 px-2.5 py-0.5 rounded-full font-bold">
-                        40 لعبة تعليمية
-                      </span>
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      ضع إشارة عند الألعاب التي تطلب اشتراك VIP عند مرحلة معينة، والألعاب التي تريد لها مؤقت زمني
-                    </p>
-                  </div>
-                </div>
-
-                {/* Counters summary */}
-                <div className="flex items-center gap-2">
-                  <span className="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-xl border border-amber-300 flex items-center gap-1">
-                    <span>👑 VIP:</span>
-                    <span>{localSettings.paidSettings?.vip50GamesGateIds?.length || 0} لعبة</span>
-                  </span>
-                  <span className="bg-sky-100 text-sky-900 text-xs font-black px-3 py-1 rounded-xl border border-sky-300 flex items-center gap-1">
-                    <span>⏱️ مؤقت:</span>
-                    <span>{localSettings.paidSettings?.timer50GamesIds?.length || 0} لعبة</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Global Configuration for 50-question games */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-amber-50/60 via-indigo-50/40 to-sky-50/60 rounded-2xl border border-indigo-100">
-                {/* VIP Stage Threshold Input */}
-                <div className="p-3 bg-white rounded-xl border border-amber-200 shadow-xs">
-                  <label className="block text-xs font-bold text-amber-950 mb-1.5 flex items-center gap-1.5">
-                    <span className="text-base">👑</span>
-                    <span>المرحلة التي يُطلب عندها اشتراك VIP:</span>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={localSettings.paidSettings?.vip50StageThreshold ?? 10}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10) || 10;
-                        setLocalSettings((prev) => ({
-                          ...prev,
-                          paidSettings: {
-                            ...prev.paidSettings!,
-                            vip50StageThreshold: Math.max(1, Math.min(50, val)),
-                          },
-                        }));
-                      }}
-                      className="w-24 px-3 py-2 bg-gray-50 border border-amber-300 rounded-xl font-black text-center text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    />
-                    <span className="text-xs text-gray-600 font-bold">
-                      (مثال: 10 يعني أن المراحل 1-9 مجانية، والمرحلة 10+ تتطلب اشتراك VIP)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Timer Duration Input */}
-                <div className="p-3 bg-white rounded-xl border border-sky-200 shadow-xs">
-                  <label className="block text-xs font-bold text-sky-950 mb-1.5 flex items-center gap-1.5">
-                    <span className="text-base">⏱️</span>
-                    <span>مدة المؤقت الزمني لكل سؤال/مرحلة:</span>
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={localSettings.paidSettings?.timer50DurationSeconds ?? 20}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10) || 20;
-                        setLocalSettings((prev) => ({
-                          ...prev,
-                          paidSettings: {
-                            ...prev.paidSettings!,
-                            timer50DurationSeconds: val,
-                          },
-                        }));
-                      }}
-                      className="px-3 py-2 bg-gray-50 border border-sky-300 rounded-xl font-black text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                    >
-                      <option value="10">⚡ 10 ثوانٍ (سريع جداً)</option>
-                      <option value="15">⏱️ 15 ثانية (سريع وممتع)</option>
-                      <option value="20">⏱️ 20 ثانية (الموصى به للأطفال)</option>
-                      <option value="30">⏱️ 30 ثانية (مناسب للتفكير)</option>
-                      <option value="45">⏱️ 45 ثانية</option>
-                      <option value="60">⏱️ 60 ثانية (دقيقة كاملة)</option>
-                    </select>
-                    <span className="text-xs text-gray-600 font-bold">
-                      للألعاب المفعّل لها المؤقت
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fast Batch Controls */}
-              <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50 rounded-2xl border border-gray-200">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs font-bold text-gray-700 ml-1">إجراءات VIP:</span>
-                  <button
-                    type="button"
-                    onClick={selectAllChildSkillsVip}
-                    className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold rounded-xl border border-amber-300 transition-colors cursor-pointer"
-                  >
-                    👑 تفعيل VIP للكل
-                  </button>
-                  <button
-                    type="button"
-                    onClick={selectFirst10ChildSkillsVip}
-                    className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-200 transition-colors cursor-pointer"
-                  >
-                    👑 أول 10 ألعاب
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearAllChildSkillsVip}
-                    className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                  >
-                    🔓 إلغاء VIP للكل
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs font-bold text-gray-700 ml-1">إجراءات المؤقت:</span>
-                  <button
-                    type="button"
-                    onClick={selectAllChildSkillsTimer}
-                    className="px-2.5 py-1.5 bg-sky-100 hover:bg-sky-200 text-sky-950 text-xs font-bold rounded-xl border border-sky-300 transition-colors cursor-pointer"
-                  >
-                    ⏱️ تفعيل المؤقت للكل
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearAllChildSkillsTimer}
-                    className="px-2.5 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-                  >
-                    ✖️ إلغاء المؤقت للكل
-                  </button>
-                </div>
-              </div>
-
-              {/* Search and Category Filters */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  value={childSkillsSearch}
-                  onChange={(e) => setChildSkillsSearch(e.target.value)}
-                  placeholder="🔍 ابحث في ألعاب مهارات طفلي (بالاسم أو المهارة)..."
-                  className="flex-1 px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-
-                <div className="flex flex-wrap gap-1.5">
-                  {childSkillsCategories.map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setChildSkillsCatFilter(cat)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                        childSkillsCatFilter === cat
-                          ? 'bg-indigo-600 text-white font-black'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 40 Child Skills Games Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 max-h-[520px] overflow-y-auto pr-1">
-                {filteredChildSkillsGames.map((game) => {
-                  const isVipGated =
-                    localSettings.paidSettings?.vip50GamesGateIds?.includes(game.id) || false;
-                  const isTimerOn =
-                    localSettings.paidSettings?.timer50GamesIds?.includes(game.id) || false;
-                  const threshold = localSettings.paidSettings?.vip50StageThreshold ?? 10;
-                  const timerSec = localSettings.paidSettings?.timer50DurationSeconds ?? 20;
-
-                  return (
-                    <div
-                      key={game.id}
-                      className={`p-3.5 rounded-2xl border-2 transition-all flex flex-col justify-between gap-3 ${
-                        isVipGated || isTimerOn
-                          ? 'bg-gradient-to-r from-amber-50/40 via-white to-sky-50/40 border-indigo-300 shadow-xs'
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {/* Game Info */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl shrink-0 p-1.5 bg-gray-50 rounded-xl border border-gray-200">
-                          {game.icon}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md">
-                              #{game.id}
-                            </span>
-                            <h4 className="font-black text-sm text-gray-900 truncate">
-                              {game.title}
+                      {/* Top Row: Game Info & VIP Toggle Button */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-2xl shrink-0">{game.icon || '🎮'}</span>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-xs text-gray-900 truncate" title={game.name}>
+                              {game.name}
                             </h4>
+                            <span className="text-[10px] text-gray-400">{game.category}</span>
                           </div>
-                          <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                            {game.skill}
-                          </p>
                         </div>
-                      </div>
 
-                      {/* Control Checkboxes & Indicators */}
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
-                        {/* VIP Gate Checkbox */}
                         <button
                           type="button"
-                          onClick={() => toggleChildSkillsVip(game.id)}
-                          className={`px-2.5 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                            isVipGated
-                              ? 'bg-amber-500 hover:bg-amber-400 text-gray-950 border-amber-600 shadow-xs ring-2 ring-amber-300/60'
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-500 border-gray-200'
+                          onClick={() => toggleGamePaidRequirement(game.id)}
+                          className={`shrink-0 px-2.5 py-1 rounded-xl text-[11px] font-black cursor-pointer transition-all border ${
+                            isPaid
+                              ? 'bg-amber-500 hover:bg-amber-600 text-gray-950 border-amber-600 shadow-xs'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-gray-300'
                           }`}
-                          title="انقر لتفعيل أو إلغاء طلب اشتراك VIP عند مرحلة معينة"
                         >
-                          <span>👑</span>
-                          <span>{isVipGated ? `VIP عند مرحلة ${threshold}` : 'طلب VIP: معطل'}</span>
-                        </button>
-
-                        {/* Timer Checkbox */}
-                        <button
-                          type="button"
-                          onClick={() => toggleChildSkillsTimer(game.id)}
-                          className={`px-2.5 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                            isTimerOn
-                              ? 'bg-sky-500 hover:bg-sky-400 text-white border-sky-600 shadow-xs ring-2 ring-sky-300/60'
-                              : 'bg-gray-100 hover:bg-gray-200 text-gray-500 border-gray-200'
-                          }`}
-                          title="انقر لتفعيل أو إلغاء المؤقت الزمني لهذه اللعبة"
-                        >
-                          <span>⏱️</span>
-                          <span>{isTimerOn ? `مؤقت: ${timerSec}ث` : 'المؤقت: معطل'}</span>
+                          {isPaid ? '🔒 مدفوعة VIP' : 'مجانية 🔓'}
                         </button>
                       </div>
+
+                      {/* Per-Game Restriction: Timer vs Question Limit */}
+                      {isPaid && (
+                        <div className="bg-white/95 rounded-xl p-2.5 border border-amber-200 space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black text-amber-950">ظهور اللعبة للزبون:</span>
+                            <span className="text-[10px] text-amber-800 font-bold">
+                              {mode === 'timer' ? `⏱️ مؤقت (${timerSec}ث)` : `🔢 أسئلة (${questionsCount})`}
+                            </span>
+                          </div>
+
+                          {/* Two Options: Timer OR Question Limit */}
+                          <div className="grid grid-cols-2 gap-1.5 p-1 bg-amber-100/70 rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => updateGameVipConfig(game.id, { restrictionType: 'timer' })}
+                              className={`py-1.5 px-2 rounded-md text-[11px] font-black transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                mode === 'timer'
+                                  ? 'bg-amber-500 text-gray-950 shadow-xs ring-1 ring-amber-400'
+                                  : 'bg-transparent text-amber-900 hover:bg-amber-200/60'
+                              }`}
+                            >
+                              <span>⏱️</span>
+                              <span>مؤقت زمني</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => updateGameVipConfig(game.id, { restrictionType: 'question_limit' })}
+                              className={`py-1.5 px-2 rounded-md text-[11px] font-black transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                mode === 'question_limit'
+                                  ? 'bg-amber-500 text-gray-950 shadow-xs ring-1 ring-amber-400'
+                                  : 'bg-transparent text-amber-900 hover:bg-amber-200/60'
+                              }`}
+                            >
+                              <span>🔢</span>
+                              <span>عدد محدد</span>
+                            </button>
+                          </div>
+
+                          {/* Settings for Selected Mode */}
+                          {mode === 'timer' ? (
+                            <div className="space-y-1 pt-0.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-gray-500">مدة المؤقت المجاني:</span>
+                                <span className="font-black text-amber-900">{timerSec} ثانية</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[15, 20, 30, 45, 60].map((s) => (
+                                  <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => updateGameVipConfig(game.id, { timerSeconds: s })}
+                                    className={`flex-1 py-1 text-[10px] font-bold rounded-md border transition-all cursor-pointer ${
+                                      timerSec === s
+                                        ? 'bg-amber-500 text-gray-950 border-amber-600 font-black'
+                                        : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
+                                    }`}
+                                  >
+                                    {s}ث
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-1 pt-0.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-gray-500">الأسئلة/المراحل المجانية:</span>
+                                <span className="font-black text-amber-900">{questionsCount} سؤال</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[3, 5, 10, 15, 20].map((q) => (
+                                  <button
+                                    key={q}
+                                    type="button"
+                                    onClick={() => updateGameVipConfig(game.id, { questionLimit: q })}
+                                    className={`flex-1 py-1 text-[10px] font-bold rounded-md border transition-all cursor-pointer ${
+                                      questionsCount === q
+                                        ? 'bg-amber-500 text-gray-950 border-amber-600 font-black'
+                                        : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
+                                    }`}
+                                  >
+                                    {q}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </div>
+
           </div>
         )}
 
@@ -3217,7 +3056,19 @@ const SettingsPage: React.FC = () => {
                         )}
                         <span className="text-xs text-gray-400 font-mono">العمر: {res.age}</span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">تاريخ التسجيل: {res.createdAt}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <p className="text-xs text-gray-400">تاريخ التسجيل: {res.createdAt}</p>
+                        {res.clientIp && (
+                          <span className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-mono border border-slate-200">
+                            🌐 IP: {res.clientIp}
+                          </span>
+                        )}
+                        {res.deviceInfo && (
+                          <span className="text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-mono border border-blue-200">
+                            📱 {res.deviceInfo}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0">

@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local runtime data
+data/gist_config.json
+*.tsbuildinfo
+
