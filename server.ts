@@ -176,7 +176,9 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
   const requestHeaders: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'ToysGame-Sync-Server/1.0',
-    'Cache-Control': 'no-cache',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    Pragma: 'no-cache',
+    'If-None-Match': '',
   };
 
   if (rawToken && rawToken.length > 5) {
@@ -203,7 +205,11 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
           } catch {}
         } else if (targetFile.raw_url) {
           const rawRes = await fetch(`${targetFile.raw_url}?_t=${Date.now()}`, {
-            headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
+            headers: {
+              'User-Agent': 'ToysGame-Sync-Server/1.0',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              Pragma: 'no-cache',
+            },
             cache: 'no-store',
           });
           if (rawRes.ok) {
@@ -220,7 +226,14 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
     try {
       const fallbackRes = await fetch(
         `https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`,
-        { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' }, cache: 'no-store' }
+        {
+          headers: {
+            'User-Agent': 'ToysGame-Sync-Server/1.0',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache',
+          },
+          cache: 'no-store',
+        }
       );
       if (fallbackRes.ok) {
         result = await fallbackRes.json();
@@ -578,8 +591,8 @@ app.get('/api/data', async (req, res) => {
       activationCodes: mergedApprovedCodes,
       activations: mergedActivations,
       storiesAudio: {
-        ...(remoteData.storiesAudio || {}),
         ...(localSubmissions.storiesAudio || {}),
+        ...(remoteData.storiesAudio || {}),
       },
       settings: remoteData.settings || {},
     };
@@ -609,8 +622,8 @@ app.get('/api/stories/audio', async (req, res) => {
     }
     const local = getStoredSubmissions();
     const mergedAudio = {
-      ...(remoteAudio || {}),
       ...(local.storiesAudio || {}),
+      ...(remoteAudio || {}),
     };
     res.json({
       success: true,

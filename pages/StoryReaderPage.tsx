@@ -209,8 +209,27 @@ const StoryReaderPage: React.FC = () => {
         {/* Story Text Box (Clean & Readable for Children) */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-purple-100 text-center mb-5 relative">
           <p className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 leading-relaxed tracking-wide">
-            {currentScene.text}
+            «{currentScene.text}»
           </p>
+
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                stopCurrentAudio();
+                playSceneSentenceAudio(story.id, currentSceneNum, currentScene.text, setIsAudioPlaying);
+              }}
+              className={`px-5 py-2.5 rounded-2xl font-black text-xs sm:text-sm flex items-center gap-2 shadow-md transition-all cursor-pointer active:scale-95 ${
+                isAudioPlaying
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white animate-pulse'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+              }`}
+            >
+              <span className="text-base">{isAudioPlaying ? '⏹️' : '🔊'}</span>
+              <span>{isAudioPlaying ? 'جاري الاستماع... (إيقاف)' : 'استمع لنطق الجملة بصوت واضح'}</span>
+            </button>
+          </div>
+
           <div className="mt-3 text-xs text-purple-700/70 font-bold">
             المشهد {currentSceneNum} من 10 • {story.moral}
           </div>

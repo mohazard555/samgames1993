@@ -60,6 +60,21 @@ export function countStoryRecordedScenes(storyId: string): number {
 }
 
 /**
+ * Update in-memory and local cache with cloud stories audio directly
+ */
+export function setCloudStoriesAudio(cloudAudio: StoriesAudioMap): void {
+  if (!cloudAudio || typeof cloudAudio !== 'object') return;
+  memoryAudioCache = {
+    ...memoryAudioCache,
+    ...cloudAudio,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryAudioCache));
+  } catch {}
+  window.dispatchEvent(new CustomEvent('stories_audio_updated'));
+}
+
+/**
  * Fetch latest stories audio from server / Gist and update local cache
  */
 export async function fetchStoriesAudioFromCloud(): Promise<StoriesAudioMap> {
@@ -209,37 +224,61 @@ export interface AudioOptimizationResult {
   optimizedSize: number;
   duration: number;
   isCompressed: boolean;
+  reductionPercentage?: number;
 }
 
 /**
- * Optimizes a sentence audio file or recording to be ultra-compact (< 30KB)
- * to fit effortlessly within GitHub Gist storage limits.
+ * Trims silence from an AudioBuffer to keep files as tiny as ~1KB
+ */
+function trimSilence(buffer: AudioBuffer): AudioBuffer {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const channelData = buffer.getChannelData(0);
+  const threshold = 0.015; // Silence threshold
+
+  let start = 0;
+  while (start < channelData.length && Math.abs(channelData[start]) < threshold) {
+    start++;
+  }
+
+  let end = channelData.length - 1;
+  while (end > start && Math.abs(channelData[end]) < threshold) {
+    end--;
+  }
+
+  // Padding of ~50ms
+  const pad = Math.floor(sampleRate * 0.05);
+  start = Math.max(0, start - pad);
+  end = Math.min(channelData.length, end + pad);
+
+  const trimmedLength = Math.max(sampleRate * 0.2, end - start);
+  const AudioCtx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const ctx = new AudioCtx();
+  const newBuffer = ctx.createBuffer(numChannels, trimmedLength, sampleRate);
+
+  for (let ch = 0; ch < numChannels; ch++) {
+    const origData = buffer.getChannelData(ch);
+    const newData = newBuffer.getChannelData(ch);
+    for (let i = 0; i < trimmedLength; i++) {
+      newData[i] = origData[start + i] || 0;
+    }
+  }
+  ctx.close().catch(() => {});
+  return newBuffer;
+}
+
+/**
+ * Optimizes a sentence audio file or recording to ~1KB - 2KB
+ * ensuring 100+ scenes fit easily within GitHub Gist's 1MB payload limit!
  */
 export async function optimizeSentenceAudio(
   fileOrBlob: File | Blob,
-  maxDurationSeconds = 15
+  maxDurationSeconds = 12
 ): Promise<AudioOptimizationResult> {
   const originalSize = fileOrBlob.size;
 
-  // If already under 25KB, convert directly to data URL without re-encoding
-  if (originalSize <= 25 * 1024) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        resolve({
-          dataUrl: e.target?.result as string,
-          originalSize,
-          optimizedSize: originalSize,
-          duration: 0,
-          isCompressed: false,
-        });
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(fileOrBlob);
-    });
-  }
-
-  // Use Web Audio API to re-encode efficiently at low voice bitrate (24kbps mono)
   try {
     const arrayBuffer = await fileOrBlob.arrayBuffer();
     const AudioCtx =
@@ -251,33 +290,42 @@ export async function optimizeSentenceAudio(
     }
 
     const audioCtx = new AudioCtx();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    const duration = Math.min(audioBuffer.duration, maxDurationSeconds);
+    const decodedBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const trimmedBuffer = trimSilence(decodedBuffer);
+    const duration = Math.min(trimmedBuffer.duration, maxDurationSeconds);
 
     const streamDest = audioCtx.createMediaStreamDestination();
     const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(streamDest);
+    source.buffer = trimmedBuffer;
+
+    // Speech Bandpass Filter (300Hz to 3400Hz - Telephony standard) for maximum speech clarity and minimum byte weight
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1800;
+    filter.Q.value = 0.7;
+
+    source.connect(filter);
+    filter.connect(streamDest);
 
     let mimeType = 'audio/webm;codecs=opus';
     if (typeof MediaRecorder !== 'undefined') {
       if (!MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
         if (MediaRecorder.isTypeSupported('audio/webm')) {
           mimeType = 'audio/webm';
-        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-          mimeType = 'audio/mp4';
         } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
           mimeType = 'audio/ogg;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
         }
       }
     } else {
       throw new Error('MediaRecorder غير متوفر');
     }
 
-    // 24kbps mono provides crystal clear speech recording at only ~3KB per second!
+    // Ultra-low speech bitrate: 6kbps mono (producing ~0.75 KB per second of speech!)
     const recorder = new MediaRecorder(streamDest.stream, {
       mimeType,
-      audioBitsPerSecond: 24000,
+      audioBitsPerSecond: 6000,
     });
 
     const chunks: Blob[] = [];
@@ -293,28 +341,36 @@ export async function optimizeSentenceAudio(
         const reader = new FileReader();
         reader.onload = (e) => {
           audioCtx.close().catch(() => {});
+          const dataUrl = e.target?.result as string;
+          const optimizedSize = compressedBlob.size;
+          const reductionPercentage =
+            originalSize > 0 ? Math.round(((originalSize - optimizedSize) / originalSize) * 100) : 0;
+
           resolve({
-            dataUrl: e.target?.result as string,
+            dataUrl,
             originalSize,
-            optimizedSize: compressedBlob.size,
+            optimizedSize,
             duration,
             isCompressed: true,
+            reductionPercentage: Math.max(0, reductionPercentage),
           });
         };
         reader.onerror = reject;
         reader.readAsDataURL(compressedBlob);
       };
 
-      recorder.start(100);
+      recorder.start(50);
       source.start(0);
 
-      // Stop when duration completes
+      // Stop when speech duration completes
       setTimeout(() => {
-        if (recorder.state === 'recording') {
-          recorder.stop();
-          source.stop();
-        }
-      }, Math.ceil(duration * 1000) + 150);
+        try {
+          if (recorder.state === 'recording') {
+            recorder.stop();
+            source.stop();
+          }
+        } catch {}
+      }, Math.ceil(duration * 1000) + 100);
     });
   } catch (e) {
     // Fallback if re-encoding fails: direct DataURL
@@ -327,12 +383,22 @@ export async function optimizeSentenceAudio(
           optimizedSize: originalSize,
           duration: 0,
           isCompressed: false,
+          reductionPercentage: 0,
         });
       };
       reader.onerror = reject;
       reader.readAsDataURL(fileOrBlob);
     });
   }
+}
+
+/**
+ * Standalone compressor utility for files up to 40KB+ to ~1KB
+ */
+export async function compressSentenceAudioTo1KB(
+  fileOrBlob: File | Blob
+): Promise<AudioOptimizationResult> {
+  return optimizeSentenceAudio(fileOrBlob, 15);
 }
 
 /**

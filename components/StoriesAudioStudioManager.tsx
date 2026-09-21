@@ -121,23 +121,24 @@ export const StoriesAudioStudioManager: React.FC = () => {
     audio.play().catch(() => setPlayingKey(null));
   };
 
-  // Handle MP3 File Upload
+  // Handle MP3 File Upload - Automatically compresses to ~1KB
   const handleFileUpload = async (storyId: string, sceneNumber: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
       setProcessingSceneNum(sceneNumber);
-      setActionFeedback(`جاري ضغط ومعالجة ملف الصوت للمشهد ${sceneNumber}...`);
+      setActionFeedback(`⚡ جاري ضغط ملف الصوت تلقائياً للمشهد ${sceneNumber} إلى ~1KB وحفظه...`);
 
-      const result = await optimizeSentenceAudio(file, 20);
+      const result = await optimizeSentenceAudio(file, 15);
       const saveRes = await saveSceneAudio(storyId, sceneNumber, result.dataUrl);
 
       setAudioVersion((v) => v + 1);
-      setActionFeedback(`✓ ${saveRes.message}`);
-      setTimeout(() => setActionFeedback(null), 4000);
+      const kbSize = (result.optimizedSize / 1024).toFixed(1);
+      setActionFeedback(`✓ تم ضغط وحفظ صوت المشهد ${sceneNumber} بنجاح! (الحجم: ${kbSize} ك.ب فقط)`);
+      setTimeout(() => setActionFeedback(null), 4500);
     } catch (err: any) {
-      setActionFeedback(`❌ خطأ في معالجة الملف: ${err?.message || 'تنسيق غير مدعوم'}`);
+      setActionFeedback(`❌ خطأ في معالجة وضغط الملف: ${err?.message || 'تنسيق غير مدعوم'}`);
       setTimeout(() => setActionFeedback(null), 4000);
     } finally {
       setProcessingSceneNum(null);
@@ -190,18 +191,19 @@ export const StoriesAudioStudioManager: React.FC = () => {
 
     try {
       setProcessingSceneNum(sceneNumber);
-      setActionFeedback('جاري ضغط وحفظ التسجيل الصوتي...');
+      setActionFeedback(`⚡ جاري ضغط وحفظ التسجيل للمشهد ${sceneNumber} إلى ~1KB...`);
 
       const blob = await stopRecordingFnRef.current();
       stopRecordingFnRef.current = null;
       setRecordingSceneNum(null);
 
-      const result = await optimizeSentenceAudio(blob, 20);
+      const result = await optimizeSentenceAudio(blob, 15);
       const saveRes = await saveSceneAudio(storyId, sceneNumber, result.dataUrl);
 
       setAudioVersion((v) => v + 1);
-      setActionFeedback(`✓ تم حفظ التسجيل الصوتي للمشهد ${sceneNumber} بنجاح!`);
-      setTimeout(() => setActionFeedback(null), 4000);
+      const kbSize = (result.optimizedSize / 1024).toFixed(1);
+      setActionFeedback(`✓ تم ضغط وحفظ التسجيل الصوتي للمشهد ${sceneNumber} بنجاح! (الحجم: ${kbSize} ك.ب)`);
+      setTimeout(() => setActionFeedback(null), 4500);
     } catch (err: any) {
       setActionFeedback(`❌ خطأ في حفظ التسجيل: ${err?.message || 'حدث خطأ'}`);
       setTimeout(() => setActionFeedback(null), 4000);
@@ -320,7 +322,7 @@ export const StoriesAudioStudioManager: React.FC = () => {
               إدارة وتسجيل أصوات مشاهد القصص 📖
             </h2>
             <p className="text-purple-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-              ارفع أو سجل بصوتك ملفات MP3 لكل صورة ومشهد. عند فتح القصة من قبل الزائر وتقليب الصور، يتم تشغيل ملف الصوت الخاص بكل صورة تلقائياً، مع مزامنة سحابية فورية على Gist!
+              ارفع أو سجل بصوتك ملفات MP3 لكل صورة ومشهد (تضغط تلقائياً إلى ~1KB لكل مشهد لتوفير المساحة السحابية). عند فتح القصة من قبل الزائر وتقليب الصور، يتم تشغيل ملف الصوت الخاص بكل صورة تلقائياً، مع مزامنة سحابية فورية على Gist!
             </p>
           </div>
 

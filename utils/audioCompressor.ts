@@ -1,4 +1,5 @@
 // Helper to compress and optimize uploaded audio files for cloud storage (GitHub Gist < 1MB limit)
+export { optimizeSentenceAudio, compressSentenceAudioTo1KB } from './storyAudioStorage';
 
 export interface AudioOptimizationResult {
   dataUrl: string;
@@ -6,6 +7,7 @@ export interface AudioOptimizationResult {
   optimizedSize: number;
   duration: number;
   isCompressed: boolean;
+  reductionPercentage?: number;
 }
 
 /**
@@ -14,25 +16,6 @@ export interface AudioOptimizationResult {
  */
 export async function optimizeAudioForCloud(file: File, maxDurationSeconds = 60): Promise<AudioOptimizationResult> {
   const originalSize = file.size;
-
-  // If already under 400KB, keep original format
-  if (originalSize < 400 * 1024) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        resolve({
-          dataUrl,
-          originalSize,
-          optimizedSize: originalSize,
-          duration: 0,
-          isCompressed: false,
-        });
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
 
   // Use Web Audio API + MediaRecorder to re-encode efficiently
   try {
@@ -70,7 +53,7 @@ export async function optimizeAudioForCloud(file: File, maxDurationSeconds = 60)
 
     const recorder = new MediaRecorder(streamDest.stream, {
       mimeType,
-      audioBitsPerSecond: 32000, // 32kbps gives clear melody at ~240KB per minute!
+      audioBitsPerSecond: 24000, // 24kbps provides great audio at tiny footprint
     });
 
     const chunks: Blob[] = [];
@@ -87,12 +70,16 @@ export async function optimizeAudioForCloud(file: File, maxDurationSeconds = 60)
         reader.onload = (e) => {
           const dataUrl = e.target?.result as string;
           audioCtx.close().catch(() => {});
+          const optimizedSize = compressedBlob.size;
+          const reductionPercentage =
+            originalSize > 0 ? Math.round(((originalSize - optimizedSize) / originalSize) * 100) : 0;
           resolve({
             dataUrl,
             originalSize,
-            optimizedSize: compressedBlob.size,
+            optimizedSize,
             duration,
             isCompressed: true,
+            reductionPercentage: Math.max(0, reductionPercentage),
           });
         };
         reader.readAsDataURL(compressedBlob);
@@ -101,7 +88,7 @@ export async function optimizeAudioForCloud(file: File, maxDurationSeconds = 60)
       recorder.start();
       source.start(0);
 
-      // Stop recorder after the target duration (e.g. 45-60s loop)
+      // Stop recorder after the target duration
       setTimeout(() => {
         try {
           source.stop();
@@ -124,6 +111,7 @@ export async function optimizeAudioForCloud(file: File, maxDurationSeconds = 60)
           optimizedSize: originalSize,
           duration: 0,
           isCompressed: false,
+          reductionPercentage: 0,
         });
       };
       reader.onerror = reject;
