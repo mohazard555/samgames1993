@@ -348,31 +348,36 @@ async function updateGistData(updater: (currentData: any) => Promise<any> | any)
           activationCodes: safeApprovedCodes,
           approvedActivationCodes: safeApprovedCodes,
           activations: safeActivations,
-          codeDeviceBindings: {
-            ...(localStored.codeDeviceBindings || {}),
-            ...(currentData.codeDeviceBindings || {}),
-            ...(updated.codeDeviceBindings || {}),
-          },
-          codeIpBindings: {
-            ...(localStored.codeIpBindings || {}),
-            ...(currentData.codeIpBindings || {}),
-            ...(updated.codeIpBindings || {}),
-          },
-          codeActivationDetails: {
-            ...(localStored.codeActivationDetails || {}),
-            ...(currentData.codeActivationDetails || {}),
-            ...(updated.codeActivationDetails || {}),
-          },
-          codeCustomerBindings: {
-            ...(localStored.codeCustomerBindings || {}),
-            ...(currentData.codeCustomerBindings || {}),
-            ...(updated.codeCustomerBindings || {}),
-          },
-          storiesAudio: {
-            ...(currentData.storiesAudio || {}),
-            ...(localStored.storiesAudio || {}),
-            ...(updated.storiesAudio || {}),
-          },
+          codeDeviceBindings: updated.codeDeviceBindings !== undefined
+            ? updated.codeDeviceBindings
+            : {
+                ...(localStored.codeDeviceBindings || {}),
+                ...(currentData.codeDeviceBindings || {}),
+              },
+          codeIpBindings: updated.codeIpBindings !== undefined
+            ? updated.codeIpBindings
+            : {
+                ...(localStored.codeIpBindings || {}),
+                ...(currentData.codeIpBindings || {}),
+              },
+          codeActivationDetails: updated.codeActivationDetails !== undefined
+            ? updated.codeActivationDetails
+            : {
+                ...(localStored.codeActivationDetails || {}),
+                ...(currentData.codeActivationDetails || {}),
+              },
+          codeCustomerBindings: updated.codeCustomerBindings !== undefined
+            ? updated.codeCustomerBindings
+            : {
+                ...(localStored.codeCustomerBindings || {}),
+                ...(currentData.codeCustomerBindings || {}),
+              },
+          storiesAudio: updated.storiesAudio !== undefined
+            ? updated.storiesAudio
+            : {
+                ...(currentData.storiesAudio || {}),
+                ...(localStored.storiesAudio || {}),
+              },
           lastUpdated: new Date().toISOString(),
         };
 
@@ -462,16 +467,16 @@ app.post('/api/settings', async (req, res) => {
         ...current,
         ...newSettings,
         settings: mergedSettings,
-        purchaseOrders: current.purchaseOrders || current.orders || [],
-        contactMessages: current.contactMessages || current.messages || [],
-        feedbacks: current.feedbacks || current.reviews || [],
-        skillTestResults: current.skillTestResults || current.challenges || [],
-        approvedActivationCodes: newSettings.approvedActivationCodes || current.approvedActivationCodes || current.activationCodes || [],
+        purchaseOrders: newSettings.purchaseOrders !== undefined ? newSettings.purchaseOrders : (current.purchaseOrders || current.orders || []),
+        contactMessages: newSettings.contactMessages !== undefined ? newSettings.contactMessages : (current.contactMessages || current.messages || []),
+        feedbacks: newSettings.feedbacks !== undefined ? newSettings.feedbacks : (current.feedbacks || current.reviews || []),
+        skillTestResults: newSettings.skillTestResults !== undefined ? newSettings.skillTestResults : (current.skillTestResults || current.challenges || []),
+        approvedActivationCodes: newSettings.approvedActivationCodes !== undefined ? newSettings.approvedActivationCodes : (current.approvedActivationCodes || current.activationCodes || []),
         activations: current.activations || [],
-        codeDeviceBindings: current.codeDeviceBindings || {},
-        codeIpBindings: current.codeIpBindings || {},
-        codeActivationDetails: current.codeActivationDetails || {},
-        codeCustomerBindings: current.codeCustomerBindings || {},
+        codeDeviceBindings: newSettings.codeDeviceBindings !== undefined ? newSettings.codeDeviceBindings : (current.codeDeviceBindings || {}),
+        codeIpBindings: newSettings.codeIpBindings !== undefined ? newSettings.codeIpBindings : (current.codeIpBindings || {}),
+        codeActivationDetails: newSettings.codeActivationDetails !== undefined ? newSettings.codeActivationDetails : (current.codeActivationDetails || {}),
+        codeCustomerBindings: newSettings.codeCustomerBindings !== undefined ? newSettings.codeCustomerBindings : (current.codeCustomerBindings || {}),
       };
     });
 
