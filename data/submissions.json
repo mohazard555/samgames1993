@@ -1,103 +1,8 @@
 {
-  "purchaseOrders": [
-    {
-      "customerName": "أحمد محمد",
-      "customerPhone": "0912345678",
-      "paymentMethod": "sham_cash",
-      "amount": 3,
-      "currency": "دولار",
-      "transactionId": "TX123456",
-      "activationCode": "VIP-SHAM-TEST-1234",
-      "id": "ORD-266526-IFRR",
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢١:٠٦ ص",
-      "serverReceivedAt": "2026-09-21T07:21:06.526Z"
-    }
-  ],
-  "contactMessages": [
-    {
-      "id": "msg_test_1",
-      "name": "سارة خالد",
-      "email": "sara@example.com",
-      "subject": "طلب كود تفعيل VIP",
-      "message": "السلام عليكم كيف يمكنني شراء كود التفعيل؟",
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
-      "createdAt": "٢٠‏/٩‏/٢٠٢٦، ١٠:٣٢:١٣ ص",
-      "serverReceivedAt": "2026-09-20T10:32:13.306Z"
-    },
-    {
-      "name": "زائر تجريبي",
-      "email": "visitor@test.com",
-      "subject": "اختبار المزامنة المركزية",
-      "message": "رسالة اختبار للتأكد من وصولها إلى السحابة",
-      "id": "msg_1789975320391_x18j",
-      "status": "جديدة",
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢٢:٠٠ ص",
-      "serverReceivedAt": "2026-09-21T07:22:00.407Z"
-    }
-  ],
-  "feedbacks": [
-    {
-      "id": "fb_test_1",
-      "name": "علي أحمد",
-      "email": "ali@example.com",
-      "rating": 5,
-      "category": "اقتراح لعبة جديدة 🎮",
-      "message": "تطبيق رائع جدا ومفيد للاطفال شكرا لكم",
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
-      "createdAt": "٢٠‏/٩‏/٢٠٢٦، ١٠:٣٢:١٢ ص",
-      "serverReceivedAt": "2026-09-20T10:32:12.966Z"
-    }
-  ],
-  "skillTestResults": [
-    {
-      "id": "skill_test_1",
-      "name": "البطل محمد",
-      "age": "9 سنوات",
-      "country": "مصر",
-      "score": 50,
-      "total": 50,
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
-      "createdAt": "٢٠‏/٩‏/٢٠٢٦، ١٠:٣٢:١٣ ص",
-      "serverReceivedAt": "2026-09-20T10:32:13.479Z"
-    },
-    {
-      "id": "test_skill_123",
-      "name": "البطل سامر",
-      "age": "10",
-      "country": "سورية",
-      "score": 48,
-      "total": 50,
-      "percentage": 96,
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
-      "createdAt": "٢٠‏/٩‏/٢٠٢٦، ٧:٣٤:٥٨ ص",
-      "serverReceivedAt": "2026-09-20T07:34:58.761Z"
-    },
-    {
-      "playerName": "سيف البطل",
-      "score": 95,
-      "totalQuestions": 20,
-      "percentage": 95,
-      "rating": "ممتاز",
-      "timeSpent": 120,
-      "id": "test_1789975270880_6n9n",
-      "clientIp": "127.0.0.1",
-      "deviceInfo": "متصفح ويب",
-      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢١:١٠ ص",
-      "serverReceivedAt": "2026-09-21T07:21:10.880Z"
-    }
-  ],
+  "purchaseOrders": [],
+  "contactMessages": [],
+  "feedbacks": [],
+  "skillTestResults": [],
   "codeIpBindings": {},
   "codeActivationDetails": {
     "VIP-CODE-IGIH-Z0J6": {
@@ -316,5 +221,6 @@
     "VIP-TOYS-2026-0098",
     "VIP-TOYS-2026-0099",
     "VIP-TOYS-2026-0100"
-  ]
+  ],
+  "storiesAudio": {}
 }

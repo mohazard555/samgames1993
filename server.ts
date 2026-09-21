@@ -298,43 +298,39 @@ async function updateGistData(updater: (currentData: any) => Promise<any> | any)
 
         const localStored = getStoredSubmissions();
 
-        const safeOrders = [
-          ...(updated.purchaseOrders || updated.orders || []),
-          ...(localStored.purchaseOrders || []),
-          ...(currentData.purchaseOrders || currentData.orders || []),
-        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+        const safeOrders = updated.purchaseOrders !== undefined
+          ? (Array.isArray(updated.purchaseOrders) ? updated.purchaseOrders : [])
+          : (updated.orders !== undefined
+              ? (Array.isArray(updated.orders) ? updated.orders : [])
+              : (Array.isArray(currentData.purchaseOrders) ? currentData.purchaseOrders : (currentData.orders || [])));
 
-        const safeMessages = [
-          ...(updated.contactMessages || updated.messages || []),
-          ...(localStored.contactMessages || []),
-          ...(currentData.contactMessages || currentData.messages || []),
-        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+        const safeMessages = updated.contactMessages !== undefined
+          ? (Array.isArray(updated.contactMessages) ? updated.contactMessages : [])
+          : (updated.messages !== undefined
+              ? (Array.isArray(updated.messages) ? updated.messages : [])
+              : (Array.isArray(currentData.contactMessages) ? currentData.contactMessages : (currentData.messages || [])));
 
-        const safeFeedbacks = [
-          ...(updated.feedbacks || updated.reviews || []),
-          ...(localStored.feedbacks || []),
-          ...(currentData.feedbacks || currentData.reviews || []),
-        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+        const safeFeedbacks = updated.feedbacks !== undefined
+          ? (Array.isArray(updated.feedbacks) ? updated.feedbacks : [])
+          : (updated.reviews !== undefined
+              ? (Array.isArray(updated.reviews) ? updated.reviews : [])
+              : (Array.isArray(currentData.feedbacks) ? currentData.feedbacks : (currentData.reviews || [])));
 
-        const safeSkillResults = [
-          ...(updated.skillTestResults || updated.challenges || []),
-          ...(localStored.skillTestResults || []),
-          ...(currentData.skillTestResults || currentData.challenges || []),
-        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+        const safeSkillResults = updated.skillTestResults !== undefined
+          ? (Array.isArray(updated.skillTestResults) ? updated.skillTestResults : [])
+          : (updated.challenges !== undefined
+              ? (Array.isArray(updated.challenges) ? updated.challenges : [])
+              : (Array.isArray(currentData.skillTestResults) ? currentData.skillTestResults : (currentData.challenges || [])));
 
-        const safeApprovedCodes = Array.from(
-          new Set([
-            ...(updated.approvedActivationCodes || updated.activationCodes || []),
-            ...(localStored.approvedActivationCodes || []),
-            ...(currentData.approvedActivationCodes || currentData.activationCodes || []),
-          ])
-        );
+        const safeApprovedCodes = updated.approvedActivationCodes !== undefined
+          ? (Array.isArray(updated.approvedActivationCodes) ? updated.approvedActivationCodes : [])
+          : (updated.activationCodes !== undefined
+              ? (Array.isArray(updated.activationCodes) ? updated.activationCodes : [])
+              : (Array.isArray(currentData.approvedActivationCodes) ? currentData.approvedActivationCodes : (currentData.activationCodes || [])));
 
-        const safeActivations = [
-          ...(updated.activations || []),
-          ...(localStored.activations || []),
-          ...(currentData.activations || []),
-        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => (t.code || t.id) === (item.code || item.id)));
+        const safeActivations = updated.activations !== undefined
+          ? (Array.isArray(updated.activations) ? updated.activations : [])
+          : (currentData.activations || []);
 
         const safePayload = {
           ...currentData,
@@ -381,7 +377,7 @@ async function updateGistData(updater: (currentData: any) => Promise<any> | any)
         };
 
         safePayloadToReturn = safePayload;
-        // Always save to local server mirror first so visitor submissions are NEVER lost
+        // Always save to local server mirror first so visitor submissions and deletions stay in sync
         saveStoredSubmissions(safePayload);
 
         const jsonContent = JSON.stringify(safePayload, null, 2);
@@ -507,61 +503,58 @@ app.get('/api/data', async (req, res) => {
 
     const localSubmissions = getStoredSubmissions();
 
-    // Merge purchase orders
-    const mergedOrders = [
-      ...(localSubmissions.purchaseOrders || localSubmissions.orders || []),
-      ...(Array.isArray(remoteData.purchaseOrders) ? remoteData.purchaseOrders : (remoteData.orders || [])),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    // Authoritative datasets
+    const mergedOrders = remoteData && Array.isArray(remoteData.purchaseOrders)
+      ? remoteData.purchaseOrders
+      : (remoteData && Array.isArray(remoteData.orders)
+          ? remoteData.orders
+          : (localSubmissions.purchaseOrders || []));
 
-    // Merge contact messages
-    const mergedMessages = [
-      ...(localSubmissions.contactMessages || localSubmissions.messages || []),
-      ...(Array.isArray(remoteData.contactMessages) ? remoteData.contactMessages : (remoteData.messages || [])),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    const mergedMessages = remoteData && Array.isArray(remoteData.contactMessages)
+      ? remoteData.contactMessages
+      : (remoteData && Array.isArray(remoteData.messages)
+          ? remoteData.messages
+          : (localSubmissions.contactMessages || []));
 
-    // Merge feedbacks
-    const mergedFeedbacks = [
-      ...(localSubmissions.feedbacks || localSubmissions.reviews || []),
-      ...(Array.isArray(remoteData.feedbacks) ? remoteData.feedbacks : (remoteData.reviews || [])),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    const mergedFeedbacks = remoteData && Array.isArray(remoteData.feedbacks)
+      ? remoteData.feedbacks
+      : (remoteData && Array.isArray(remoteData.reviews)
+          ? remoteData.reviews
+          : (localSubmissions.feedbacks || []));
 
-    // Merge skill test results
-    const mergedSkills = [
-      ...(localSubmissions.skillTestResults || localSubmissions.challenges || []),
-      ...(Array.isArray(remoteData.skillTestResults) ? remoteData.skillTestResults : (remoteData.challenges || [])),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+    const mergedSkills = remoteData && Array.isArray(remoteData.skillTestResults)
+      ? remoteData.skillTestResults
+      : (remoteData && Array.isArray(remoteData.challenges)
+          ? remoteData.challenges
+          : (localSubmissions.skillTestResults || []));
 
     // Merge code bindings
     const mergedCodeIpBindings = {
-      ...(remoteData.codeIpBindings || {}),
       ...(localSubmissions.codeIpBindings || {}),
+      ...(remoteData.codeIpBindings || {}),
     };
     const mergedCodeActivationDetails = {
-      ...(remoteData.codeActivationDetails || {}),
       ...(localSubmissions.codeActivationDetails || {}),
+      ...(remoteData.codeActivationDetails || {}),
     };
     const mergedCodeCustomerBindings = {
-      ...(remoteData.codeCustomerBindings || {}),
       ...(localSubmissions.codeCustomerBindings || {}),
+      ...(remoteData.codeCustomerBindings || {}),
     };
     const mergedCodeDeviceBindings = {
-      ...(remoteData.codeDeviceBindings || {}),
       ...(localSubmissions.codeDeviceBindings || {}),
+      ...(remoteData.codeDeviceBindings || {}),
     };
 
-    const mergedApprovedCodes = Array.from(
-      new Set([
-        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : (remoteData.activationCodes || [])),
-        ...(Array.isArray(localSubmissions.approvedActivationCodes) ? localSubmissions.approvedActivationCodes : []),
-        ...Object.keys(mergedCodeCustomerBindings),
-        ...Object.keys(mergedCodeIpBindings),
-      ].filter((c) => typeof c === 'string' && c.trim().length > 0))
-    );
+    const mergedApprovedCodes = Array.isArray(remoteData.approvedActivationCodes)
+      ? remoteData.approvedActivationCodes
+      : (Array.isArray(remoteData.activationCodes)
+          ? remoteData.activationCodes
+          : (Array.isArray(localSubmissions.approvedActivationCodes) ? localSubmissions.approvedActivationCodes : []));
 
-    const mergedActivations = [
-      ...(Array.isArray(remoteData.activations) ? remoteData.activations : []),
-      ...(Array.isArray(localSubmissions.activations) ? localSubmissions.activations : []),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.code === item.code));
+    const mergedActivations = Array.isArray(remoteData.activations)
+      ? remoteData.activations
+      : (Array.isArray(localSubmissions.activations) ? localSubmissions.activations : []);
 
     const mergedState = {
       purchaseOrders: mergedOrders,
@@ -965,6 +958,23 @@ app.delete('/api/skill-tests/:id', async (req, res) => {
     });
 
     res.json({ success: true, skillTestResults: updated.skillTestResults });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Clear all skill test results
+app.post('/api/skill-tests/clear', async (req, res) => {
+  try {
+    const updated = await updateGistData((current) => {
+      return {
+        ...current,
+        skillTestResults: [],
+        challenges: [],
+      };
+    });
+
+    res.json({ success: true, skillTestResults: [] });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1411,6 +1421,23 @@ app.delete('/api/orders/:id', async (req, res) => {
   }
 });
 
+// Clear all purchase orders
+app.post('/api/orders/clear', async (req, res) => {
+  try {
+    const updated = await updateGistData((current) => {
+      return {
+        ...current,
+        purchaseOrders: [],
+        orders: [],
+      };
+    });
+
+    res.json({ success: true, purchaseOrders: [] });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Update single feedback status
 app.patch('/api/feedbacks/:id', async (req, res) => {
   try {
@@ -1457,6 +1484,23 @@ app.delete('/api/feedbacks/:id', async (req, res) => {
   }
 });
 
+// Clear all feedbacks
+app.post('/api/feedbacks/clear', async (req, res) => {
+  try {
+    const updated = await updateGistData((current) => {
+      return {
+        ...current,
+        feedbacks: [],
+        reviews: [],
+      };
+    });
+
+    res.json({ success: true, feedbacks: [] });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Update single contact message status
 app.patch('/api/messages/:id', async (req, res) => {
   try {
@@ -1498,6 +1542,23 @@ app.delete('/api/messages/:id', async (req, res) => {
     });
 
     res.json({ success: true, contactMessages: updated.contactMessages });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Clear all contact messages
+app.post('/api/messages/clear', async (req, res) => {
+  try {
+    const updated = await updateGistData((current) => {
+      return {
+        ...current,
+        contactMessages: [],
+        messages: [],
+      };
+    });
+
+    res.json({ success: true, contactMessages: [] });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

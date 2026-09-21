@@ -1441,25 +1441,37 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             ? effectiveRemote.videoWaitTime
             : Number(effectiveRemote.videoWaitTime) || defaultSettings.videoWaitTime;
 
-        const mergedFeedbacks: FeedbackItem[] = [
-          ...(Array.isArray(effectiveRemote.feedbacks) ? effectiveRemote.feedbacks : (effectiveRemote.reviews || [])),
-          ...(Array.isArray(serverSubmissions.feedbacks) ? serverSubmissions.feedbacks : (serverSubmissions.reviews || [])),
-        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+        const mergedFeedbacks: FeedbackItem[] = effectiveRemote && Array.isArray(effectiveRemote.feedbacks)
+          ? effectiveRemote.feedbacks
+          : (effectiveRemote && Array.isArray(effectiveRemote.reviews)
+              ? effectiveRemote.reviews
+              : (serverSubmissions && Array.isArray(serverSubmissions.feedbacks)
+                  ? serverSubmissions.feedbacks
+                  : (serverSubmissions && Array.isArray(serverSubmissions.reviews) ? serverSubmissions.reviews : [])));
 
-        const mergedMessages: ContactMessage[] = [
-          ...(Array.isArray(effectiveRemote.contactMessages) ? effectiveRemote.contactMessages : (effectiveRemote.messages || [])),
-          ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : (serverSubmissions.messages || [])),
-        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+        const mergedMessages: ContactMessage[] = effectiveRemote && Array.isArray(effectiveRemote.contactMessages)
+          ? effectiveRemote.contactMessages
+          : (effectiveRemote && Array.isArray(effectiveRemote.messages)
+              ? effectiveRemote.messages
+              : (serverSubmissions && Array.isArray(serverSubmissions.contactMessages)
+                  ? serverSubmissions.contactMessages
+                  : (serverSubmissions && Array.isArray(serverSubmissions.messages) ? serverSubmissions.messages : [])));
 
-        const mergedSkillResults: SkillTestResult[] = [
-          ...(Array.isArray(effectiveRemote.skillTestResults) ? effectiveRemote.skillTestResults : (effectiveRemote.challenges || [])),
-          ...(Array.isArray(serverSubmissions.skillTestResults) ? serverSubmissions.skillTestResults : (serverSubmissions.challenges || [])),
-        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+        const mergedSkillResults: SkillTestResult[] = effectiveRemote && Array.isArray(effectiveRemote.skillTestResults)
+          ? effectiveRemote.skillTestResults
+          : (effectiveRemote && Array.isArray(effectiveRemote.challenges)
+              ? effectiveRemote.challenges
+              : (serverSubmissions && Array.isArray(serverSubmissions.skillTestResults)
+                  ? serverSubmissions.skillTestResults
+                  : (serverSubmissions && Array.isArray(serverSubmissions.challenges) ? serverSubmissions.challenges : [])));
 
-        const mergedOrders: SubscriptionOrder[] = [
-          ...(Array.isArray(effectiveRemote.purchaseOrders) ? effectiveRemote.purchaseOrders : (effectiveRemote.orders || [])),
-          ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : (serverSubmissions.orders || [])),
-        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+        const mergedOrders: SubscriptionOrder[] = effectiveRemote && Array.isArray(effectiveRemote.purchaseOrders)
+          ? effectiveRemote.purchaseOrders
+          : (effectiveRemote && Array.isArray(effectiveRemote.orders)
+              ? effectiveRemote.orders
+              : (serverSubmissions && Array.isArray(serverSubmissions.purchaseOrders)
+                  ? serverSubmissions.purchaseOrders
+                  : (serverSubmissions && Array.isArray(serverSubmissions.orders) ? serverSubmissions.orders : [])));
 
         let safeMusicUrl = effectiveRemote.backgroundMusicUrl || localParsed.backgroundMusicUrl || defaultSettings.backgroundMusicUrl;
         if (!safeMusicUrl || safeMusicUrl === 'SAVED_IN_CLOUD_BASE64') {
