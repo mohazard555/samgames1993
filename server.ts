@@ -34,55 +34,90 @@ if (!fs.existsSync(DATA_DIR)) {
   }
 }
 
+// Demo ID patterns to purge permanently from all cloud and local syncs
+const DEMO_EMAILS_OR_IDS = new Set([
+  'sara@example.com',
+  'visitor@test.com',
+  'ali@example.com',
+  'msg_test_1',
+  'fb_test_1',
+  'skill_test_1',
+  'test_skill_123',
+  'test_1789975270880_6n9n',
+  'ORD-266526-IFRR',
+]);
+
+function isDemoItem(item: any): boolean {
+  if (!item || typeof item !== 'object') return false;
+  if (item.id && DEMO_EMAILS_OR_IDS.has(item.id)) return true;
+  if (item.email && DEMO_EMAILS_OR_IDS.has(item.email.toLowerCase().trim())) return true;
+  if (item.activationCode === 'VIP-SHAM-TEST-1234') return true;
+  return false;
+}
+
+function sanitizeSubmissions(data: any) {
+  if (!data || typeof data !== 'object') {
+    return {
+      purchaseOrders: [],
+      contactMessages: [],
+      feedbacks: [],
+      skillTestResults: [],
+      codeIpBindings: {},
+      codeActivationDetails: {},
+      codeCustomerBindings: {},
+      codeDeviceBindings: {},
+      approvedActivationCodes: [],
+      storiesAudio: {},
+    };
+  }
+
+  const cleanOrders = (Array.isArray(data.purchaseOrders) ? data.purchaseOrders : (Array.isArray(data.orders) ? data.orders : []))
+    .filter((o: any) => !isDemoItem(o));
+
+  const cleanMessages = (Array.isArray(data.contactMessages) ? data.contactMessages : (Array.isArray(data.messages) ? data.messages : []))
+    .filter((m: any) => !isDemoItem(m));
+
+  const cleanFeedbacks = (Array.isArray(data.feedbacks) ? data.feedbacks : (Array.isArray(data.reviews) ? data.reviews : []))
+    .filter((f: any) => !isDemoItem(f));
+
+  const cleanSkills = (Array.isArray(data.skillTestResults) ? data.skillTestResults : (Array.isArray(data.challenges) ? data.challenges : []))
+    .filter((s: any) => !isDemoItem(s));
+
+  return {
+    ...data,
+    purchaseOrders: cleanOrders,
+    orders: cleanOrders,
+    contactMessages: cleanMessages,
+    messages: cleanMessages,
+    feedbacks: cleanFeedbacks,
+    reviews: cleanFeedbacks,
+    skillTestResults: cleanSkills,
+    challenges: cleanSkills,
+    codeIpBindings: data.codeIpBindings && typeof data.codeIpBindings === 'object' ? data.codeIpBindings : {},
+    codeActivationDetails: data.codeActivationDetails && typeof data.codeActivationDetails === 'object' ? data.codeActivationDetails : {},
+    codeCustomerBindings: data.codeCustomerBindings && typeof data.codeCustomerBindings === 'object' ? data.codeCustomerBindings : {},
+    codeDeviceBindings: data.codeDeviceBindings && typeof data.codeDeviceBindings === 'object' ? data.codeDeviceBindings : {},
+    approvedActivationCodes: Array.isArray(data.approvedActivationCodes) ? data.approvedActivationCodes : [],
+    storiesAudio: data.storiesAudio && typeof data.storiesAudio === 'object' ? data.storiesAudio : {},
+  };
+}
+
 function getStoredSubmissions() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf-8');
       const parsed = JSON.parse(content);
-      return {
-        purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],
-        contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
-        feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
-        skillTestResults: Array.isArray(parsed.skillTestResults) ? parsed.skillTestResults : [],
-        codeIpBindings: parsed.codeIpBindings && typeof parsed.codeIpBindings === 'object' ? parsed.codeIpBindings : {},
-        codeActivationDetails: parsed.codeActivationDetails && typeof parsed.codeActivationDetails === 'object' ? parsed.codeActivationDetails : {},
-        codeCustomerBindings: parsed.codeCustomerBindings && typeof parsed.codeCustomerBindings === 'object' ? parsed.codeCustomerBindings : {},
-        codeDeviceBindings: parsed.codeDeviceBindings && typeof parsed.codeDeviceBindings === 'object' ? parsed.codeDeviceBindings : {},
-        approvedActivationCodes: Array.isArray(parsed.approvedActivationCodes) ? parsed.approvedActivationCodes : [],
-        storiesAudio: parsed.storiesAudio && typeof parsed.storiesAudio === 'object' ? parsed.storiesAudio : {},
-      };
+      return sanitizeSubmissions(parsed);
     }
   } catch (e) {
     console.warn('Error reading submissions file:', e);
   }
-  return {
-    purchaseOrders: [],
-    contactMessages: [],
-    feedbacks: [],
-    skillTestResults: [],
-    codeIpBindings: {},
-    codeActivationDetails: {},
-    codeCustomerBindings: {},
-    codeDeviceBindings: {},
-    approvedActivationCodes: [],
-    storiesAudio: {},
-  };
+  return sanitizeSubmissions({});
 }
 
 function saveStoredSubmissions(data: any) {
   try {
-    const payload = {
-      purchaseOrders: data.purchaseOrders || [],
-      contactMessages: data.contactMessages || [],
-      feedbacks: data.feedbacks || [],
-      skillTestResults: data.skillTestResults || [],
-      codeIpBindings: data.codeIpBindings || {},
-      codeActivationDetails: data.codeActivationDetails || {},
-      codeCustomerBindings: data.codeCustomerBindings || {},
-      codeDeviceBindings: data.codeDeviceBindings || {},
-      approvedActivationCodes: data.approvedActivationCodes || [],
-      storiesAudio: data.storiesAudio || {},
-    };
+    const payload = sanitizeSubmissions(data);
     fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), 'utf-8');
   } catch (e) {
     console.warn('Error writing submissions file:', e);
