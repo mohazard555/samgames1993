@@ -3,6 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { CHILDREN_STORIES } from '../data/childrenStoriesData';
 import { StorySceneIllustration } from '../components/stories/StorySceneIllustration';
 import { recordSceneRead, recordStoryCompleted, getStoriesProgress } from '../utils/storiesStorage';
+import {
+  playSceneSentenceAudio,
+  stopCurrentAudio,
+  fetchStoriesAudioFromCloud,
+  isAudioAutoplayEnabled,
+  setAudioAutoplayEnabled,
+} from '../utils/storyAudioStorage';
 
 const StoryReaderPage: React.FC = () => {
   const { storyId } = useParams<{ storyId: string }>();
@@ -21,6 +28,9 @@ const StoryReaderPage: React.FC = () => {
   });
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState<boolean>(() => !isAudioAutoplayEnabled());
+  const [audioVersion, setAudioVersion] = useState(0);
 
   // Redirect if story doesn't exist
   useEffect(() => {
@@ -36,12 +46,51 @@ const StoryReaderPage: React.FC = () => {
     }
   }, [story, currentSceneNum]);
 
+  // Sync latest audio from cloud in background on mount
+  useEffect(() => {
+    fetchStoriesAudioFromCloud().then(() => {
+      setAudioVersion((v) => v + 1);
+    });
+
+    const handleAudioUpdated = () => {
+      setAudioVersion((v) => v + 1);
+    };
+    window.addEventListener('stories_audio_updated', handleAudioUpdated);
+
+    return () => {
+      stopCurrentAudio();
+      window.removeEventListener('stories_audio_updated', handleAudioUpdated);
+    };
+  }, []);
+
   if (!story) return null;
 
   const currentScene = story.scenes[currentSceneNum - 1] || story.scenes[0];
   const totalScenes = story.scenes.length; // 10
 
+  // Automatic speech playback when flipping between scenes (مجرد التقليب بين الصور تنطق الجملة)
+  useEffect(() => {
+    if (!story) return;
+
+    if (!isAudioMuted) {
+      // Small delay to let image and scene transition smoothly
+      const timer = window.setTimeout(() => {
+        playSceneSentenceAudio(story.id, currentSceneNum, currentScene.text, setIsAudioPlaying);
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        stopCurrentAudio();
+        setIsAudioPlaying(false);
+      };
+    } else {
+      stopCurrentAudio();
+      setIsAudioPlaying(false);
+    }
+  }, [story.id, currentSceneNum, isAudioMuted, currentScene.text, audioVersion]);
+
   const handleNext = () => {
+    stopCurrentAudio();
     if (currentSceneNum < totalScenes) {
       setCurrentSceneNum((prev) => prev + 1);
     } else {
@@ -52,13 +101,27 @@ const StoryReaderPage: React.FC = () => {
   };
 
   const handlePrev = () => {
+    stopCurrentAudio();
     if (currentSceneNum > 1) {
       setCurrentSceneNum((prev) => prev - 1);
     }
   };
 
   const handleJumpToScene = (sceneNum: number) => {
+    stopCurrentAudio();
     setCurrentSceneNum(sceneNum);
+  };
+
+  const toggleMute = () => {
+    const nextMuted = !isAudioMuted;
+    setIsAudioMuted(nextMuted);
+    setAudioAutoplayEnabled(!nextMuted);
+    if (nextMuted) {
+      stopCurrentAudio();
+      setIsAudioPlaying(false);
+    } else {
+      playSceneSentenceAudio(story.id, currentSceneNum, currentScene.text, setIsAudioPlaying);
+    }
   };
 
   const nextStoryIndex = CHILDREN_STORIES.findIndex((s) => s.id === story.id) + 1;
@@ -68,10 +131,11 @@ const StoryReaderPage: React.FC = () => {
     <div className="min-h-screen pb-12 bg-gradient-to-b from-sky-50/50 via-purple-50/40 to-pink-50/50 select-none" dir="rtl">
       {/* Top Reading Navigation Bar */}
       <div className="bg-white/90 backdrop-blur-md border-b border-purple-100 sticky top-0 z-30 shadow-xs">
-        <div className="container mx-auto px-4 py-2.5 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
           {/* Back button */}
           <Link
             to="/stories"
+            onClick={() => stopCurrentAudio()}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-all active:scale-95"
           >
             <span>⬅️ كل القصص</span>
@@ -90,9 +154,27 @@ const StoryReaderPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Scene indicator */}
-          <div className="bg-purple-100 text-purple-900 border border-purple-200 font-black text-xs px-2.5 py-1 rounded-xl">
-            المشهد {currentSceneNum} من {totalScenes}
+          {/* Mute/Unmute Audio Button for Reader & Scene Indicator */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleMute}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                !isAudioMuted
+                  ? 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+              }`}
+              title={!isAudioMuted ? 'الصوت مفعّل (انقر لكتم الصوت)' : 'الصوت مكتوم (انقر لتشغيل الصوت)'}
+            >
+              <span className="text-sm">{!isAudioMuted ? '🔊' : '🔇'}</span>
+              <span className="text-xs font-bold">
+                {!isAudioMuted ? 'الصوت مفعّل' : 'مكتوم'}
+              </span>
+            </button>
+
+            <div className="bg-purple-600 text-white font-black text-xs px-2.5 py-1.5 rounded-xl shadow-2xs">
+              {currentSceneNum} / {totalScenes}
+            </div>
           </div>
         </div>
       </div>
@@ -110,14 +192,26 @@ const StoryReaderPage: React.FC = () => {
             <span>{currentScene.iconTag}</span>
             <span>{currentScene.title}</span>
           </div>
+
+          {/* Sound Wave Indicator (when audio is actively playing) */}
+          {isAudioPlaying && (
+            <div className="absolute bottom-4 right-4 bg-purple-900/80 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-black flex items-center gap-2 shadow-lg animate-pulse">
+              <span className="flex gap-0.5 items-end h-3">
+                <span className="w-1 bg-white animate-bounce h-2" />
+                <span className="w-1 bg-white animate-bounce h-3" style={{ animationDelay: '0.15s' }} />
+                <span className="w-1 bg-white animate-bounce h-1.5" style={{ animationDelay: '0.3s' }} />
+              </span>
+              <span>🔊 استمع للقصة</span>
+            </div>
+          )}
         </div>
 
-        {/* Story Text Box */}
-        <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-purple-100 text-center mb-5 relative">
-          <p className="text-lg sm:text-2xl md:text-3xl font-black text-gray-800 leading-relaxed tracking-wide">
+        {/* Story Text Box (Clean & Readable for Children) */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-purple-100 text-center mb-5 relative">
+          <p className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 leading-relaxed tracking-wide">
             {currentScene.text}
           </p>
-          <div className="mt-2 text-[11px] sm:text-xs text-gray-400 font-medium">
+          <div className="mt-3 text-xs text-purple-700/70 font-bold">
             المشهد {currentSceneNum} من 10 • {story.moral}
           </div>
         </div>
@@ -214,7 +308,7 @@ const StoryReaderPage: React.FC = () => {
                     setShowCompletionModal(false);
                     navigate(`/stories/${nextStory.id}`);
                   }}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-sm hover:from-purple-500 hover:to-pink-500 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-sm hover:from-purple-500 hover:to-pink-500 shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>قراءة القصة التالية: {nextStory.title}</span>
                   <span>➜</span>
@@ -227,7 +321,7 @@ const StoryReaderPage: React.FC = () => {
                   setShowCompletionModal(false);
                   setCurrentSceneNum(1);
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs transition-colors"
+                className="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs transition-colors cursor-pointer"
               >
                 🔄 إعادة قراءة هذه القصة من البداية
               </button>
@@ -235,7 +329,7 @@ const StoryReaderPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/stories')}
-                className="w-full py-2.5 px-4 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold text-xs hover:bg-gray-50 transition-colors"
+                className="w-full py-2.5 px-4 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold text-xs hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 📚 اختيار قصة أخرى من القائمة
               </button>

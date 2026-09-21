@@ -5,7 +5,10 @@ export interface StoryScene {
   text: string; // the exact Arabic short narrative
   sceneKey: string; // unique identifier for the SVG illustration
   visualDescription: string;
+  audioUrl?: string; // mp3/audio data URL for scene sentence pronunciation
 }
+
+export type StoriesAudioMap = Record<string, string>; // key format: `${storyId}_${sceneNumber}`, e.g. "rabbit_1"
 
 export interface Story {
   id: string; // 'rabbit', 'bird', 'turtle', 'lion', 'bear'

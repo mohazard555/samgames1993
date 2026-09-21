@@ -1,5 +1,20 @@
 {
-  "purchaseOrders": [],
+  "purchaseOrders": [
+    {
+      "customerName": "أحمد محمد",
+      "customerPhone": "0912345678",
+      "paymentMethod": "sham_cash",
+      "amount": 3,
+      "currency": "دولار",
+      "transactionId": "TX123456",
+      "activationCode": "VIP-SHAM-TEST-1234",
+      "id": "ORD-266526-IFRR",
+      "clientIp": "127.0.0.1",
+      "deviceInfo": "متصفح ويب",
+      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢١:٠٦ ص",
+      "serverReceivedAt": "2026-09-21T07:21:06.526Z"
+    }
+  ],
   "contactMessages": [
     {
       "id": "msg_test_1",
@@ -12,6 +27,18 @@
       "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
       "createdAt": "٢٠‏/٩‏/٢٠٢٦، ١٠:٣٢:١٣ ص",
       "serverReceivedAt": "2026-09-20T10:32:13.306Z"
+    },
+    {
+      "name": "زائر تجريبي",
+      "email": "visitor@test.com",
+      "subject": "اختبار المزامنة المركزية",
+      "message": "رسالة اختبار للتأكد من وصولها إلى السحابة",
+      "id": "msg_1789975320391_x18j",
+      "status": "جديدة",
+      "clientIp": "127.0.0.1",
+      "deviceInfo": "متصفح ويب",
+      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢٢:٠٠ ص",
+      "serverReceivedAt": "2026-09-21T07:22:00.407Z"
     }
   ],
   "feedbacks": [
@@ -56,14 +83,37 @@
       "gistUrl": "https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/d7e48aec162e4467fac974c391c7984eb40b2864/toysgame.json",
       "createdAt": "٢٠‏/٩‏/٢٠٢٦، ٧:٣٤:٥٨ ص",
       "serverReceivedAt": "2026-09-20T07:34:58.761Z"
+    },
+    {
+      "playerName": "سيف البطل",
+      "score": 95,
+      "totalQuestions": 20,
+      "percentage": 95,
+      "rating": "ممتاز",
+      "timeSpent": 120,
+      "id": "test_1789975270880_6n9n",
+      "clientIp": "127.0.0.1",
+      "deviceInfo": "متصفح ويب",
+      "createdAt": "٢١‏/٩‏/٢٠٢٦، ٧:٢١:١٠ ص",
+      "serverReceivedAt": "2026-09-21T07:21:10.880Z"
     }
   ],
   "codeIpBindings": {},
-  "codeActivationDetails": {},
+  "codeActivationDetails": {
+    "VIP-CODE-IGIH-Z0J6": {
+      "ip": "مسجل محلياً",
+      "deviceInfo": "Mozilla/5.0 (Linux; Android 14; 23090RA98G Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/151.0.7922.199 Mobile Safari/537.36 Vinebre",
+      "activatedAt": "٢٠‏/٩‏/٢٠٢٦، ١١:٣٥:٣٣ م",
+      "customerName": "مروة",
+      "deviceFingerprint": "dev_6dikpwb_1789936533342"
+    }
+  },
   "codeCustomerBindings": {
     "VIP-CODE-IGIH-Z0J6": "مروة"
   },
-  "codeDeviceBindings": {},
+  "codeDeviceBindings": {
+    "VIP-CODE-IGIH-Z0J6": "dev_6dikpwb_1789936533342"
+  },
   "approvedActivationCodes": [
     "VIP-CODE-IGIH-Z0J6",
     "VIP-TOYS-2026-PREMIUM",

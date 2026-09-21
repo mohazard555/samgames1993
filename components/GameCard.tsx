@@ -1,6 +1,6 @@
 import React from 'react';
 import { Game } from '../types';
-import { getGameIconComponent } from '../constants';
+import { getGameCartoonIcon } from '../utils/gameCartoonIcons';
 import { useSettings } from '../contexts/SettingsContext';
 
 interface GameCardProps {
@@ -9,7 +9,7 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
-  const IconComponent = getGameIconComponent(game.id);
+  const cartoonIcon = getGameCartoonIcon(game);
   const { settings, isVipActive } = useSettings();
 
   const isPaidGame =
@@ -30,7 +30,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
           onClick();
         }
       }}
-      className={`relative bg-gradient-to-br ${game.color} rounded-2xl md:rounded-3xl shadow-sm hover:shadow-lg active:scale-95 p-3.5 sm:p-4 md:p-5 text-white flex flex-col items-center justify-between text-center cursor-pointer transform hover:-translate-y-1 transition-all duration-200 ease-out select-none min-h-[140px] sm:min-h-[160px] touch-manipulation overflow-hidden`}
+      className={`group relative bg-gradient-to-br ${game.color} rounded-2xl md:rounded-3xl shadow-sm hover:shadow-xl active:scale-95 p-3.5 sm:p-4 md:p-5 text-white flex flex-col items-center justify-between text-center cursor-pointer transform hover:-translate-y-1.5 transition-all duration-200 ease-out select-none min-h-[155px] sm:min-h-[175px] md:min-h-[195px] touch-manipulation overflow-hidden`}
     >
       {/* NEW Badge */}
       {isNewGame && (
@@ -56,8 +56,17 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
         </div>
       )}
 
-      <div className="w-12 h-12 sm:w-14 sm:h-14 my-1.5 sm:my-2 drop-shadow-md flex items-center justify-center">
-        <IconComponent />
+      {/* أيقونة كرتونية لطيفة وكبيرة مخصصة لمحتوى اللعبة تجذب الطفل */}
+      <div className="my-1.5 sm:my-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-white/25 backdrop-blur-xs border-2 border-white/60 shadow-[0_6px_16px_rgba(0,0,0,0.18)] flex items-center justify-center transition-all duration-300 group-hover:rotate-6 group-hover:bg-white/35">
+          <span
+            className="text-3xl sm:text-4xl md:text-5xl select-none filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)] transition-transform duration-300"
+            role="img"
+            aria-label={game.name}
+          >
+            {cartoonIcon}
+          </span>
+        </div>
       </div>
 
       <div className="w-full">

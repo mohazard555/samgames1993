@@ -6,6 +6,7 @@ import { CHILD_SKILLS_GAMES } from '../data/childSkillsGamesData';
 import { LockClosedIcon, VideoCameraIcon, CheckCircleIcon, KeyIcon } from '../components/Icons';
 import ShamCashQrCard, { ShamCashLogoSvg } from '../components/ShamCashQrCard';
 import SubscriptionOrdersManager from '../components/SubscriptionOrdersManager';
+import StoriesAudioStudioManager from '../components/StoriesAudioStudioManager';
 
 const SettingsPage: React.FC = () => {
   const {
@@ -38,7 +39,7 @@ const SettingsPage: React.FC = () => {
   const [isLiveRefreshing, setIsLiveRefreshing] = useState(false);
   const [liveRefreshNotice, setLiveRefreshNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'general' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'paid' | 'orders' | 'ads' | 'sync' | 'skillResults'
+    'general' | 'storiesAudio' | 'music' | 'feedbacks' | 'messages' | 'videos' | 'paid' | 'orders' | 'ads' | 'sync' | 'skillResults'
   >('general');
   const [saveMessage, setSaveMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState({ text: '', type: '' });
@@ -60,10 +61,32 @@ const SettingsPage: React.FC = () => {
   const audioPreviewRef = useRef<HTMLAudioElement>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
-  // Keep localSettings in sync if settings update remotely
+  // Keep dynamic collections in sync without clobbering active form inputs
   useEffect(() => {
-    setLocalSettings(settings);
-  }, [settings]);
+    setLocalSettings((prev) => ({
+      ...prev,
+      // Update dynamic lists that arrive in background
+      feedbacks: settings.feedbacks || prev.feedbacks,
+      contactMessages: settings.contactMessages || prev.contactMessages,
+      skillTestResults: settings.skillTestResults || prev.skillTestResults,
+      purchaseOrders: settings.purchaseOrders || prev.purchaseOrders,
+      codeIpBindings: settings.codeIpBindings || prev.codeIpBindings,
+      codeDeviceBindings: settings.codeDeviceBindings || prev.codeDeviceBindings,
+      codeCustomerBindings: settings.codeCustomerBindings || prev.codeCustomerBindings,
+      codeActivationDetails: settings.codeActivationDetails || prev.codeActivationDetails,
+      approvedActivationCodes: settings.approvedActivationCodes || prev.approvedActivationCodes,
+    }));
+  }, [
+    settings.feedbacks,
+    settings.contactMessages,
+    settings.skillTestResults,
+    settings.purchaseOrders,
+    settings.codeIpBindings,
+    settings.codeDeviceBindings,
+    settings.codeCustomerBindings,
+    settings.codeActivationDetails,
+    settings.approvedActivationCodes,
+  ]);
 
   // Fast auto-sync when admin is unlocked and on tab switch
   useEffect(() => {
@@ -340,7 +363,7 @@ const SettingsPage: React.FC = () => {
           questionLimit: 10,
         };
       }
-      return {
+      const updatedSettings: Settings = {
         ...prev,
         paidSettings: {
           ...prev.paidSettings!,
@@ -348,6 +371,8 @@ const SettingsPage: React.FC = () => {
           gameVipConfigs: newConfigs,
         },
       };
+      saveSettings(updatedSettings);
+      return updatedSettings;
     });
   };
 
@@ -370,13 +395,15 @@ const SettingsPage: React.FC = () => {
       } else if (gameId > 8000 && gameId <= 8040) {
         newConfigs[gameId - 8000] = updatedConfig;
       }
-      return {
+      const updatedSettings: Settings = {
         ...prev,
         paidSettings: {
           ...prev.paidSettings!,
           gameVipConfigs: newConfigs,
         },
       };
+      saveSettings(updatedSettings);
+      return updatedSettings;
     });
   };
 
@@ -394,7 +421,7 @@ const SettingsPage: React.FC = () => {
           };
         }
       });
-      return {
+      const updatedSettings: Settings = {
         ...prev,
         paidSettings: {
           ...prev.paidSettings!,
@@ -402,17 +429,23 @@ const SettingsPage: React.FC = () => {
           gameVipConfigs: newConfigs,
         },
       };
+      saveSettings(updatedSettings);
+      return updatedSettings;
     });
   };
 
   const clearAllPaidGames = () => {
-    setLocalSettings((prev) => ({
-      ...prev,
-      paidSettings: {
-        ...prev.paidSettings!,
-        paidGameIds: [],
-      },
-    }));
+    setLocalSettings((prev) => {
+      const updatedSettings: Settings = {
+        ...prev,
+        paidSettings: {
+          ...prev.paidSettings!,
+          paidGameIds: [],
+        },
+      };
+      saveSettings(updatedSettings);
+      return updatedSettings;
+    });
   };
 
   const setAllVipMode = (mode: 'timer' | 'question_limit') => {
@@ -425,13 +458,15 @@ const SettingsPage: React.FC = () => {
         const cur = newConfigs[id] || { restrictionType: 'timer', timerSeconds: 20, questionLimit: 10 };
         newConfigs[id] = { ...cur, restrictionType: mode };
       });
-      return {
+      const updatedSettings: Settings = {
         ...prev,
         paidSettings: {
           ...paid,
           gameVipConfigs: newConfigs,
         },
       };
+      saveSettings(updatedSettings);
+      return updatedSettings;
     });
   };
 
@@ -440,16 +475,17 @@ const SettingsPage: React.FC = () => {
     setLocalSettings((prev) => {
       const current = new Set(prev.paidSettings?.paidGameIds || []);
       catIds.forEach((id) => current.add(id));
-      return {
+      const updatedSettings: Settings = {
         ...prev,
         paidSettings: {
           ...prev.paidSettings!,
           paidGameIds: Array.from(current),
         },
       };
+      saveSettings(updatedSettings);
+      return updatedSettings;
     });
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -470,8 +506,7 @@ const SettingsPage: React.FC = () => {
     const success = await loadFromGist();
     if (success) {
       setSyncMessage({ text: 'تم تحميل أحدث الإعدادات السحابية بنجاح!', type: 'success' });
-      const savedSettings = localStorage.getItem('toysGameSettings');
-      if (savedSettings) setLocalSettings(JSON.parse(savedSettings));
+      setLocalSettings(settings);
     } else {
       setSyncMessage({ text: 'فشل التحميل. تحقق من الرابط وصلاحيات الوصول.', type: 'error' });
     }
@@ -573,6 +608,22 @@ const SettingsPage: React.FC = () => {
         >
           <span>🎨</span>
           <span>الهوية والبيانات</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('storiesAudio')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all cursor-pointer ${
+            activeTab === 'storiesAudio'
+              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md ring-2 ring-purple-300'
+              : 'text-gray-700 hover:bg-purple-50 hover:text-purple-900'
+          }`}
+        >
+          <span>📖</span>
+          <span>القصص المصورة والصوتيات</span>
+          <span className="bg-amber-400 text-purple-950 text-[10px] px-2 py-0.5 rounded-full font-black">
+            جديد 🎙️
+          </span>
         </button>
 
         <button
@@ -788,6 +839,13 @@ const SettingsPage: React.FC = () => {
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB: STORIES AUDIO STUDIO */}
+        {activeTab === 'storiesAudio' && (
+          <div className="animate-fade-in">
+            <StoriesAudioStudioManager />
           </div>
         )}
 

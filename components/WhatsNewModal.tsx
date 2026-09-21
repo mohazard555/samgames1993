@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GAMES } from '../constants';
 import { Game } from '../types';
+import { getGameCartoonIcon } from '../utils/gameCartoonIcons';
 
 interface WhatsNewModalProps {
   isOpen: boolean;
@@ -71,8 +72,8 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               className="bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 p-3 sm:p-4 rounded-2xl border border-amber-200 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between group active:scale-98"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${game.color} flex items-center justify-center text-white text-xl font-black shadow`}>
-                  🎮
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${game.color} flex items-center justify-center text-white text-2xl font-black shadow border border-white/40`}>
+                  <span role="img" aria-label={game.name}>{getGameCartoonIcon(game)}</span>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-2">

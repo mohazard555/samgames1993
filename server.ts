@@ -49,6 +49,7 @@ function getStoredSubmissions() {
         codeCustomerBindings: parsed.codeCustomerBindings && typeof parsed.codeCustomerBindings === 'object' ? parsed.codeCustomerBindings : {},
         codeDeviceBindings: parsed.codeDeviceBindings && typeof parsed.codeDeviceBindings === 'object' ? parsed.codeDeviceBindings : {},
         approvedActivationCodes: Array.isArray(parsed.approvedActivationCodes) ? parsed.approvedActivationCodes : [],
+        storiesAudio: parsed.storiesAudio && typeof parsed.storiesAudio === 'object' ? parsed.storiesAudio : {},
       };
     }
   } catch (e) {
@@ -64,6 +65,7 @@ function getStoredSubmissions() {
     codeCustomerBindings: {},
     codeDeviceBindings: {},
     approvedActivationCodes: [],
+    storiesAudio: {},
   };
 }
 
@@ -79,6 +81,7 @@ function saveStoredSubmissions(data: any) {
       codeCustomerBindings: data.codeCustomerBindings || {},
       codeDeviceBindings: data.codeDeviceBindings || {},
       approvedActivationCodes: data.approvedActivationCodes || [],
+      storiesAudio: data.storiesAudio || {},
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2), 'utf-8');
   } catch (e) {
@@ -151,6 +154,14 @@ function getDeviceInfo(req: express.Request): string {
   return 'متصفح ويب';
 }
 
+// Mutex queue to guarantee strictly atomic, ordered Gist updates without race conditions
+let gistQueue: Promise<any> = Promise.resolve();
+function runWithGistLock<T>(fn: () => Promise<T>): Promise<T> {
+  const next = gistQueue.then(fn, fn);
+  gistQueue = next.catch(() => {});
+  return next;
+}
+
 // Helper to fetch latest data directly from GitHub Gist
 async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
   const activeGist = getStoredGistConfig();
@@ -165,6 +176,7 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
   const requestHeaders: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'ToysGame-Sync-Server/1.0',
+    'Cache-Control': 'no-cache',
   };
 
   if (rawToken && rawToken.length > 5) {
@@ -179,6 +191,7 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
   try {
     const apiRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
       headers: requestHeaders,
+      cache: 'no-store',
     });
     if (apiRes.ok) {
       const gistData = await apiRes.json();
@@ -191,6 +204,7 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
         } else if (targetFile.raw_url) {
           const rawRes = await fetch(`${targetFile.raw_url}?_t=${Date.now()}`, {
             headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
+            cache: 'no-store',
           });
           if (rawRes.ok) {
             result = await rawRes.json();
@@ -206,7 +220,7 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
     try {
       const fallbackRes = await fetch(
         `https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`,
-        { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' } }
+        { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' }, cache: 'no-store' }
       );
       if (fallbackRes.ok) {
         result = await fallbackRes.json();
@@ -217,9 +231,267 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
   return result || {};
 }
 
+// Unified, atomic Gist update function that fetches the latest data, applies changes, and saves with retries
+async function updateGistData(updater: (currentData: any) => Promise<any> | any): Promise<any> {
+  return runWithGistLock(async () => {
+    const config = getStoredGistConfig();
+    const gistUrl = (config.gistUrl || DEFAULT_GIST_URL).trim();
+    const gistToken = (config.gistToken || DEFAULT_GIST_TOKEN).trim();
+
+    const gistIdMatch = gistUrl.match(/([a-f0-9]{32})/i);
+    const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
+    const fileMatch = gistUrl.match(/\/([^\/?#]+\.json)/i);
+    const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
+
+    const authHeader = gistToken.startsWith('ghp_') || gistToken.startsWith('github_pat_')
+      ? `Bearer ${gistToken}`
+      : `token ${gistToken}`;
+
+    const headers = {
+      Authorization: authHeader,
+      Accept: 'application/vnd.github.v3+json',
+      'User-Agent': 'ToysGame-Sync-Server/1.0',
+      'Cache-Control': 'no-cache',
+    };
+
+    let retries = 3;
+    let lastError: any = null;
+    let safePayloadToReturn: any = null;
+
+    while (retries > 0) {
+      try {
+        // 1. Fetch freshest remote state, falling back to local server mirror
+        let currentData: any = {};
+        try {
+          currentData = await fetchGistDataHelper(gistUrl, gistToken);
+        } catch (fetchErr: any) {
+          console.warn('Gist fetch hit rate limit or network issue, using server mirror:', fetchErr.message);
+          currentData = getStoredSubmissions();
+        }
+
+        if (!currentData || typeof currentData !== 'object') {
+          currentData = getStoredSubmissions();
+        }
+
+        // 2. Apply modifications
+        const updated = await updater(currentData);
+
+        // 3. Format payload supporting both user structure and existing backward compatibility
+        const currentSettings = updated.settings || currentData.settings || {};
+        const safeSettings = {
+          siteName: updated.siteName ?? currentSettings.siteName ?? currentData.siteName,
+          logoUrl: updated.logoUrl ?? currentSettings.logoUrl ?? currentData.logoUrl,
+          subscriptionUrl: updated.subscriptionUrl ?? currentSettings.subscriptionUrl ?? currentData.subscriptionUrl,
+          whatsappUrl: updated.whatsappUrl ?? currentSettings.whatsappUrl ?? currentData.whatsappUrl,
+          youtubeUrls: updated.youtubeUrls ?? currentSettings.youtubeUrls ?? currentData.youtubeUrls,
+          backgroundMusicUrl: updated.backgroundMusicUrl ?? currentSettings.backgroundMusicUrl ?? currentData.backgroundMusicUrl,
+          backgroundMusicEnabled: updated.backgroundMusicEnabled ?? currentSettings.backgroundMusicEnabled ?? currentData.backgroundMusicEnabled,
+          videoWaitTime: updated.videoWaitTime ?? currentSettings.videoWaitTime ?? currentData.videoWaitTime,
+          videoRequiredGameIds: updated.videoRequiredGameIds ?? currentSettings.videoRequiredGameIds ?? currentData.videoRequiredGameIds,
+          requireSubscriptionAndVideos: updated.requireSubscriptionAndVideos ?? currentSettings.requireSubscriptionAndVideos ?? currentData.requireSubscriptionAndVideos,
+          paidSettings: updated.paidSettings ?? currentSettings.paidSettings ?? currentData.paidSettings,
+          adSettings: updated.adSettings ?? currentSettings.adSettings ?? currentData.adSettings,
+          googleAdSettings: updated.googleAdSettings ?? currentSettings.googleAdSettings ?? currentData.googleAdSettings,
+          newGameIds: updated.newGameIds ?? currentSettings.newGameIds ?? currentData.newGameIds,
+          freeActivationCode: updated.freeActivationCode ?? currentSettings.freeActivationCode ?? currentData.freeActivationCode,
+        };
+
+        const localStored = getStoredSubmissions();
+
+        const safeOrders = [
+          ...(updated.purchaseOrders || updated.orders || []),
+          ...(localStored.purchaseOrders || []),
+          ...(currentData.purchaseOrders || currentData.orders || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+        const safeMessages = [
+          ...(updated.contactMessages || updated.messages || []),
+          ...(localStored.contactMessages || []),
+          ...(currentData.contactMessages || currentData.messages || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+        const safeFeedbacks = [
+          ...(updated.feedbacks || updated.reviews || []),
+          ...(localStored.feedbacks || []),
+          ...(currentData.feedbacks || currentData.reviews || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+        const safeSkillResults = [
+          ...(updated.skillTestResults || updated.challenges || []),
+          ...(localStored.skillTestResults || []),
+          ...(currentData.skillTestResults || currentData.challenges || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
+
+        const safeApprovedCodes = Array.from(
+          new Set([
+            ...(updated.approvedActivationCodes || updated.activationCodes || []),
+            ...(localStored.approvedActivationCodes || []),
+            ...(currentData.approvedActivationCodes || currentData.activationCodes || []),
+          ])
+        );
+
+        const safeActivations = [
+          ...(updated.activations || []),
+          ...(localStored.activations || []),
+          ...(currentData.activations || []),
+        ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => (t.code || t.id) === (item.code || item.id)));
+
+        const safePayload = {
+          ...currentData,
+          ...updated,
+          ...safeSettings,
+          settings: safeSettings,
+          orders: safeOrders,
+          purchaseOrders: safeOrders,
+          messages: safeMessages,
+          contactMessages: safeMessages,
+          reviews: safeFeedbacks,
+          feedbacks: safeFeedbacks,
+          challenges: safeSkillResults,
+          skillTestResults: safeSkillResults,
+          activationCodes: safeApprovedCodes,
+          approvedActivationCodes: safeApprovedCodes,
+          activations: safeActivations,
+          codeDeviceBindings: {
+            ...(localStored.codeDeviceBindings || {}),
+            ...(currentData.codeDeviceBindings || {}),
+            ...(updated.codeDeviceBindings || {}),
+          },
+          codeIpBindings: {
+            ...(localStored.codeIpBindings || {}),
+            ...(currentData.codeIpBindings || {}),
+            ...(updated.codeIpBindings || {}),
+          },
+          codeActivationDetails: {
+            ...(localStored.codeActivationDetails || {}),
+            ...(currentData.codeActivationDetails || {}),
+            ...(updated.codeActivationDetails || {}),
+          },
+          codeCustomerBindings: {
+            ...(localStored.codeCustomerBindings || {}),
+            ...(currentData.codeCustomerBindings || {}),
+            ...(updated.codeCustomerBindings || {}),
+          },
+          storiesAudio: {
+            ...(currentData.storiesAudio || {}),
+            ...(localStored.storiesAudio || {}),
+            ...(updated.storiesAudio || {}),
+          },
+          lastUpdated: new Date().toISOString(),
+        };
+
+        safePayloadToReturn = safePayload;
+        // Always save to local server mirror first so visitor submissions are NEVER lost
+        saveStoredSubmissions(safePayload);
+
+        const jsonContent = JSON.stringify(safePayload, null, 2);
+
+        // 4. Send PATCH to GitHub Gist
+        const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'PATCH',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            files: {
+              [filename]: {
+                content: jsonContent,
+              },
+            },
+          }),
+        });
+
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          console.warn(`GitHub Gist API notice (${patchRes.status}):`, errText);
+          // If rate limited or forbidden, return locally saved payload rather than failing visitor
+          return safePayload;
+        }
+
+        return safePayload;
+      } catch (err: any) {
+        lastError = err;
+        retries--;
+        if (retries > 0) {
+          console.warn(`Gist update retry (${retries} attempts remaining):`, err.message);
+          await new Promise((r) => setTimeout(r, 750));
+        }
+      }
+    }
+
+    if (safePayloadToReturn) {
+      return safePayloadToReturn;
+    }
+
+    const fallbackSubmissions = getStoredSubmissions();
+    return fallbackSubmissions;
+  });
+}
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Centralized Settings Endpoints (Synced directly to Gist)
+app.get('/api/settings', async (req, res) => {
+  try {
+    const config = getStoredGistConfig();
+    const data = await fetchGistDataHelper(config.gistUrl, config.gistToken);
+    res.json({
+      success: true,
+      settings: data.settings || data,
+      lastSyncTime: new Date().toLocaleTimeString('ar-EG'),
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  try {
+    const newSettings = req.body.settings || req.body;
+    if (!newSettings || typeof newSettings !== 'object') {
+      return res.status(400).json({ success: false, message: 'بيانات الإعدادات غير صالحة' });
+    }
+
+    const updated = await updateGistData((current) => {
+      const currentSettings = current.settings || {};
+      const mergedSettings = {
+        ...currentSettings,
+        ...newSettings,
+      };
+      return {
+        ...current,
+        ...newSettings,
+        settings: mergedSettings,
+        purchaseOrders: current.purchaseOrders || current.orders || [],
+        contactMessages: current.contactMessages || current.messages || [],
+        feedbacks: current.feedbacks || current.reviews || [],
+        skillTestResults: current.skillTestResults || current.challenges || [],
+        approvedActivationCodes: newSettings.approvedActivationCodes || current.approvedActivationCodes || current.activationCodes || [],
+        activations: current.activations || [],
+        codeDeviceBindings: current.codeDeviceBindings || {},
+        codeIpBindings: current.codeIpBindings || {},
+        codeActivationDetails: current.codeActivationDetails || {},
+        codeCustomerBindings: current.codeCustomerBindings || {},
+      };
+    });
+
+    res.json({
+      success: true,
+      message: '✓ تم حفظ الإعدادات ونشرها على السحابة (Gist) بنجاح ليراها جميع الزوار!',
+      settings: updated.settings || updated,
+      lastSyncTime: new Date().toLocaleTimeString('ar-EG'),
+    });
+  } catch (err: any) {
+    console.error('Save settings to Gist failed:', err);
+    res.status(500).json({
+      success: false,
+      message: `فشل الحفظ في السحابة (Gist): ${err.message}`,
+    });
+  }
 });
 
 app.get('/api/data', async (req, res) => {
@@ -237,26 +509,26 @@ app.get('/api/data', async (req, res) => {
 
     // Merge purchase orders
     const mergedOrders = [
-      ...(localSubmissions.purchaseOrders || []),
-      ...(Array.isArray(remoteData.purchaseOrders) ? remoteData.purchaseOrders : []),
+      ...(localSubmissions.purchaseOrders || localSubmissions.orders || []),
+      ...(Array.isArray(remoteData.purchaseOrders) ? remoteData.purchaseOrders : (remoteData.orders || [])),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
 
     // Merge contact messages
     const mergedMessages = [
-      ...(localSubmissions.contactMessages || []),
-      ...(Array.isArray(remoteData.contactMessages) ? remoteData.contactMessages : []),
+      ...(localSubmissions.contactMessages || localSubmissions.messages || []),
+      ...(Array.isArray(remoteData.contactMessages) ? remoteData.contactMessages : (remoteData.messages || [])),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
 
     // Merge feedbacks
     const mergedFeedbacks = [
-      ...(localSubmissions.feedbacks || []),
-      ...(Array.isArray(remoteData.feedbacks) ? remoteData.feedbacks : []),
+      ...(localSubmissions.feedbacks || localSubmissions.reviews || []),
+      ...(Array.isArray(remoteData.feedbacks) ? remoteData.feedbacks : (remoteData.reviews || [])),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
 
     // Merge skill test results
     const mergedSkills = [
-      ...(localSubmissions.skillTestResults || []),
-      ...(Array.isArray(remoteData.skillTestResults) ? remoteData.skillTestResults : []),
+      ...(localSubmissions.skillTestResults || localSubmissions.challenges || []),
+      ...(Array.isArray(remoteData.skillTestResults) ? remoteData.skillTestResults : (remoteData.challenges || [])),
     ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id));
 
     // Merge code bindings
@@ -279,23 +551,39 @@ app.get('/api/data', async (req, res) => {
 
     const mergedApprovedCodes = Array.from(
       new Set([
-        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : []),
+        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : (remoteData.activationCodes || [])),
         ...(Array.isArray(localSubmissions.approvedActivationCodes) ? localSubmissions.approvedActivationCodes : []),
         ...Object.keys(mergedCodeCustomerBindings),
         ...Object.keys(mergedCodeIpBindings),
       ].filter((c) => typeof c === 'string' && c.trim().length > 0))
     );
 
+    const mergedActivations = [
+      ...(Array.isArray(remoteData.activations) ? remoteData.activations : []),
+      ...(Array.isArray(localSubmissions.activations) ? localSubmissions.activations : []),
+    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.code === item.code));
+
     const mergedState = {
       purchaseOrders: mergedOrders,
+      orders: mergedOrders,
       contactMessages: mergedMessages,
+      messages: mergedMessages,
       feedbacks: mergedFeedbacks,
+      reviews: mergedFeedbacks,
       skillTestResults: mergedSkills,
+      challenges: mergedSkills,
       codeIpBindings: mergedCodeIpBindings,
       codeActivationDetails: mergedCodeActivationDetails,
       codeCustomerBindings: mergedCodeCustomerBindings,
       codeDeviceBindings: mergedCodeDeviceBindings,
       approvedActivationCodes: mergedApprovedCodes,
+      activationCodes: mergedApprovedCodes,
+      activations: mergedActivations,
+      storiesAudio: {
+        ...(remoteData.storiesAudio || {}),
+        ...(localSubmissions.storiesAudio || {}),
+      },
+      settings: remoteData.settings || {},
     };
 
     saveStoredSubmissions(mergedState);
@@ -303,6 +591,107 @@ app.get('/api/data', async (req, res) => {
   } catch (err: any) {
     const submissions = getStoredSubmissions();
     res.json({ success: true, ...submissions });
+  }
+});
+
+// Stories Audio Endpoints (Directly synced to Gist)
+app.get('/api/stories/audio', async (req, res) => {
+  try {
+    const config = getStoredGistConfig();
+    let remoteAudio: Record<string, string> = {};
+    if (config.gistUrl && config.gistToken) {
+      try {
+        const gistData = await fetchGistDataHelper(config.gistUrl, config.gistToken);
+        if (gistData && gistData.storiesAudio && typeof gistData.storiesAudio === 'object') {
+          remoteAudio = gistData.storiesAudio;
+        }
+      } catch (err: any) {
+        console.warn('Could not fetch stories audio from Gist directly:', err.message);
+      }
+    }
+    const local = getStoredSubmissions();
+    const mergedAudio = {
+      ...(remoteAudio || {}),
+      ...(local.storiesAudio || {}),
+    };
+    res.json({
+      success: true,
+      storiesAudio: mergedAudio,
+      count: Object.keys(mergedAudio).length,
+    });
+  } catch (err: any) {
+    const local = getStoredSubmissions();
+    res.json({ success: true, storiesAudio: local.storiesAudio || {}, count: Object.keys(local.storiesAudio || {}).length });
+  }
+});
+
+app.post('/api/stories/audio', async (req, res) => {
+  try {
+    const { storyId, sceneNumber, audioDataUrl, storiesAudio } = req.body;
+    const audioUpdates: Record<string, string> = {};
+
+    if (storiesAudio && typeof storiesAudio === 'object') {
+      Object.assign(audioUpdates, storiesAudio);
+    }
+    if (storyId && sceneNumber !== undefined && audioDataUrl) {
+      const key = `${storyId}_${sceneNumber}`;
+      audioUpdates[key] = audioDataUrl;
+    }
+
+    if (Object.keys(audioUpdates).length === 0) {
+      return res.status(400).json({ success: false, message: 'لم يتم توفير ملف صوتي صالح' });
+    }
+
+    const updated = await updateGistData((current) => {
+      const existingAudio = current.storiesAudio || {};
+      const newStoriesAudio = {
+        ...existingAudio,
+        ...audioUpdates,
+      };
+      return {
+        ...current,
+        storiesAudio: newStoriesAudio,
+      };
+    });
+
+    res.json({
+      success: true,
+      message: '✓ تم حفظ ونشر نطق المشهد في السحابة (Gist) بنجاح!',
+      count: Object.keys(updated.storiesAudio || {}).length,
+      storiesAudio: updated.storiesAudio || audioUpdates,
+    });
+  } catch (err: any) {
+    console.error('Save stories audio to Gist failed:', err);
+    res.status(500).json({
+      success: false,
+      message: `فشل الحفظ في السحابة (Gist): ${err.message}`,
+    });
+  }
+});
+
+app.delete('/api/stories/audio/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    if (!key) {
+      return res.status(400).json({ success: false, message: 'المفتاح غير صالح' });
+    }
+
+    const updated = await updateGistData((current) => {
+      const existingAudio = { ...(current.storiesAudio || {}) };
+      delete existingAudio[key];
+      return {
+        ...current,
+        storiesAudio: existingAudio,
+      };
+    });
+
+    res.json({
+      success: true,
+      message: '✓ تم حذف الملف الصوتي ومزامنة Gist',
+      storiesAudio: updated.storiesAudio || {},
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -390,58 +779,40 @@ app.get('/api/skill-tests', (req, res) => {
 app.post('/api/orders', async (req, res) => {
   try {
     const rawOrder = req.body;
-    if (!rawOrder || !rawOrder.id) {
+    if (!rawOrder || typeof rawOrder !== 'object') {
       return res.status(400).json({ success: false, message: 'Invalid order data' });
     }
 
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
-    const storedGist = getStoredGistConfig();
 
-    // Auto-capture token from header if sent
-    const headerToken = req.headers['x-gist-token'] as string;
-    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
-      saveStoredGistConfig({ gistToken: headerToken.trim() });
-    }
+    const orderId = rawOrder.id || `ORD-${Date.now().toString().slice(-6)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
     const order = {
       ...rawOrder,
+      id: orderId,
       clientIp: rawOrder.clientIp || clientIp,
       deviceInfo: rawOrder.deviceInfo || deviceInfo,
-      gistUrl: storedGist.gistUrl,
       createdAt: rawOrder.createdAt || new Date().toLocaleString('ar-EG'),
       serverReceivedAt: new Date().toISOString(),
     };
 
-    const submissions = getStoredSubmissions();
-    submissions.purchaseOrders = [order, ...(submissions.purchaseOrders || [])].filter(
-      (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
-    );
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    let syncedToGist = false;
-    let gistError: string | null = null;
-
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-        syncedToGist = true;
-      } catch (syncErr: any) {
-        gistError = syncErr.message;
-        console.warn('Gist sync on order failed:', syncErr.message);
-      }
-    }
+    const updated = await updateGistData((current) => {
+      const existing = current.purchaseOrders || current.orders || [];
+      const merged = [order, ...existing.filter((item: any) => item.id !== order.id)];
+      return {
+        ...current,
+        purchaseOrders: merged,
+        orders: merged,
+      };
+    });
 
     res.json({
       success: true,
       order,
-      syncedToGist,
-      gistError,
-      purchaseOrders: submissions.purchaseOrders,
+      syncedToGist: true,
+      purchaseOrders: updated.purchaseOrders,
+      orders: updated.orders,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -451,57 +822,41 @@ app.post('/api/orders', async (req, res) => {
 app.post('/api/messages', async (req, res) => {
   try {
     const rawMessage = req.body;
-    if (!rawMessage || !rawMessage.id) {
+    if (!rawMessage || typeof rawMessage !== 'object') {
       return res.status(400).json({ success: false, message: 'Invalid message data' });
     }
 
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
-    const storedGist = getStoredGistConfig();
 
-    const headerToken = req.headers['x-gist-token'] as string;
-    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
-      saveStoredGistConfig({ gistToken: headerToken.trim() });
-    }
+    const messageId = rawMessage.id || `msg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     const message = {
       ...rawMessage,
+      id: messageId,
+      status: rawMessage.status || 'جديدة',
       clientIp: rawMessage.clientIp || clientIp,
       deviceInfo: rawMessage.deviceInfo || deviceInfo,
-      gistUrl: storedGist.gistUrl,
       createdAt: rawMessage.createdAt || new Date().toLocaleString('ar-EG'),
       serverReceivedAt: new Date().toISOString(),
     };
 
-    const submissions = getStoredSubmissions();
-    submissions.contactMessages = [message, ...(submissions.contactMessages || [])].filter(
-      (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
-    );
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    let syncedToGist = false;
-    let gistError: string | null = null;
-
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-        syncedToGist = true;
-      } catch (syncErr: any) {
-        gistError = syncErr.message;
-        console.warn('Gist sync on message failed:', syncErr.message);
-      }
-    }
+    const updated = await updateGistData((current) => {
+      const existing = current.contactMessages || current.messages || [];
+      const merged = [message, ...existing.filter((item: any) => item.id !== message.id)];
+      return {
+        ...current,
+        contactMessages: merged,
+        messages: merged,
+      };
+    });
 
     res.json({
       success: true,
       message,
-      syncedToGist,
-      gistError,
-      contactMessages: submissions.contactMessages,
+      syncedToGist: true,
+      contactMessages: updated.contactMessages,
+      messages: updated.messages,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -511,57 +866,41 @@ app.post('/api/messages', async (req, res) => {
 app.post('/api/feedbacks', async (req, res) => {
   try {
     const rawFeedback = req.body;
-    if (!rawFeedback || !rawFeedback.id) {
+    if (!rawFeedback || typeof rawFeedback !== 'object') {
       return res.status(400).json({ success: false, message: 'Invalid feedback data' });
     }
 
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
-    const storedGist = getStoredGistConfig();
 
-    const headerToken = req.headers['x-gist-token'] as string;
-    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
-      saveStoredGistConfig({ gistToken: headerToken.trim() });
-    }
+    const feedbackId = rawFeedback.id || `fb_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     const feedback = {
       ...rawFeedback,
+      id: feedbackId,
+      status: rawFeedback.status || 'قيد الاطلاع',
       clientIp: rawFeedback.clientIp || clientIp,
       deviceInfo: rawFeedback.deviceInfo || deviceInfo,
-      gistUrl: storedGist.gistUrl,
       createdAt: rawFeedback.createdAt || new Date().toLocaleString('ar-EG'),
       serverReceivedAt: new Date().toISOString(),
     };
 
-    const submissions = getStoredSubmissions();
-    submissions.feedbacks = [feedback, ...(submissions.feedbacks || [])].filter(
-      (item, index, self) => index === self.findIndex((t: any) => t.id === item.id)
-    );
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    let syncedToGist = false;
-    let gistError: string | null = null;
-
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-        syncedToGist = true;
-      } catch (syncErr: any) {
-        gistError = syncErr.message;
-        console.warn('Gist sync on feedback failed:', syncErr.message);
-      }
-    }
+    const updated = await updateGistData((current) => {
+      const existing = current.feedbacks || current.reviews || [];
+      const merged = [feedback, ...existing.filter((item: any) => item.id !== feedback.id)];
+      return {
+        ...current,
+        feedbacks: merged,
+        reviews: merged,
+      };
+    });
 
     res.json({
       success: true,
       feedback,
-      syncedToGist,
-      gistError,
-      feedbacks: submissions.feedbacks,
+      syncedToGist: true,
+      feedbacks: updated.feedbacks,
+      reviews: updated.reviews,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -572,57 +911,40 @@ app.post('/api/feedbacks', async (req, res) => {
 app.post('/api/skill-tests', async (req, res) => {
   try {
     const rawResult = req.body;
-    if (!rawResult || !rawResult.id) {
+    if (!rawResult || typeof rawResult !== 'object') {
       return res.status(400).json({ success: false, message: 'بيانات نتيجة التحدي غير صالحة' });
     }
 
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
-    const storedGist = getStoredGistConfig();
 
-    const headerToken = req.headers['x-gist-token'] as string;
-    if (headerToken && headerToken.trim().length > 5 && !storedGist.gistToken) {
-      saveStoredGistConfig({ gistToken: headerToken.trim() });
-    }
+    const resultId = rawResult.id || `test_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     const result = {
       ...rawResult,
+      id: resultId,
       clientIp: rawResult.clientIp || clientIp,
       deviceInfo: rawResult.deviceInfo || deviceInfo,
-      gistUrl: storedGist.gistUrl,
       createdAt: rawResult.createdAt || new Date().toLocaleString('ar-EG'),
       serverReceivedAt: new Date().toISOString(),
     };
 
-    const submissions = getStoredSubmissions();
-    submissions.skillTestResults = [result, ...(submissions.skillTestResults || [])].filter(
-      (item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)
-    );
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    let syncedToGist = false;
-    let gistError: string | null = null;
-
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-        syncedToGist = true;
-      } catch (syncErr: any) {
-        gistError = syncErr.message;
-        console.warn('Gist sync on skill test failed:', syncErr.message);
-      }
-    }
+    const updated = await updateGistData((current) => {
+      const existing = current.skillTestResults || current.challenges || [];
+      const merged = [result, ...existing.filter((item: any) => item.id !== result.id)];
+      return {
+        ...current,
+        skillTestResults: merged,
+        challenges: merged,
+      };
+    });
 
     res.json({
       success: true,
       result,
-      syncedToGist,
-      gistError,
-      skillTestResults: submissions.skillTestResults,
+      syncedToGist: true,
+      skillTestResults: updated.skillTestResults,
+      challenges: updated.challenges,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -632,197 +954,144 @@ app.post('/api/skill-tests', async (req, res) => {
 app.delete('/api/skill-tests/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const submissions = getStoredSubmissions();
-    submissions.skillTestResults = (submissions.skillTestResults || []).filter((item: any) => item.id !== id);
-    saveStoredSubmissions(submissions);
+    const updated = await updateGistData((current) => {
+      const existing = current.skillTestResults || current.challenges || [];
+      const filtered = existing.filter((item: any) => item.id !== id);
+      return {
+        ...current,
+        skillTestResults: filtered,
+        challenges: filtered,
+      };
+    });
 
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
-
-    res.json({ success: true, skillTestResults: submissions.skillTestResults });
+    res.json({ success: true, skillTestResults: updated.skillTestResults });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// VIP Code Activation Endpoint with Strict IP & Device Binding
+// VIP Code Activation Endpoint with Installation ID Binding
 app.post('/api/activate-vip', async (req, res) => {
   try {
-    const { code, deviceFingerprint, customerName } = req.body;
+    const { code, installationId, deviceFingerprint, customerName } = req.body;
     if (!code || typeof code !== 'string') {
       return res.status(400).json({ success: false, message: 'يرجى إدخال كود التفعيل' });
     }
 
     const cleanCode = code.trim().toUpperCase();
-    const cleanFingerprint = (deviceFingerprint || '').trim();
+    const instId = (installationId || deviceFingerprint || '').trim();
     const clientIp = getClientIp(req);
     const deviceInfo = getDeviceInfo(req);
 
-    // 1. Fetch latest Gist data first to ensure cross-device lock is 100% up-to-date
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
+    const updated = await updateGistData((current) => {
+      const approvedCodes = current.approvedActivationCodes || current.activationCodes || [];
+      const customerBindings = current.codeCustomerBindings || {};
+      const orders = current.purchaseOrders || current.orders || [];
 
-    let remoteData: any = {};
-    if (gistUrl && gistToken) {
-      try {
-        remoteData = await fetchGistDataHelper(gistUrl, gistToken);
-      } catch (err) {
-        console.warn('Gist fetch in /api/activate-vip warning:', err);
+      // Verify code validity
+      const isApproved =
+        approvedCodes.includes(cleanCode) ||
+        Boolean(customerBindings[cleanCode]) ||
+        orders.some((p: any) => p.activationCode?.toUpperCase() === cleanCode) ||
+        /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(cleanCode);
+
+      if (!isApproved) {
+        const err: any = new Error('كود التفعيل غير صالح أو غير معتمد. يرجى مراجعة الإدارة.');
+        err.statusCode = 400;
+        err.reason = 'INVALID_CODE';
+        throw err;
       }
-    }
 
-    const submissions = getStoredSubmissions();
+      // Check existing activations
+      const activations: any[] = Array.isArray(current.activations) ? current.activations : [];
+      const deviceBindings = current.codeDeviceBindings || {};
+      const existingActivation = activations.find((a: any) => a.code === cleanCode && a.status === 'activated');
+      const boundInst = existingActivation?.installationId || deviceBindings[cleanCode];
 
-    // Merge latest remote bindings into local submissions
-    submissions.codeIpBindings = {
-      ...(remoteData.codeIpBindings || {}),
-      ...(submissions.codeIpBindings || {}),
-    };
-    submissions.codeDeviceBindings = {
-      ...(remoteData.codeDeviceBindings || {}),
-      ...(submissions.codeDeviceBindings || {}),
-    };
-    submissions.codeActivationDetails = {
-      ...(remoteData.codeActivationDetails || {}),
-      ...(submissions.codeActivationDetails || {}),
-    };
-    submissions.codeCustomerBindings = {
-      ...(remoteData.codeCustomerBindings || {}),
-      ...(submissions.codeCustomerBindings || {}),
-    };
-    submissions.approvedActivationCodes = Array.from(
-      new Set([
-        ...(Array.isArray(remoteData.approvedActivationCodes) ? remoteData.approvedActivationCodes : []),
-        ...(Array.isArray(submissions.approvedActivationCodes) ? submissions.approvedActivationCodes : []),
-      ])
-    );
-
-    // Verify code validity (must be in approved codes, customer bindings, or purchase orders)
-    const isApproved =
-      (submissions.approvedActivationCodes && submissions.approvedActivationCodes.includes(cleanCode)) ||
-      Boolean(submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) ||
-      Boolean(submissions.purchaseOrders && submissions.purchaseOrders.some((p: any) => p.activationCode?.toUpperCase() === cleanCode)) ||
-      /^VIP-[A-Z0-9]{4}-[A-Z0-9]{4,}$/i.test(cleanCode);
-
-    if (!isApproved) {
-      return res.status(400).json({
-        success: false,
-        reason: 'INVALID_CODE',
-        message: 'كود التفعيل غير صالح أو غير معتمد. يرجى مراجعة الإدارة أو التأكد من إدخال الرمز بشكل دقيق.',
-      });
-    }
-
-    const boundIp = submissions.codeIpBindings[cleanCode];
-    const boundFingerprint =
-      submissions.codeDeviceBindings[cleanCode] ||
-      submissions.codeActivationDetails[cleanCode]?.deviceFingerprint;
-    const details = submissions.codeActivationDetails[cleanCode];
-
-    // STRICT CHECK 1: If code is already bound to another device fingerprint
-    if (boundFingerprint && boundFingerprint !== cleanFingerprint) {
-      return res.status(403).json({
-        success: false,
-        reason: 'DEVICE_MISMATCH',
-        boundIp: boundIp || 'هاتف آخر',
-        activatedAt: details?.activatedAt,
-        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) محجوز ومقترن بجهاز وهاتف آخر ولا يمكن استخدامه على هذا الجهاز منعاً للغش والتداول.`,
-      });
-    }
-
-    // STRICT CHECK 2: If code is already bound to another IP
-    if (boundIp && boundIp !== clientIp && boundFingerprint !== cleanFingerprint) {
-      return res.status(403).json({
-        success: false,
-        reason: 'IP_MISMATCH',
-        boundIp,
-        activatedAt: details?.activatedAt,
-        message: `⚠️ تنبيه أمني مشدد: كود التفعيل (${cleanCode}) مفعّل مسبقاً ومقترن بهاتف وجهاز آخر (IP: ${boundIp}). يمنع منعاً باتاً تداوله أو إدخاله على هاتف ثانٍ منعاً للغش والتلاعب.`,
-      });
-    }
-
-    // Bind this code to the current IP and device fingerprint permanently
-    const nowAr = new Date().toLocaleString('ar-EG');
-    submissions.codeIpBindings[cleanCode] = clientIp;
-    if (cleanFingerprint) {
-      submissions.codeDeviceBindings[cleanCode] = cleanFingerprint;
-    }
-    submissions.codeActivationDetails[cleanCode] = {
-      ip: clientIp,
-      deviceInfo,
-      activatedAt: details?.activatedAt || nowAr,
-      lastSeenAt: nowAr,
-      customerName: customerName || submissions.codeCustomerBindings?.[cleanCode] || details?.customerName,
-      deviceFingerprint: cleanFingerprint || details?.deviceFingerprint,
-    };
-
-    // Ensure code is in approvedActivationCodes
-    if (!submissions.approvedActivationCodes) submissions.approvedActivationCodes = [];
-    if (!submissions.approvedActivationCodes.includes(cleanCode)) {
-      submissions.approvedActivationCodes.push(cleanCode);
-    }
-
-    // Also update any matching purchase orders
-    if (Array.isArray(submissions.purchaseOrders)) {
-      submissions.purchaseOrders = submissions.purchaseOrders.map((po: any) => {
-        if (po.activationCode?.toUpperCase() === cleanCode) {
-          return {
-            ...po,
-            clientIp: po.clientIp || clientIp,
-            deviceInfo: po.deviceInfo || deviceInfo,
-            activatedAt: po.activatedAt || nowAr,
-          };
-        }
-        return po;
-      });
-    }
-
-    saveStoredSubmissions(submissions);
-
-    // Sync to Gist synchronously
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-      } catch (err: any) {
-        console.warn('Gist sync on code activation warning:', err.message);
+      // If code is already activated on a different device
+      if (boundInst && instId && boundInst !== instId) {
+        const err: any = new Error('هذا الكود مستخدم بالفعل على جهاز آخر ولا يمكن استخدامه على جهاز ثانٍ.');
+        err.statusCode = 403;
+        err.reason = 'DEVICE_MISMATCH';
+        err.boundIp = existingActivation?.clientIp || current.codeIpBindings?.[cleanCode];
+        err.activatedAt = existingActivation?.activatedAt;
+        throw err;
       }
-    }
+
+      // Bind to current installation
+      const nowAr = new Date().toLocaleString('ar-EG');
+      const newActivation = {
+        code: cleanCode,
+        status: 'activated',
+        installationId: instId,
+        activatedAt: existingActivation?.activatedAt || nowAr,
+        clientIp,
+        deviceInfo,
+        customerName: customerName || customerBindings[cleanCode] || existingActivation?.customerName,
+      };
+
+      const updatedActivations = [
+        newActivation,
+        ...activations.filter((a: any) => a.code !== cleanCode),
+      ];
+
+      const newDeviceBindings = { ...deviceBindings, [cleanCode]: instId };
+      const newIpBindings = { ...(current.codeIpBindings || {}), [cleanCode]: clientIp };
+      const newActivationDetails = { ...(current.codeActivationDetails || {}), [cleanCode]: newActivation };
+
+      const safeApproved = Array.from(new Set([...approvedCodes, cleanCode]));
+
+      return {
+        ...current,
+        activations: updatedActivations,
+        codeDeviceBindings: newDeviceBindings,
+        codeIpBindings: newIpBindings,
+        codeActivationDetails: newActivationDetails,
+        approvedActivationCodes: safeApproved,
+        activationCodes: safeApproved,
+      };
+    });
 
     res.json({
       success: true,
-      message: `🎉 تهانينا! تم تفعيل كود VIP بنجاح وتم ربطه بهذا الهاتف (IP: ${clientIp}) مدى الحياة.`,
+      message: '🎉 تهانينا! تم تفعيل كود VIP بنجاح وتم ربطه بهذا الجهاز مدى الحياة.',
       code: cleanCode,
-      clientIp,
-      deviceInfo,
-      activatedAt: nowAr,
+      installationId: instId,
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      reason: error.reason,
+      message: error.message,
+      boundIp: error.boundIp,
+      activatedAt: error.activatedAt,
+    });
   }
 });
 
 // Endpoint to verify VIP device validity on client startup
 app.post('/api/verify-vip', (req, res) => {
   try {
-    const { code, deviceFingerprint } = req.body;
+    const { code, installationId, deviceFingerprint } = req.body;
     if (!code || typeof code !== 'string') {
       return res.json({ valid: false, reason: 'EMPTY_CODE' });
     }
     const cleanCode = code.trim().toUpperCase();
-    const cleanDevice = (deviceFingerprint || '').trim();
+    const instId = (installationId || deviceFingerprint || '').trim();
     const submissions = getStoredSubmissions();
 
+    const activations = Array.isArray(submissions.activations) ? submissions.activations : [];
+    const existing = activations.find((a: any) => a.code === cleanCode && a.status === 'activated');
     const boundFingerprint =
+      existing?.installationId ||
       submissions.codeDeviceBindings?.[cleanCode] ||
       submissions.codeActivationDetails?.[cleanCode]?.deviceFingerprint;
 
-    if (boundFingerprint && cleanDevice && boundFingerprint !== cleanDevice) {
+    if (boundFingerprint && instId && boundFingerprint !== instId) {
       return res.json({
         valid: false,
         reason: 'DEVICE_MISMATCH',
-        message: 'كود التفعيل مقترن بجهاز آخر وتم إيقاف تفعيله على هذا الجهاز',
+        message: 'هذا الكود مستخدم بالفعل على جهاز آخر.',
       });
     }
 
@@ -832,48 +1101,52 @@ app.post('/api/verify-vip', (req, res) => {
   }
 });
 
-// Admin unbind endpoint
-app.post('/api/unbind-code', async (req, res) => {
+// Admin reset/unbind endpoint: resets activation code to 'available'
+app.post(['/api/reset-code', '/api/unbind-code'], async (req, res) => {
   try {
     const { code } = req.body;
     if (!code || typeof code !== 'string') {
       return res.status(400).json({ success: false, message: 'الكود مطلوب' });
     }
     const cleanCode = code.trim().toUpperCase();
-    const submissions = getStoredSubmissions();
 
-    if (submissions.codeIpBindings && submissions.codeIpBindings[cleanCode]) {
-      delete submissions.codeIpBindings[cleanCode];
-    }
-    if (submissions.codeDeviceBindings && submissions.codeDeviceBindings[cleanCode]) {
-      delete submissions.codeDeviceBindings[cleanCode];
-    }
-    if (submissions.codeActivationDetails && submissions.codeActivationDetails[cleanCode]) {
-      delete submissions.codeActivationDetails[cleanCode];
-    }
-    if (submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) {
-      delete submissions.codeCustomerBindings[cleanCode];
-    }
-
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
-        console.warn('Gist sync on unbind warning:', err.message);
+    const updated = await updateGistData((current) => {
+      const activations: any[] = Array.isArray(current.activations) ? current.activations : [];
+      const updatedActivations = activations.map((a: any) => {
+        if (a.code === cleanCode) {
+          return {
+            ...a,
+            status: 'available',
+            installationId: '',
+            activatedAt: null,
+          };
+        }
+        return a;
       });
-    }
+
+      const deviceBindings = { ...(current.codeDeviceBindings || {}) };
+      delete deviceBindings[cleanCode];
+
+      const ipBindings = { ...(current.codeIpBindings || {}) };
+      delete ipBindings[cleanCode];
+
+      const details = { ...(current.codeActivationDetails || {}) };
+      delete details[cleanCode];
+
+      return {
+        ...current,
+        activations: updatedActivations,
+        codeDeviceBindings: deviceBindings,
+        codeIpBindings: ipBindings,
+        codeActivationDetails: details,
+      };
+    });
 
     res.json({
       success: true,
-      message: `✓ تم فك ارتباط الكود (${cleanCode}) بنجاح وإلغاء حجز الـ IP والبصمة ليصبح متاحاً من جديد.`,
+      message: `✓ تمت إعادة تعيين الكود (${cleanCode}) بنجاح وأصبح متاحاً (available) للاستخدام على جهاز آخر.`,
       code: cleanCode,
-      codeDeviceBindings: submissions.codeDeviceBindings,
-      codeIpBindings: submissions.codeIpBindings,
-      codeCustomerBindings: submissions.codeCustomerBindings,
+      codeDeviceBindings: updated.codeDeviceBindings,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -889,37 +1162,24 @@ app.post('/api/reserve-code', async (req, res) => {
     }
     const cleanCode = code.trim().toUpperCase();
     const cleanCustomer = (customerName || '').trim();
-    const submissions = getStoredSubmissions();
 
-    if (!submissions.codeCustomerBindings) {
-      submissions.codeCustomerBindings = {};
-    }
+    const updated = await updateGistData((current) => {
+      const customerBindings = { ...(current.codeCustomerBindings || {}) };
+      const approvedCodes = Array.from(new Set([...(current.approvedActivationCodes || []), cleanCode]));
 
-    if (cleanCustomer) {
-      submissions.codeCustomerBindings[cleanCode] = cleanCustomer;
-      if (!submissions.approvedActivationCodes) {
-        submissions.approvedActivationCodes = [];
+      if (cleanCustomer) {
+        customerBindings[cleanCode] = cleanCustomer;
+      } else {
+        delete customerBindings[cleanCode];
       }
-      if (!submissions.approvedActivationCodes.includes(cleanCode)) {
-        submissions.approvedActivationCodes.push(cleanCode);
-      }
-    } else {
-      delete submissions.codeCustomerBindings[cleanCode];
-    }
 
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    if (gistToken && gistUrl) {
-      try {
-        await syncToGistHelper(gistUrl, gistToken, submissions);
-      } catch (err: any) {
-        console.warn('Gist sync on reserve-code warning:', err.message);
-      }
-    }
+      return {
+        ...current,
+        codeCustomerBindings: customerBindings,
+        approvedActivationCodes: approvedCodes,
+        activationCodes: approvedCodes,
+      };
+    });
 
     res.json({
       success: true,
@@ -928,8 +1188,8 @@ app.post('/api/reserve-code', async (req, res) => {
         : `✓ تم إلغاء حجز الكود (${cleanCode}) بنجاح.`,
       code: cleanCode,
       customerName: cleanCustomer,
-      codeCustomerBindings: submissions.codeCustomerBindings,
-      approvedActivationCodes: submissions.approvedActivationCodes,
+      codeCustomerBindings: updated.codeCustomerBindings,
+      approvedActivationCodes: updated.approvedActivationCodes,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -944,29 +1204,21 @@ app.post('/api/unreserve-code', async (req, res) => {
       return res.status(400).json({ success: false, message: 'الكود مطلوب' });
     }
     const cleanCode = code.trim().toUpperCase();
-    const submissions = getStoredSubmissions();
 
-    if (submissions.codeCustomerBindings && submissions.codeCustomerBindings[cleanCode]) {
-      delete submissions.codeCustomerBindings[cleanCode];
-    }
-
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    const gistToken = ((req.headers['x-gist-token'] as string) || req.body.gistToken || activeGist.gistToken || '').trim();
-    const gistUrl = ((req.headers['x-gist-url'] as string) || req.body.gistUrl || activeGist.gistUrl || '').trim();
-
-    if (gistToken && gistUrl) {
-      syncToGistHelper(gistUrl, gistToken, submissions).catch((err) => {
-        console.warn('Gist sync on unreserve warning:', err.message);
-      });
-    }
+    const updated = await updateGistData((current) => {
+      const customerBindings = { ...(current.codeCustomerBindings || {}) };
+      delete customerBindings[cleanCode];
+      return {
+        ...current,
+        codeCustomerBindings: customerBindings,
+      };
+    });
 
     res.json({
       success: true,
       message: `تم إلغاء حجز الكود (${cleanCode}) وإعادته للقائمة المتاحة.`,
       code: cleanCode,
-      codeCustomerBindings: submissions.codeCustomerBindings,
+      codeCustomerBindings: updated.codeCustomerBindings,
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -1118,29 +1370,22 @@ app.patch('/api/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    const submissions = getStoredSubmissions();
-    let found = false;
 
-    submissions.purchaseOrders = (submissions.purchaseOrders || []).map((ord: any) => {
-      if (ord.id === id) {
-        found = true;
-        return { ...ord, ...updates, updatedAt: new Date().toISOString() };
-      }
-      return ord;
+    const updated = await updateGistData((current) => {
+      const orders = (current.purchaseOrders || current.orders || []).map((ord: any) => {
+        if (ord.id === id) {
+          return { ...ord, ...updates, updatedAt: new Date().toISOString() };
+        }
+        return ord;
+      });
+      return {
+        ...current,
+        purchaseOrders: orders,
+        orders,
+      };
     });
 
-    if (!found) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
-    }
-
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
-
-    res.json({ success: true, purchaseOrders: submissions.purchaseOrders });
+    res.json({ success: true, purchaseOrders: updated.purchaseOrders });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1150,16 +1395,17 @@ app.patch('/api/orders/:id', async (req, res) => {
 app.delete('/api/orders/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const submissions = getStoredSubmissions();
-    submissions.purchaseOrders = (submissions.purchaseOrders || []).filter((ord: any) => ord.id !== id);
-    saveStoredSubmissions(submissions);
 
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
+    const updated = await updateGistData((current) => {
+      const orders = (current.purchaseOrders || current.orders || []).filter((ord: any) => ord.id !== id);
+      return {
+        ...current,
+        purchaseOrders: orders,
+        orders,
+      };
+    });
 
-    res.json({ success: true, purchaseOrders: submissions.purchaseOrders });
+    res.json({ success: true, purchaseOrders: updated.purchaseOrders });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1170,29 +1416,22 @@ app.patch('/api/feedbacks/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const submissions = getStoredSubmissions();
-    let found = false;
 
-    submissions.feedbacks = (submissions.feedbacks || []).map((fb: any) => {
-      if (fb.id === id) {
-        found = true;
-        return { ...fb, status: status || fb.status, updatedAt: new Date().toISOString() };
-      }
-      return fb;
+    const updated = await updateGistData((current) => {
+      const fbs = (current.feedbacks || current.reviews || []).map((fb: any) => {
+        if (fb.id === id) {
+          return { ...fb, status: status || fb.status, updatedAt: new Date().toISOString() };
+        }
+        return fb;
+      });
+      return {
+        ...current,
+        feedbacks: fbs,
+        reviews: fbs,
+      };
     });
 
-    if (!found) {
-      return res.status(404).json({ success: false, message: 'Feedback not found' });
-    }
-
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
-
-    res.json({ success: true, feedbacks: submissions.feedbacks });
+    res.json({ success: true, feedbacks: updated.feedbacks });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1202,16 +1441,17 @@ app.patch('/api/feedbacks/:id', async (req, res) => {
 app.delete('/api/feedbacks/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const submissions = getStoredSubmissions();
-    submissions.feedbacks = (submissions.feedbacks || []).filter((fb: any) => fb.id !== id);
-    saveStoredSubmissions(submissions);
 
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
+    const updated = await updateGistData((current) => {
+      const fbs = (current.feedbacks || current.reviews || []).filter((fb: any) => fb.id !== id);
+      return {
+        ...current,
+        feedbacks: fbs,
+        reviews: fbs,
+      };
+    });
 
-    res.json({ success: true, feedbacks: submissions.feedbacks });
+    res.json({ success: true, feedbacks: updated.feedbacks });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1222,29 +1462,22 @@ app.patch('/api/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const submissions = getStoredSubmissions();
-    let found = false;
 
-    submissions.contactMessages = (submissions.contactMessages || []).map((msg: any) => {
-      if (msg.id === id) {
-        found = true;
-        return { ...msg, status: status || msg.status, updatedAt: new Date().toISOString() };
-      }
-      return msg;
+    const updated = await updateGistData((current) => {
+      const msgs = (current.contactMessages || current.messages || []).map((msg: any) => {
+        if (msg.id === id) {
+          return { ...msg, status: status || msg.status, updatedAt: new Date().toISOString() };
+        }
+        return msg;
+      });
+      return {
+        ...current,
+        contactMessages: msgs,
+        messages: msgs,
+      };
     });
 
-    if (!found) {
-      return res.status(404).json({ success: false, message: 'Message not found' });
-    }
-
-    saveStoredSubmissions(submissions);
-
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
-
-    res.json({ success: true, contactMessages: submissions.contactMessages });
+    res.json({ success: true, contactMessages: updated.contactMessages });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1254,16 +1487,17 @@ app.patch('/api/messages/:id', async (req, res) => {
 app.delete('/api/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const submissions = getStoredSubmissions();
-    submissions.contactMessages = (submissions.contactMessages || []).filter((msg: any) => msg.id !== id);
-    saveStoredSubmissions(submissions);
 
-    const activeGist = getStoredGistConfig();
-    if (activeGist.gistToken && activeGist.gistUrl) {
-      syncToGistHelper(activeGist.gistUrl, activeGist.gistToken, submissions).catch(() => {});
-    }
+    const updated = await updateGistData((current) => {
+      const msgs = (current.contactMessages || current.messages || []).filter((msg: any) => msg.id !== id);
+      return {
+        ...current,
+        contactMessages: msgs,
+        messages: msgs,
+      };
+    });
 
-    res.json({ success: true, contactMessages: submissions.contactMessages });
+    res.json({ success: true, contactMessages: updated.contactMessages });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1377,6 +1611,10 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
       ...((currentSettings as any).codeDeviceBindings || {}),
       ...(localData.codeDeviceBindings || {}),
     },
+    storiesAudio: {
+      ...((currentSettings as any).storiesAudio || {}),
+      ...(localData.storiesAudio || {}),
+    },
   };
 
   const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
@@ -1410,6 +1648,7 @@ async function syncToGistHelper(url: string, token: string, localData: any) {
     codeCustomerBindings: merged.codeCustomerBindings,
     codeDeviceBindings: merged.codeDeviceBindings,
     approvedActivationCodes: merged.approvedActivationCodes,
+    storiesAudio: merged.storiesAudio || {},
   });
 
   console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks, ${merged.skillTestResults.length} skill test results.`);

@@ -162,6 +162,8 @@ interface SettingsContextType {
   // VIP Paid state (Permanent local activation with strict device & IP binding)
   isVipActive: boolean;
   vipActivationCode: string;
+  getInstallationId: () => string;
+  getDeviceId: () => string;
   activateVip: (code: string, customerName?: string) => Promise<{ success: boolean; message: string; reason?: string; clientIp?: string; boundIp?: string }>;
   deactivateVip: () => void;
   unbindCodeIp: (code: string) => Promise<{ success: boolean; message: string }>;
@@ -299,15 +301,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
               ...(parsed.paidSettings?.usdtErc20 || {}),
             },
           },
-          purchaseOrders: Array.isArray(parsed.purchaseOrders) ? parsed.purchaseOrders : [],
+          purchaseOrders: [],
           approvedActivationCodes: Array.isArray(parsed.approvedActivationCodes)
             ? parsed.approvedActivationCodes
             : defaultSettings.approvedActivationCodes,
           adSettings: { ...defaultSettings.adSettings, ...(parsed.adSettings || {}) },
           googleAdSettings: { ...defaultSettings.googleAdSettings, ...(parsed.googleAdSettings || {}) },
-          feedbacks: Array.isArray(parsed.feedbacks) ? parsed.feedbacks : [],
-          contactMessages: Array.isArray(parsed.contactMessages) ? parsed.contactMessages : [],
-          skillTestResults: Array.isArray(parsed.skillTestResults) ? parsed.skillTestResults : [],
+          feedbacks: [],
+          contactMessages: [],
+          skillTestResults: [],
         };
       }
       return defaultSettings;
@@ -334,18 +336,33 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   });
 
-  const getDeviceId = (): string => {
+  // Unique Installation Fingerprint generated via Web Crypto API
+  const getInstallationId = (): string => {
     try {
-      let id = localStorage.getItem('toys_game_device_fingerprint');
+      let id = localStorage.getItem('toys_game_installation_id') || localStorage.getItem('toys_game_device_fingerprint');
       if (!id) {
-        id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        if (typeof window !== 'undefined' && window.crypto) {
+          if (typeof window.crypto.randomUUID === 'function') {
+            id = window.crypto.randomUUID();
+          } else if (window.crypto.getRandomValues) {
+            const arr = new Uint8Array(16);
+            window.crypto.getRandomValues(arr);
+            id = Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+          }
+        }
+        if (!id) {
+          id = 'inst_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+        }
+        localStorage.setItem('toys_game_installation_id', id);
         localStorage.setItem('toys_game_device_fingerprint', id);
       }
       return id;
     } catch {
-      return 'default_device';
+      return 'default_installation_id';
     }
   };
+
+  const getDeviceId = getInstallationId;
 
   const activateVip = async (
     rawCode: string,
@@ -356,7 +373,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return { success: false, message: 'يرجى كتابة كود التفعيل أولاً.' };
     }
 
-    const deviceId = getDeviceId();
+    const deviceId = getInstallationId();
     const bindings = settings.codeDeviceBindings || {};
     const boundDevice = bindings[code];
 
@@ -406,6 +423,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         },
         body: JSON.stringify({
           code,
+          installationId: deviceId,
           deviceFingerprint: deviceId,
           customerName: customerName || settings.codeCustomerBindings?.[code],
           gistToken: activeToken,
@@ -458,17 +476,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       },
     };
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       codeDeviceBindings: updatedDeviceBindings,
       codeIpBindings: updatedIpBindings,
       codeActivationDetails: updatedDetails,
-    };
-    saveSettings(newSettings);
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
-    }
+    }));
 
     try {
       localStorage.setItem('toysGameVipActive', 'true');
@@ -520,17 +533,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedDetails = { ...(settings.codeActivationDetails || {}) };
     delete updatedDetails[cleanCode];
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       codeDeviceBindings: updatedDeviceBindings,
       codeIpBindings: updatedIpBindings,
       codeActivationDetails: updatedDetails,
-    };
-    saveSettings(newSettings);
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
-    }
+    }));
 
     return {
       success: true,
@@ -570,44 +578,43 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     let updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
     
     let returnedOrder = newOrder;
-    // Post to server API
+    // Post to server API which updates Gist atomically
     try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
-        body: JSON.stringify({ ...newOrder, gistToken, gistUrl }),
+        body: JSON.stringify({ ...newOrder, gistToken: activeToken, gistUrl: activeUrl }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.purchaseOrders)) {
           updatedOrders = data.purchaseOrders;
+        } else if (data.success && Array.isArray(data.orders)) {
+          updatedOrders = data.orders;
         }
         if (data.success && data.order) {
           returnedOrder = { ...newOrder, ...data.order };
         }
       }
     } catch (e) {
-      console.warn('API post order failed, using local:', e);
+      console.warn('API post order failed:', e);
     }
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       purchaseOrders: updatedOrders,
-    };
-
-    saveSettings(newSettings);
-
-    if (gistToken) {
-      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
-    }
+    }));
 
     return returnedOrder;
   };
 
-  const updateOrderStatus = (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => {
+  const updateOrderStatus = async (orderId: string, status: 'معلق' | 'موافق عليه' | 'مرفوض') => {
     let orderActivationCode = '';
     const activatedAt = status === 'موافق عليه' ? new Date().toLocaleString('ar-EG') : undefined;
     const updatedOrders = (settings.purchaseOrders || []).map((ord) => {
@@ -629,41 +636,37 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
     }
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       purchaseOrders: updatedOrders,
       approvedActivationCodes: updatedApprovedCodes,
-    };
+    }));
 
-    saveSettings(newSettings);
-
-    // Call server API
-    fetch(`/api/orders/${orderId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, activatedAt }),
-    }).catch((e) => console.warn('Order status server patch error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, activatedAt }),
+      });
+    } catch (e) {
+      console.warn('Order status server patch error:', e);
     }
   };
 
-  const deletePurchaseOrder = (orderId: string) => {
-    const updatedOrders = (settings.purchaseOrders || []).filter((ord) => ord.id !== orderId);
-    const newSettings: Settings = {
-      ...settings,
-      purchaseOrders: updatedOrders,
-    };
-    saveSettings(newSettings);
+  const deletePurchaseOrder = async (orderId: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      purchaseOrders: (prev.purchaseOrders || []).filter((ord) => ord.id !== orderId),
+    }));
 
-    // Call server API
-    fetch(`/api/orders/${orderId}`, {
-      method: 'DELETE',
-    }).catch((e) => console.warn('Order delete server error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.warn('Order delete server error:', e);
     }
   };
 
@@ -1170,30 +1173,44 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       clearAudioCache().catch(() => {});
     }
 
+    // Save ONLY lightweight UI preferences to localStorage, NEVER visitor submissions or critical collections!
     try {
-      localStorage.setItem('toysGameSettings', JSON.stringify(newSettings));
+      const isHeavyAudio =
+        typeof newSettings.backgroundMusicUrl === 'string' &&
+        newSettings.backgroundMusicUrl.startsWith('data:audio/');
+      const uiPreferencesToPersist = {
+        siteName: newSettings.siteName,
+        logoUrl: newSettings.logoUrl,
+        backgroundMusicUrl: isHeavyAudio
+          ? defaultSettings.backgroundMusicUrl
+          : newSettings.backgroundMusicUrl,
+        backgroundMusicEnabled: newSettings.backgroundMusicEnabled,
+        videoWaitTime: newSettings.videoWaitTime,
+        videoRequiredGameIds: newSettings.videoRequiredGameIds,
+        requireSubscriptionAndVideos: newSettings.requireSubscriptionAndVideos,
+        paidSettings: newSettings.paidSettings,
+        adSettings: newSettings.adSettings,
+        googleAdSettings: newSettings.googleAdSettings,
+      };
+      localStorage.setItem('toysGameSettings', JSON.stringify(uiPreferencesToPersist));
     } catch (error) {
-      console.warn('LocalStorage quota exceeded. Storing lightweight copy without large media:', error);
-      try {
-        const isHeavyAudio =
-          typeof newSettings.backgroundMusicUrl === 'string' &&
-          newSettings.backgroundMusicUrl.startsWith('data:audio/');
-        const lightweightSettings = {
-          ...newSettings,
-          backgroundMusicUrl: isHeavyAudio
-            ? defaultSettings.backgroundMusicUrl
-            : newSettings.backgroundMusicUrl,
-        };
-        localStorage.setItem('toysGameSettings', JSON.stringify(lightweightSettings));
-      } catch (innerErr) {
-        console.warn('Could not save lightweight settings to localStorage:', innerErr);
-      }
+      console.warn('Could not save UI preferences to localStorage:', error);
     }
 
-    // Automatically synchronize with backend server and Gist
+    // Automatically synchronize settings with backend server and Gist
     try {
       const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
       const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: newSettings,
+          gistToken: activeToken,
+          gistUrl: activeUrl,
+        }),
+      }).catch((e) => console.warn('Background settings sync error:', e));
 
       fetch('/api/sync-all', {
         method: 'POST',
@@ -1227,13 +1244,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       ? currentCodes
       : [cleanCode, ...currentCodes];
 
-    const updatedSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       approvedActivationCodes: updatedCodes,
       codeCustomerBindings: updatedBindings,
-    };
-
-    saveSettings(updatedSettings);
+    }));
 
     try {
       const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
@@ -1255,11 +1270,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     } catch (e) {
       console.warn('Server reserve-code error:', e);
     }
-
-    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-    if (activeToken) {
-      saveToGist(updatedSettings).catch(() => {});
-    }
   };
 
   const unreserveCodeForCustomer = async (code: string) => {
@@ -1269,12 +1279,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
     delete updatedBindings[cleanCode];
 
-    const updatedSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       codeCustomerBindings: updatedBindings,
-    };
-
-    saveSettings(updatedSettings);
+    }));
 
     try {
       const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
@@ -1294,11 +1302,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
     } catch (e) {
       console.warn('Server unreserve-code error:', e);
-    }
-
-    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-    if (activeToken) {
-      saveToGist(updatedSettings).catch(() => {});
     }
   };
 
@@ -1439,21 +1442,23 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             : Number(effectiveRemote.videoWaitTime) || defaultSettings.videoWaitTime;
 
         const mergedFeedbacks: FeedbackItem[] = [
-          ...(Array.isArray(effectiveRemote.feedbacks) ? effectiveRemote.feedbacks : []),
-          ...(Array.isArray(serverSubmissions.feedbacks) ? serverSubmissions.feedbacks : []),
-          ...(Array.isArray(localParsed.feedbacks) ? localParsed.feedbacks : []),
+          ...(Array.isArray(effectiveRemote.feedbacks) ? effectiveRemote.feedbacks : (effectiveRemote.reviews || [])),
+          ...(Array.isArray(serverSubmissions.feedbacks) ? serverSubmissions.feedbacks : (serverSubmissions.reviews || [])),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         const mergedMessages: ContactMessage[] = [
-          ...(Array.isArray(effectiveRemote.contactMessages) ? effectiveRemote.contactMessages : []),
-          ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : []),
-          ...(Array.isArray(localParsed.contactMessages) ? localParsed.contactMessages : []),
+          ...(Array.isArray(effectiveRemote.contactMessages) ? effectiveRemote.contactMessages : (effectiveRemote.messages || [])),
+          ...(Array.isArray(serverSubmissions.contactMessages) ? serverSubmissions.contactMessages : (serverSubmissions.messages || [])),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         const mergedSkillResults: SkillTestResult[] = [
-          ...(Array.isArray(effectiveRemote.skillTestResults) ? effectiveRemote.skillTestResults : []),
-          ...(Array.isArray(serverSubmissions.skillTestResults) ? serverSubmissions.skillTestResults : []),
-          ...(Array.isArray(localParsed.skillTestResults) ? localParsed.skillTestResults : []),
+          ...(Array.isArray(effectiveRemote.skillTestResults) ? effectiveRemote.skillTestResults : (effectiveRemote.challenges || [])),
+          ...(Array.isArray(serverSubmissions.skillTestResults) ? serverSubmissions.skillTestResults : (serverSubmissions.challenges || [])),
+        ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
+
+        const mergedOrders: SubscriptionOrder[] = [
+          ...(Array.isArray(effectiveRemote.purchaseOrders) ? effectiveRemote.purchaseOrders : (effectiveRemote.orders || [])),
+          ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : (serverSubmissions.orders || [])),
         ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id));
 
         let safeMusicUrl = effectiveRemote.backgroundMusicUrl || localParsed.backgroundMusicUrl || defaultSettings.backgroundMusicUrl;
@@ -1488,19 +1493,13 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
               ...(effectiveRemote.paidSettings?.shamCash || {}),
             },
           },
-          purchaseOrders: [
-            ...(Array.isArray(effectiveRemote.purchaseOrders) ? effectiveRemote.purchaseOrders : []),
-            ...(Array.isArray(serverSubmissions.purchaseOrders) ? serverSubmissions.purchaseOrders : []),
-            ...(Array.isArray(localParsed.purchaseOrders) ? localParsed.purchaseOrders : []),
-          ].filter((item, index, self) => index === self.findIndex((t) => t.id === item.id)),
+          purchaseOrders: mergedOrders,
           approvedActivationCodes: Array.from(
             new Set([
               ...(Array.isArray(effectiveRemote.approvedActivationCodes) ? effectiveRemote.approvedActivationCodes : []),
               ...(Array.isArray(serverSubmissions.approvedActivationCodes) ? serverSubmissions.approvedActivationCodes : []),
-              ...(Array.isArray(localParsed.approvedActivationCodes) ? localParsed.approvedActivationCodes : []),
               ...Object.keys(effectiveRemote.codeCustomerBindings || {}),
               ...Object.keys(serverSubmissions.codeCustomerBindings || {}),
-              ...Object.keys(localParsed.codeCustomerBindings || {}),
               ...Object.keys(effectiveRemote.codeIpBindings || {}),
               ...Object.keys(serverSubmissions.codeIpBindings || {}),
               ...DEFAULT_100_ACTIVATION_CODES,
@@ -1511,22 +1510,18 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             localParsed.freeActivationCode ||
             settings.freeActivationCode,
           codeCustomerBindings: {
-            ...(localParsed.codeCustomerBindings || {}),
             ...(effectiveRemote.codeCustomerBindings || {}),
             ...(serverSubmissions.codeCustomerBindings || {}),
           },
           codeDeviceBindings: {
-            ...(localParsed.codeDeviceBindings || {}),
             ...(effectiveRemote.codeDeviceBindings || {}),
             ...(serverSubmissions.codeDeviceBindings || {}),
           },
           codeIpBindings: {
-            ...(localParsed.codeIpBindings || {}),
             ...(effectiveRemote.codeIpBindings || {}),
             ...(serverSubmissions.codeIpBindings || {}),
           },
           codeActivationDetails: {
-            ...(localParsed.codeActivationDetails || {}),
             ...(effectiveRemote.codeActivationDetails || {}),
             ...(serverSubmissions.codeActivationDetails || {}),
           },
@@ -1566,7 +1561,27 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           } catch {}
         }
 
-        saveSettings(merged);
+        setSettings(merged);
+        try {
+          const isHeavyAudio =
+            typeof merged.backgroundMusicUrl === 'string' &&
+            merged.backgroundMusicUrl.startsWith('data:audio/');
+          const uiPreferencesToPersist = {
+            siteName: merged.siteName,
+            logoUrl: merged.logoUrl,
+            backgroundMusicUrl: isHeavyAudio
+              ? defaultSettings.backgroundMusicUrl
+              : merged.backgroundMusicUrl,
+            backgroundMusicEnabled: merged.backgroundMusicEnabled,
+            videoWaitTime: merged.videoWaitTime,
+            videoRequiredGameIds: merged.videoRequiredGameIds,
+            requireSubscriptionAndVideos: merged.requireSubscriptionAndVideos,
+            paidSettings: merged.paidSettings,
+            adSettings: merged.adSettings,
+            googleAdSettings: merged.googleAdSettings,
+          };
+          localStorage.setItem('toysGameSettings', JSON.stringify(uiPreferencesToPersist));
+        } catch {}
         const syncTimeStr = new Date().toLocaleTimeString('ar-EG');
         setLastSyncTime(syncTimeStr);
         localStorage.setItem('toysGameLastGistSync', syncTimeStr);
@@ -1731,70 +1746,71 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     let returnedFeedback = newFeedback;
 
     try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
       const res = await fetch('/api/feedbacks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
-        body: JSON.stringify({ ...newFeedback, gistToken, gistUrl }),
+        body: JSON.stringify({ ...newFeedback, gistToken: activeToken, gistUrl: activeUrl }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.feedbacks)) {
           updatedFeedbacks = data.feedbacks;
+        } else if (data.success && Array.isArray(data.reviews)) {
+          updatedFeedbacks = data.reviews;
         }
         if (data.success && data.feedback) {
           returnedFeedback = { ...newFeedback, ...data.feedback };
         }
       }
     } catch (e) {
-      console.warn('API post feedback failed, using local:', e);
+      console.warn('API post feedback failed:', e);
     }
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       feedbacks: updatedFeedbacks,
-    };
-    saveSettings(newSettings);
-
-    // If Gist token is present, auto-sync to Gist
-    if (gistToken) {
-      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
-    }
+    }));
 
     return returnedFeedback;
   };
 
-  const updateFeedbackStatus = (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => {
-    const updatedFeedbacks = (settings.feedbacks || []).map((fb) => (fb.id === id ? { ...fb, status } : fb));
-    const newSettings = { ...settings, feedbacks: updatedFeedbacks };
-    saveSettings(newSettings);
+  const updateFeedbackStatus = async (id: string, status: 'قيد الاطلاع' | 'تمت المراجعة' | 'مكتمل') => {
+    setSettings((prev) => ({
+      ...prev,
+      feedbacks: (prev.feedbacks || []).map((fb) => (fb.id === id ? { ...fb, status } : fb)),
+    }));
 
-    // Call server API
-    fetch(`/api/feedbacks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    }).catch((e) => console.warn('Feedback status server patch error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/feedbacks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+    } catch (e) {
+      console.warn('Feedback status server patch error:', e);
     }
   };
 
-  const deleteFeedback = (id: string) => {
-    const updatedFeedbacks = (settings.feedbacks || []).filter((fb) => fb.id !== id);
-    const newSettings = { ...settings, feedbacks: updatedFeedbacks };
-    saveSettings(newSettings);
+  const deleteFeedback = async (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      feedbacks: (prev.feedbacks || []).filter((fb) => fb.id !== id),
+    }));
 
-    // Call server API
-    fetch(`/api/feedbacks/${id}`, {
-      method: 'DELETE',
-    }).catch((e) => console.warn('Feedback delete server error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/feedbacks/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.warn('Feedback delete server error:', e);
     }
   };
 
@@ -1814,70 +1830,71 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     let returnedMsg = newMsg;
 
     try {
+      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
-        body: JSON.stringify({ ...newMsg, gistToken, gistUrl }),
+        body: JSON.stringify({ ...newMsg, gistToken: activeToken, gistUrl: activeUrl }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.contactMessages)) {
           updatedMessages = data.contactMessages;
+        } else if (data.success && Array.isArray(data.messages)) {
+          updatedMessages = data.messages;
         }
         if (data.success && data.message) {
           returnedMsg = { ...newMsg, ...data.message };
         }
       }
     } catch (e) {
-      console.warn('API post message failed, using local:', e);
+      console.warn('API post message failed:', e);
     }
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       contactMessages: updatedMessages,
-    };
-    saveSettings(newSettings);
-
-    // If Gist token is present, auto-sync to Gist
-    if (gistToken) {
-      saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
-    }
+    }));
 
     return returnedMsg;
   };
 
-  const updateContactMessageStatus = (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => {
-    const updatedMessages = (settings.contactMessages || []).map((msg) => (msg.id === id ? { ...msg, status } : msg));
-    const newSettings = { ...settings, contactMessages: updatedMessages };
-    saveSettings(newSettings);
+  const updateContactMessageStatus = async (id: string, status: 'جديدة' | 'قيد الاطلاع' | 'تم الرد') => {
+    setSettings((prev) => ({
+      ...prev,
+      contactMessages: (prev.contactMessages || []).map((msg) => (msg.id === id ? { ...msg, status } : msg)),
+    }));
 
-    // Call server API
-    fetch(`/api/messages/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    }).catch((e) => console.warn('Message status server patch error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/messages/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+    } catch (e) {
+      console.warn('Message status server patch error:', e);
     }
   };
 
-  const deleteContactMessage = (id: string) => {
-    const updatedMessages = (settings.contactMessages || []).filter((msg) => msg.id !== id);
-    const newSettings = { ...settings, contactMessages: updatedMessages };
-    saveSettings(newSettings);
+  const deleteContactMessage = async (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      contactMessages: (prev.contactMessages || []).filter((msg) => msg.id !== id),
+    }));
 
-    // Call server API
-    fetch(`/api/messages/${id}`, {
-      method: 'DELETE',
-    }).catch((e) => console.warn('Message delete server error:', e));
-
-    if (gistToken) {
-      saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/messages/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.warn('Message delete server error:', e);
     }
   };
 
@@ -1896,47 +1913,49 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     let updatedResults = [newResult, ...(settings.skillTestResults || [])];
     const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
     try {
       const res = await fetch('/api/skill-tests', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
-        body: JSON.stringify({ ...newResult, gistToken: activeToken, gistUrl }),
+        body: JSON.stringify({ ...newResult, gistToken: activeToken, gistUrl: activeUrl }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.skillTestResults)) {
           updatedResults = data.skillTestResults;
+        } else if (data.success && Array.isArray(data.challenges)) {
+          updatedResults = data.challenges;
         }
       }
     } catch (e) {
-      console.warn('API post skill test failed, using local:', e);
+      console.warn('API post skill test failed:', e);
     }
 
-    const newSettings: Settings = {
-      ...settings,
+    setSettings((prev) => ({
+      ...prev,
       skillTestResults: updatedResults,
-    };
-    saveSettings(newSettings);
-
-    // Auto-sync to Gist
-    saveToGist(newSettings).catch((e) => console.warn('Background Gist sync failed:', e));
+    }));
   };
 
-  const deleteSkillTestResult = (id: string) => {
-    const updatedResults = (settings.skillTestResults || []).filter((res) => res.id !== id);
-    const newSettings = { ...settings, skillTestResults: updatedResults };
-    saveSettings(newSettings);
+  const deleteSkillTestResult = async (id: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      skillTestResults: (prev.skillTestResults || []).filter((res) => res.id !== id),
+    }));
 
-    // Call server API
-    fetch(`/api/skill-tests/${id}`, {
-      method: 'DELETE',
-    }).catch((e) => console.warn('Skill test delete server error:', e));
-
-    saveToGist(newSettings).catch(() => {});
+    // Call server API which updates Gist atomically
+    try {
+      await fetch(`/api/skill-tests/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (e) {
+      console.warn('Skill test delete server error:', e);
+    }
   };
 
   // Export all application data as a complete JSON backup file
@@ -2276,6 +2295,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         resetSubscriptionStatus,
         isVipActive,
         vipActivationCode,
+        getInstallationId,
+        getDeviceId,
         activateVip,
         deactivateVip,
         addPurchaseOrder,
