@@ -78,27 +78,79 @@ export function setCloudStoriesAudio(cloudAudio: StoriesAudioMap): void {
  * Fetch latest stories audio from server / Gist and update local cache
  */
 export async function fetchStoriesAudioFromCloud(): Promise<StoriesAudioMap> {
+  // 1. Try fetching from server API (which syncs directly with Gist)
   try {
     const res = await fetch('/api/stories/audio');
     if (res.ok) {
       const data = await res.json();
-      if (data.success && data.storiesAudio) {
-        // Merge with local cache
+      if (data.success && data.storiesAudio && typeof data.storiesAudio === 'object') {
+        const cloudCount = Object.keys(data.storiesAudio).length;
+        if (cloudCount > 0) {
+          memoryAudioCache = {
+            ...memoryAudioCache,
+            ...data.storiesAudio,
+          };
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryAudioCache));
+          } catch {}
+          window.dispatchEvent(new CustomEvent('stories_audio_updated'));
+          return memoryAudioCache;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch stories audio from server API:', err);
+  }
+
+  // 2. Direct Fallback: Fetch directly from GitHub Gist raw URL or API
+  try {
+    const defaultGistUrl = 'https://gist.githubusercontent.com/mohazard555/b98509446eaf8132fc819cff8f3f7956/raw/toysgame.json';
+    const gistUrl = (localStorage.getItem('gistUrl') || defaultGistUrl).trim();
+    const gistIdMatch = gistUrl.match(/([a-f0-9]{32})/i);
+    const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
+
+    // Try fetching the raw toysgame.json with cache buster
+    const rawRes = await fetch(`https://gist.githubusercontent.com/mohazard555/${gistId}/raw/toysgame.json?_t=${Date.now()}`, {
+      cache: 'no-store',
+    });
+
+    if (rawRes.ok) {
+      const gistData = await rawRes.json();
+      if (gistData && gistData.storiesAudio && typeof gistData.storiesAudio === 'object') {
         memoryAudioCache = {
           ...memoryAudioCache,
-          ...data.storiesAudio,
+          ...gistData.storiesAudio,
         };
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryAudioCache));
         } catch {}
-
         window.dispatchEvent(new CustomEvent('stories_audio_updated'));
         return memoryAudioCache;
       }
     }
-  } catch (err) {
-    console.warn('Could not fetch stories audio from server:', err);
+
+    // Try fetching the separate stories_audio.json if present in Gist
+    const audioRawRes = await fetch(`https://gist.githubusercontent.com/mohazard555/${gistId}/raw/stories_audio.json?_t=${Date.now()}`, {
+      cache: 'no-store',
+    });
+    if (audioRawRes.ok) {
+      const audioData = await audioRawRes.json();
+      if (audioData && typeof audioData === 'object') {
+        memoryAudioCache = {
+          ...memoryAudioCache,
+          ...audioData,
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryAudioCache));
+        } catch {}
+        window.dispatchEvent(new CustomEvent('stories_audio_updated'));
+        return memoryAudioCache;
+      }
+    }
+  } catch (rawErr) {
+    console.warn('Direct Gist audio fetch fallback notice:', rawErr);
   }
+
   return memoryAudioCache;
 }
 

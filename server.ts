@@ -400,7 +400,19 @@ async function updateGistData(updater: (currentData: any) => Promise<any> | any)
 
         const jsonContent = JSON.stringify(safePayload, null, 2);
 
-        // 4. Send PATCH to GitHub Gist
+        // 4. Send PATCH to GitHub Gist (saving toysgame.json and stories_audio.json)
+        const filesPayload: Record<string, { content: string }> = {
+          [filename]: {
+            content: jsonContent,
+          },
+        };
+
+        if (safePayload.storiesAudio && Object.keys(safePayload.storiesAudio).length > 0) {
+          filesPayload['stories_audio.json'] = {
+            content: JSON.stringify(safePayload.storiesAudio, null, 2),
+          };
+        }
+
         const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
           method: 'PATCH',
           headers: {
@@ -408,11 +420,7 @@ async function updateGistData(updater: (currentData: any) => Promise<any> | any)
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            files: {
-              [filename]: {
-                content: jsonContent,
-              },
-            },
+            files: filesPayload,
           }),
         });
 
