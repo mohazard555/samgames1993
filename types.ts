@@ -151,6 +151,7 @@ export interface PaidSettings {
   binancePay: BinancePaySettings;
   usdtTrc20: UsdtSettings;
   usdtErc20: UsdtSettings;
+  usdtBep20?: UsdtSettings;
   otherMethods?: OtherPaymentMethod[];
 }
 
@@ -174,6 +175,14 @@ export interface SubscriptionOrder {
   gistUrl?: string; // رابط Gist المرتبط
 }
 
+export interface NewsTickerSettings {
+  enabled: boolean; // إظهار أو إخفاء شريط الأخبار التمريري للأطفال
+  text: string; // نص العبارة في الشريط التمريري
+  speed?: 'slow' | 'normal' | 'fast'; // سرعة حركة الشريط
+  backgroundColor?: string; // خلفية الشريط
+  icon?: string; // أيقونة أو إيموجي شريط الأخبار
+}
+
 export interface Settings {
   siteName: string;
   logoUrl: string;
@@ -188,6 +197,7 @@ export interface Settings {
   videoRequiredGameIds: number[]; // IDs of games that require watching a video
   requireSubscriptionAndVideos?: boolean; // When false: visitors can play all games directly without needing channel subscription or video watch
   paidSettings?: PaidSettings;
+  newsTicker?: NewsTickerSettings; // شريط التمرير الطفولي الإخباري
   purchaseOrders?: SubscriptionOrder[];
   approvedActivationCodes?: string[];
   freeActivationCode?: string; // كود التفعيل المجاني المعتمد الوحيد

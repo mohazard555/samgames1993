@@ -6,3 +6,32 @@ html, body {
   font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Child-friendly Ticker Marquee Animations */
+@keyframes ticker-rtl {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-ticker-slow {
+  animation: ticker-rtl 55s linear infinite;
+}
+
+.animate-ticker-normal {
+  animation: ticker-rtl 38s linear infinite;
+}
+
+.animate-ticker-fast {
+  animation: ticker-rtl 25s linear infinite;
+}
+
+.ticker-track:hover,
+.ticker-track:active,
+.ticker-track:focus {
+  animation-play-state: paused !important;
+}
+
+

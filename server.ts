@@ -6,7 +6,8 @@ import { createServer as createViteServer } from "vite";
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Ensure data directory exists for persistent submissions storage
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -46,6 +47,17 @@ const DEMO_EMAILS_OR_IDS = new Set([
   'test_1789975270880_6n9n',
   'ORD-266526-IFRR',
 ]);
+
+function getCleanCurrentDate(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
 
 function isDemoItem(item: any): boolean {
   if (!item || typeof item !== 'object') return false;
@@ -98,7 +110,7 @@ function sanitizeSubmissions(data: any) {
     codeCustomerBindings: data.codeCustomerBindings && typeof data.codeCustomerBindings === 'object' ? data.codeCustomerBindings : {},
     codeDeviceBindings: data.codeDeviceBindings && typeof data.codeDeviceBindings === 'object' ? data.codeDeviceBindings : {},
     approvedActivationCodes: Array.isArray(data.approvedActivationCodes) ? data.approvedActivationCodes : [],
-    storiesAudio: data.storiesAudio && typeof data.storiesAudio === 'object' ? data.storiesAudio : {},
+    storiesAudio: data.storiesAudio && typeof data.storiesAudio === 'object' && !Array.isArray(data.storiesAudio) ? data.storiesAudio : {},
   };
 }
 
@@ -250,6 +262,38 @@ async function fetchGistDataHelper(url?: string, token?: string): Promise<any> {
           if (rawRes.ok) {
             result = await rawRes.json();
           }
+        }
+      }
+
+      // Read audio files map from stories_audio.json if present
+      if (gistData.files?.['stories_audio.json']) {
+        const audioFile = gistData.files['stories_audio.json'];
+        let audioMap: Record<string, string> | null = null;
+        if (audioFile.content && !audioFile.truncated) {
+          try {
+            audioMap = JSON.parse(audioFile.content);
+          } catch {}
+        } else if (audioFile.raw_url) {
+          try {
+            const rawAudioRes = await fetch(`${audioFile.raw_url}?_t=${Date.now()}`, {
+              headers: {
+                'User-Agent': 'ToysGame-Sync-Server/1.0',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                Pragma: 'no-cache',
+              },
+              cache: 'no-store',
+            });
+            if (rawAudioRes.ok) {
+              audioMap = await rawAudioRes.json();
+            }
+          } catch {}
+        }
+        if (audioMap && typeof audioMap === 'object' && !Array.isArray(audioMap)) {
+          if (!result) result = {};
+          result.storiesAudio = {
+            ...((result.storiesAudio && typeof result.storiesAudio === 'object' && !Array.isArray(result.storiesAudio)) ? result.storiesAudio : {}),
+            ...audioMap,
+          };
         }
       }
     }
@@ -684,7 +728,7 @@ app.post('/api/stories/audio', async (req, res) => {
     const { storyId, sceneNumber, audioDataUrl, storiesAudio } = req.body;
     const audioUpdates: Record<string, string> = {};
 
-    if (storiesAudio && typeof storiesAudio === 'object') {
+    if (storiesAudio && typeof storiesAudio === 'object' && !Array.isArray(storiesAudio)) {
       Object.assign(audioUpdates, storiesAudio);
     }
     if (storyId && sceneNumber !== undefined && audioDataUrl) {
@@ -692,12 +736,10 @@ app.post('/api/stories/audio', async (req, res) => {
       audioUpdates[key] = audioDataUrl;
     }
 
-    if (Object.keys(audioUpdates).length === 0) {
-      return res.status(400).json({ success: false, message: 'لم يتم توفير ملف صوتي صالح' });
-    }
-
     const updated = await updateGistData((current) => {
-      const existingAudio = current.storiesAudio || {};
+      const existingAudio = (current.storiesAudio && typeof current.storiesAudio === 'object' && !Array.isArray(current.storiesAudio))
+        ? current.storiesAudio
+        : {};
       const newStoriesAudio = {
         ...existingAudio,
         ...audioUpdates,
@@ -708,11 +750,15 @@ app.post('/api/stories/audio', async (req, res) => {
       };
     });
 
+    const finalAudio = (updated.storiesAudio && typeof updated.storiesAudio === 'object' && !Array.isArray(updated.storiesAudio))
+      ? updated.storiesAudio
+      : audioUpdates;
+
     res.json({
       success: true,
-      message: '✓ تم حفظ ونشر نطق المشهد في السحابة (Gist) بنجاح!',
-      count: Object.keys(updated.storiesAudio || {}).length,
-      storiesAudio: updated.storiesAudio || audioUpdates,
+      message: '✓ تم حفظ ونشر نطق المشاهد في السحابة (Gist) بنجاح!',
+      count: Object.keys(finalAudio).length,
+      storiesAudio: finalAudio,
     });
   } catch (err: any) {
     console.error('Save stories audio to Gist failed:', err);
@@ -847,7 +893,7 @@ app.post('/api/orders', async (req, res) => {
       id: orderId,
       clientIp: rawOrder.clientIp || clientIp,
       deviceInfo: rawOrder.deviceInfo || deviceInfo,
-      createdAt: rawOrder.createdAt || new Date().toLocaleString('ar-EG'),
+      createdAt: rawOrder.createdAt || getCleanCurrentDate(),
       serverReceivedAt: new Date().toISOString(),
     };
 
@@ -891,7 +937,7 @@ app.post('/api/messages', async (req, res) => {
       status: rawMessage.status || 'جديدة',
       clientIp: rawMessage.clientIp || clientIp,
       deviceInfo: rawMessage.deviceInfo || deviceInfo,
-      createdAt: rawMessage.createdAt || new Date().toLocaleString('ar-EG'),
+      createdAt: rawMessage.createdAt || getCleanCurrentDate(),
       serverReceivedAt: new Date().toISOString(),
     };
 
@@ -935,7 +981,7 @@ app.post('/api/feedbacks', async (req, res) => {
       status: rawFeedback.status || 'قيد الاطلاع',
       clientIp: rawFeedback.clientIp || clientIp,
       deviceInfo: rawFeedback.deviceInfo || deviceInfo,
-      createdAt: rawFeedback.createdAt || new Date().toLocaleString('ar-EG'),
+      createdAt: rawFeedback.createdAt || getCleanCurrentDate(),
       serverReceivedAt: new Date().toISOString(),
     };
 
@@ -979,7 +1025,7 @@ app.post('/api/skill-tests', async (req, res) => {
       id: resultId,
       clientIp: rawResult.clientIp || clientIp,
       deviceInfo: rawResult.deviceInfo || deviceInfo,
-      createdAt: rawResult.createdAt || new Date().toLocaleString('ar-EG'),
+      createdAt: rawResult.createdAt || getCleanCurrentDate(),
       serverReceivedAt: new Date().toISOString(),
     };
 
@@ -1625,156 +1671,187 @@ app.post('/api/messages/clear', async (req, res) => {
   }
 });
 
+let isGistSyncInProgress = false;
+
 async function syncToGistHelper(url: string, token: string, localData: any) {
-  const cleanUrl = url.trim();
-  const gistIdMatch = cleanUrl.match(/([a-f0-9]{32})/i);
-  const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
-  const fileMatch = cleanUrl.match(/\/([^\/?#]+\.json)/i);
-  const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
+  // If a sync is already running, wait a moment to avoid 409 conflict
+  if (isGistSyncInProgress) {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  isGistSyncInProgress = true;
 
-  const authHeader = token.startsWith('ghp_') || token.startsWith('github_pat_')
-    ? `Bearer ${token}`
-    : `token ${token}`;
-
-  const requestHeaders = {
-    Authorization: authHeader,
-    Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'ToysGame-Sync-Server/1.0',
-  };
-
-  // 1. Fetch current gist content first to safely merge
-  let currentSettings: any = {};
   try {
-    const getRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
-      headers: requestHeaders,
-    });
+    const cleanUrl = url.trim();
+    const gistIdMatch = cleanUrl.match(/([a-f0-9]{32})/i);
+    const gistId = gistIdMatch ? gistIdMatch[1] : 'b98509446eaf8132fc819cff8f3f7956';
+    const fileMatch = cleanUrl.match(/\/([^\/?#]+\.json)/i);
+    const filename = fileMatch ? fileMatch[1] : 'toysgame.json';
 
-    if (getRes.ok) {
-      const gistData = await getRes.json();
-      const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0] as any;
-      if (targetFile) {
-        if (targetFile.content && !targetFile.truncated) {
-          try {
-            currentSettings = JSON.parse(targetFile.content);
-          } catch {}
-        } else if (targetFile.raw_url) {
-          const rawRes = await fetch(targetFile.raw_url, { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' } });
-          if (rawRes.ok) {
-            currentSettings = await rawRes.json();
+    const authHeader = token.startsWith('ghp_') || token.startsWith('github_pat_')
+      ? `Bearer ${token}`
+      : `token ${token}`;
+
+    const requestHeaders = {
+      Authorization: authHeader,
+      Accept: 'application/vnd.github.v3+json',
+      'User-Agent': 'ToysGame-Sync-Server/1.0',
+    };
+
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        // 1. Fetch current gist content first to safely merge
+        let currentSettings: any = {};
+        try {
+          const getRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
+            headers: requestHeaders,
+          });
+
+          if (getRes.ok) {
+            const gistData = await getRes.json();
+            const targetFile = gistData.files?.[filename] || Object.values(gistData.files || {})[0] as any;
+            if (targetFile) {
+              if (targetFile.content && !targetFile.truncated) {
+                try {
+                  currentSettings = JSON.parse(targetFile.content);
+                } catch {}
+              } else if (targetFile.raw_url) {
+                const rawRes = await fetch(targetFile.raw_url, { headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' } });
+                if (rawRes.ok) {
+                  currentSettings = await rawRes.json();
+                }
+              }
+            }
           }
+        } catch (err: any) {
+          console.warn('GitHub API fetch failed in helper, trying raw fallback:', err.message);
         }
+
+        // Fallback to public raw if still empty
+        if (!currentSettings || Object.keys(currentSettings).length === 0) {
+          try {
+            const rawRes = await fetch(`https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`, {
+              headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
+            });
+            if (rawRes.ok) {
+              currentSettings = await rawRes.json();
+            }
+          } catch {}
+        }
+
+        // Safety safeguard: never wipe existing Gist config if we have existing keys
+        const merged = {
+          ...currentSettings,
+          ...(localData.siteName ? { siteName: localData.siteName } : {}),
+          ...(localData.logoUrl ? { logoUrl: localData.logoUrl } : {}),
+          ...(localData.subscriptionUrl ? { subscriptionUrl: localData.subscriptionUrl } : {}),
+          ...(localData.whatsappUrl !== undefined ? { whatsappUrl: localData.whatsappUrl } : {}),
+          ...(localData.youtubeUrls ? { youtubeUrls: localData.youtubeUrls } : {}),
+          ...(localData.backgroundMusicUrl ? { backgroundMusicUrl: localData.backgroundMusicUrl } : {}),
+          ...(localData.backgroundMusicEnabled !== undefined ? { backgroundMusicEnabled: localData.backgroundMusicEnabled } : {}),
+          ...(localData.videoWaitTime !== undefined ? { videoWaitTime: localData.videoWaitTime } : {}),
+          ...(localData.videoRequiredGameIds ? { videoRequiredGameIds: localData.videoRequiredGameIds } : {}),
+          ...(localData.requireSubscriptionAndVideos !== undefined ? { requireSubscriptionAndVideos: localData.requireSubscriptionAndVideos } : {}),
+          ...(localData.paidSettings ? { paidSettings: { ...((currentSettings as any).paidSettings || {}), ...localData.paidSettings } } : {}),
+          ...(localData.newsTicker ? { newsTicker: { ...((currentSettings as any).newsTicker || {}), ...localData.newsTicker } } : {}),
+          ...(localData.adSettings ? { adSettings: { ...((currentSettings as any).adSettings || {}), ...localData.adSettings } } : {}),
+          ...(localData.googleAdSettings ? { googleAdSettings: { ...((currentSettings as any).googleAdSettings || {}), ...localData.googleAdSettings } } : {}),
+          ...(Array.isArray(localData.approvedActivationCodes) && localData.approvedActivationCodes.length > 0
+            ? { approvedActivationCodes: localData.approvedActivationCodes }
+            : {}),
+          ...(localData.freeActivationCode !== undefined ? { freeActivationCode: localData.freeActivationCode } : {}),
+          purchaseOrders: [
+            ...(localData.purchaseOrders || []),
+            ...((currentSettings as any).purchaseOrders || []),
+          ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+          contactMessages: [
+            ...(localData.contactMessages || []),
+            ...((currentSettings as any).contactMessages || []),
+          ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+          feedbacks: [
+            ...(localData.feedbacks || []),
+            ...((currentSettings as any).feedbacks || []),
+          ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+          skillTestResults: [
+            ...(localData.skillTestResults || []),
+            ...((currentSettings as any).skillTestResults || []),
+          ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
+          codeIpBindings: {
+            ...((currentSettings as any).codeIpBindings || {}),
+            ...(localData.codeIpBindings || {}),
+          },
+          codeActivationDetails: {
+            ...((currentSettings as any).codeActivationDetails || {}),
+            ...(localData.codeActivationDetails || {}),
+          },
+          codeCustomerBindings: {
+            ...((currentSettings as any).codeCustomerBindings || {}),
+            ...(localData.codeCustomerBindings || {}),
+          },
+          codeDeviceBindings: {
+            ...((currentSettings as any).codeDeviceBindings || {}),
+            ...(localData.codeDeviceBindings || {}),
+          },
+          storiesAudio: {
+            ...((currentSettings as any).storiesAudio || {}),
+            ...(localData.storiesAudio || {}),
+          },
+        };
+
+        const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+          method: 'PATCH',
+          headers: {
+            ...requestHeaders,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            files: {
+              [filename]: {
+                content: JSON.stringify(merged, null, 2),
+              },
+            },
+          }),
+        });
+
+        if (!patchRes.ok) {
+          const errorBody = await patchRes.text();
+          if (patchRes.status === 409 && attempts < maxAttempts) {
+            console.warn(`GitHub Gist 409 conflict on attempt ${attempts}, retrying in ${attempts * 1500}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, attempts * 1500));
+            continue;
+          }
+          throw new Error(`GitHub Gist API error ${patchRes.status}: ${errorBody}`);
+        }
+
+        // Update server local file to reflect current merged state
+        saveStoredSubmissions({
+          purchaseOrders: merged.purchaseOrders,
+          contactMessages: merged.contactMessages,
+          feedbacks: merged.feedbacks,
+          skillTestResults: merged.skillTestResults,
+          codeIpBindings: merged.codeIpBindings,
+          codeActivationDetails: merged.codeActivationDetails,
+          codeCustomerBindings: merged.codeCustomerBindings,
+          codeDeviceBindings: merged.codeDeviceBindings,
+          approvedActivationCodes: merged.approvedActivationCodes,
+          storiesAudio: merged.storiesAudio || {},
+        });
+
+        console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks, ${merged.skillTestResults.length} skill test results.`);
+        return merged;
+      } catch (err: any) {
+        if (attempts >= maxAttempts) {
+          throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
-  } catch (err: any) {
-    console.warn('GitHub API fetch failed in helper, trying raw fallback:', err.message);
+  } finally {
+    isGistSyncInProgress = false;
   }
-
-  // Fallback to public raw if still empty
-  if (!currentSettings || Object.keys(currentSettings).length === 0) {
-    try {
-      const rawRes = await fetch(`https://gist.githubusercontent.com/mohazard555/${gistId}/raw/${filename}?_t=${Date.now()}`, {
-        headers: { 'User-Agent': 'ToysGame-Sync-Server/1.0' },
-      });
-      if (rawRes.ok) {
-        currentSettings = await rawRes.json();
-      }
-    } catch {}
-  }
-
-  // Safety safeguard: never wipe existing Gist config if we have existing keys
-  const merged = {
-    ...currentSettings,
-    ...(localData.siteName ? { siteName: localData.siteName } : {}),
-    ...(localData.logoUrl ? { logoUrl: localData.logoUrl } : {}),
-    ...(localData.subscriptionUrl ? { subscriptionUrl: localData.subscriptionUrl } : {}),
-    ...(localData.whatsappUrl !== undefined ? { whatsappUrl: localData.whatsappUrl } : {}),
-    ...(localData.youtubeUrls ? { youtubeUrls: localData.youtubeUrls } : {}),
-    ...(localData.backgroundMusicUrl ? { backgroundMusicUrl: localData.backgroundMusicUrl } : {}),
-    ...(localData.backgroundMusicEnabled !== undefined ? { backgroundMusicEnabled: localData.backgroundMusicEnabled } : {}),
-    ...(localData.videoWaitTime !== undefined ? { videoWaitTime: localData.videoWaitTime } : {}),
-    ...(localData.videoRequiredGameIds ? { videoRequiredGameIds: localData.videoRequiredGameIds } : {}),
-    ...(localData.requireSubscriptionAndVideos !== undefined ? { requireSubscriptionAndVideos: localData.requireSubscriptionAndVideos } : {}),
-    ...(localData.paidSettings ? { paidSettings: { ...((currentSettings as any).paidSettings || {}), ...localData.paidSettings } } : {}),
-    ...(localData.adSettings ? { adSettings: { ...((currentSettings as any).adSettings || {}), ...localData.adSettings } } : {}),
-    ...(localData.googleAdSettings ? { googleAdSettings: { ...((currentSettings as any).googleAdSettings || {}), ...localData.googleAdSettings } } : {}),
-    ...(Array.isArray(localData.approvedActivationCodes) && localData.approvedActivationCodes.length > 0
-      ? { approvedActivationCodes: localData.approvedActivationCodes }
-      : {}),
-    ...(localData.freeActivationCode !== undefined ? { freeActivationCode: localData.freeActivationCode } : {}),
-    purchaseOrders: [
-      ...(localData.purchaseOrders || []),
-      ...((currentSettings as any).purchaseOrders || []),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
-    contactMessages: [
-      ...(localData.contactMessages || []),
-      ...((currentSettings as any).contactMessages || []),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
-    feedbacks: [
-      ...(localData.feedbacks || []),
-      ...((currentSettings as any).feedbacks || []),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
-    skillTestResults: [
-      ...(localData.skillTestResults || []),
-      ...((currentSettings as any).skillTestResults || []),
-    ].filter((item: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.id === item.id)),
-    codeIpBindings: {
-      ...((currentSettings as any).codeIpBindings || {}),
-      ...(localData.codeIpBindings || {}),
-    },
-    codeActivationDetails: {
-      ...((currentSettings as any).codeActivationDetails || {}),
-      ...(localData.codeActivationDetails || {}),
-    },
-    codeCustomerBindings: {
-      ...((currentSettings as any).codeCustomerBindings || {}),
-      ...(localData.codeCustomerBindings || {}),
-    },
-    codeDeviceBindings: {
-      ...((currentSettings as any).codeDeviceBindings || {}),
-      ...(localData.codeDeviceBindings || {}),
-    },
-    storiesAudio: {
-      ...((currentSettings as any).storiesAudio || {}),
-      ...(localData.storiesAudio || {}),
-    },
-  };
-
-  const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
-    method: 'PATCH',
-    headers: {
-      ...requestHeaders,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      files: {
-        [filename]: {
-          content: JSON.stringify(merged, null, 2),
-        },
-      },
-    }),
-  });
-
-  if (!patchRes.ok) {
-    const errorBody = await patchRes.text();
-    throw new Error(`GitHub Gist API error ${patchRes.status}: ${errorBody}`);
-  }
-
-  // Update server local file to reflect current merged state
-  saveStoredSubmissions({
-    purchaseOrders: merged.purchaseOrders,
-    contactMessages: merged.contactMessages,
-    feedbacks: merged.feedbacks,
-    skillTestResults: merged.skillTestResults,
-    codeIpBindings: merged.codeIpBindings,
-    codeActivationDetails: merged.codeActivationDetails,
-    codeCustomerBindings: merged.codeCustomerBindings,
-    codeDeviceBindings: merged.codeDeviceBindings,
-    approvedActivationCodes: merged.approvedActivationCodes,
-    storiesAudio: merged.storiesAudio || {},
-  });
-
-  console.log(`✓ Gist synced successfully: ${merged.purchaseOrders.length} orders, ${merged.contactMessages.length} messages, ${merged.feedbacks.length} feedbacks, ${merged.skillTestResults.length} skill test results.`);
-  return merged;
 }
 
 async function startServer() {
