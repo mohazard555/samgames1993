@@ -49,7 +49,7 @@ export function formatOrderWhatsAppMessage(order: {
   amount: number | string;
   currency: string;
   transactionId: string;
-  activationCode: string;
+  activationCode?: string;
   clientIp?: string;
   deviceInfo?: string;
   createdAt?: string;
@@ -61,12 +61,11 @@ export function formatOrderWhatsAppMessage(order: {
     `📱 *هاتف / واتساب المشتري:* ${order.customerPhone}`,
     `💰 *المبلغ:* ${order.amount} ${order.currency}`,
     `🧾 *رقم عملية التحويل:* ${order.transactionId}`,
-    `🔑 *كود التفعيل المخصص:* ${order.activationCode}`,
     `🌐 *عنوان IP لجهاز العميل:* ${order.clientIp || 'سحابي موثق'}`,
     `💻 *نوع الجهاز:* ${order.deviceInfo || 'متصفح ويب'}`,
     `🕒 *تاريخ ووقت الطلب:* ${order.createdAt || new Date().toLocaleString('ar-EG')}`,
     `--------------------------------------`,
-    `✅ تم حفظ الطلب سحابياً في قاعدة بيانات الموقع للتحقق والموافقة.`,
+    `✅ تم حفظ الطلب سحابياً في لوحة الإدارة لمراجعته وإرسال كود التفعيل للعميل.`,
   ].join('\n');
 }
 

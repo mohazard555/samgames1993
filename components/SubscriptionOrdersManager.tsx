@@ -226,6 +226,82 @@ const SubscriptionOrdersManager: React.FC = () => {
     }
   };
 
+  // Export all activation codes as Excel / CSV (with UTF-8 BOM for Arabic compatibility)
+  const handleExportCodesCSV = () => {
+    const allKnownCodes = Array.from(
+      new Set([
+        ...(settings.approvedActivationCodes || []),
+        ...Object.keys(settings.codeCustomerBindings || {}),
+        ...Object.keys(settings.codeIpBindings || {}),
+        ...Object.keys(settings.codeActivationDetails || {}),
+        ...Object.keys(settings.codeDeviceBindings || {}),
+        ...(orders || []).map((o) => o.activationCode?.trim().toUpperCase()).filter(Boolean) as string[],
+      ].filter((c) => typeof c === 'string' && c.trim().length > 0))
+    );
+
+    const headers = ['الكود', 'الحالة', 'اسم العميل المحجوز له', 'عنوان IP الهاتف', 'بصمة الجهاز (Fingerprint)', 'وقت وتاريخ التفعيل', 'نوع الجهاز'];
+    const rows = allKnownCodes.map((code) => {
+      const boundIp = settings.codeIpBindings?.[code] || '';
+      const boundDevice = settings.codeDeviceBindings?.[code] || '';
+      const details = settings.codeActivationDetails?.[code];
+      const customer = settings.codeCustomerBindings?.[code] || details?.customerName || '';
+      const matchingOrder = orders.find(
+        (o) => o.activationCode?.trim().toUpperCase() === code.trim().toUpperCase() && o.status === 'موافق عليه'
+      );
+      const isUsed = Boolean(boundIp || boundDevice || details || customer || matchingOrder);
+      const status = isUsed ? 'محجوز ومقترن' : 'متاح';
+      const activatedAt = details?.activatedAt || '';
+      const deviceInfo = details?.deviceInfo || '';
+
+      const escapeCSV = (val: string) => `"${(val || '').replace(/"/g, '""')}"`;
+      return [
+        escapeCSV(code),
+        escapeCSV(status),
+        escapeCSV(customer),
+        escapeCSV(boundIp),
+        escapeCSV(boundDevice),
+        escapeCSV(activatedAt),
+        escapeCSV(deviceInfo),
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vip-activation-codes-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export all codes as a clean text file (one code per line)
+  const handleExportCodesTXT = () => {
+    const allKnownCodes = Array.from(
+      new Set([
+        ...(settings.approvedActivationCodes || []),
+        ...Object.keys(settings.codeCustomerBindings || {}),
+        ...Object.keys(settings.codeIpBindings || {}),
+        ...Object.keys(settings.codeActivationDetails || {}),
+        ...Object.keys(settings.codeDeviceBindings || {}),
+        ...(orders || []).map((o) => o.activationCode?.trim().toUpperCase()).filter(Boolean) as string[],
+      ].filter((c) => typeof c === 'string' && c.trim().length > 0))
+    );
+
+    const txtContent = allKnownCodes.join('\r\n');
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vip-codes-list-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Quick Gist synchronization
   const handleManualGistSync = async () => {
     setSyncStatusMsg({ text: '⏳ جاري المزامنة السحابية مع Gist...', type: 'info' });
@@ -882,12 +958,30 @@ const SubscriptionOrdersManager: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              onClick={handleExportCodesCSV}
+              className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="تصدير جدول كامل لجميع الأكواد مع حالتها وبيانات العملاء المقترنة بها بصيغة Excel / CSV"
+            >
+              <span>📊</span>
+              <span>تصدير Excel / CSV</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportCodesTXT}
+              className="py-1.5 px-3 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="تصدير قائمة الأكواد فقط كملف نصي عادي TXT"
+            >
+              <span>📄</span>
+              <span>تصدير ملف TXT</span>
+            </button>
+            <button
+              type="button"
               onClick={handleResetCodesTo100}
               className="py-1.5 px-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1 shadow-sm"
               title="إعادة ضبط سجل الأكواد إلى الـ 100 كود الافتراضية النظيفة ومنع الزيادة العشوائية"
             >
               <span>🧹</span>
-              <span>إعادة ضبط السجل (100 كود افتراضي)</span>
+              <span>إعادة ضبط (100 كود)</span>
             </button>
           </div>
         </div>

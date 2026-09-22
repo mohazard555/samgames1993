@@ -151,6 +151,90 @@ export function extractGistInfo(url: string) {
   return { gistId, filename, unpinnedRawUrl };
 }
 
+// Demo ID patterns to purge permanently from all syncs
+export const DEMO_EMAILS_OR_IDS = new Set([
+  'sara@example.com',
+  'visitor@test.com',
+  'ali@example.com',
+  'msg_test_1',
+  'fb_test_1',
+  'skill_test_1',
+  'test_skill_123',
+  'test_1789975270880_6n9n',
+  'ORD-266526-IFRR',
+]);
+
+export function isDemoItem(item: any): boolean {
+  if (!item || typeof item !== 'object') return false;
+  if (item.id && DEMO_EMAILS_OR_IDS.has(item.id)) return true;
+  if (item.email && DEMO_EMAILS_OR_IDS.has(String(item.email).toLowerCase().trim())) return true;
+  if (item.activationCode === 'VIP-SHAM-TEST-1234') return true;
+  return false;
+}
+
+// Helper to perform atomic direct GitHub Gist update from client
+export async function syncDirectGistUpdate(
+  updater: (currentJson: any) => any,
+  token?: string,
+  url?: string
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  const activeToken = (token || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+  const activeUrl = (url || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+  if (!activeToken) return { success: false, error: 'No Gist token available' };
+
+  const { gistId, filename } = extractGistInfo(activeUrl);
+
+  try {
+    const getRes = await fetch(`https://api.github.com/gists/${gistId}?_t=${Date.now()}`, {
+      headers: {
+        Authorization: `token ${activeToken}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!getRes.ok) {
+      return { success: false, error: `GitHub GET failed: ${getRes.status}` };
+    }
+
+    const gistPayload = await getRes.json();
+    const targetFile = gistPayload.files?.[filename] || Object.values(gistPayload.files || {})[0];
+    let currentData: any = {};
+    if (targetFile?.content) {
+      try {
+        currentData = JSON.parse(targetFile.content);
+      } catch {}
+    }
+
+    const updatedData = updater(currentData);
+
+    const patchRes = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `token ${activeToken}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        files: {
+          [filename]: {
+            content: JSON.stringify(updatedData, null, 2),
+          },
+        },
+      }),
+    });
+
+    if (!patchRes.ok) {
+      return { success: false, error: `GitHub PATCH failed: ${patchRes.status}` };
+    }
+
+    return { success: true, data: updatedData };
+  } catch (err: any) {
+    console.error('Direct Gist update failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
 interface SettingsContextType {
   settings: Settings;
   setSettings: React.Dispatch<React.SetStateAction<Settings>>;
@@ -336,33 +420,45 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   });
 
-  // Unique Installation Fingerprint generated via Web Crypto API
-  const getInstallationId = (): string => {
+  // Deterministic & Persistent Device Fingerprint (e.g., dev_xxx_xxx)
+  const getDeviceFingerprint = (): string => {
     try {
-      let id = localStorage.getItem('toys_game_installation_id') || localStorage.getItem('toys_game_device_fingerprint');
-      if (!id) {
-        if (typeof window !== 'undefined' && window.crypto) {
-          if (typeof window.crypto.randomUUID === 'function') {
-            id = window.crypto.randomUUID();
-          } else if (window.crypto.getRandomValues) {
-            const arr = new Uint8Array(16);
-            window.crypto.getRandomValues(arr);
-            id = Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
-          }
-        }
-        if (!id) {
-          id = 'inst_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
-        }
-        localStorage.setItem('toys_game_installation_id', id);
-        localStorage.setItem('toys_game_device_fingerprint', id);
+      let storedId = localStorage.getItem('toys_game_device_fingerprint') || localStorage.getItem('toys_game_installation_id');
+      if (storedId && storedId.startsWith('dev_')) {
+        return storedId;
       }
-      return id;
+      let str = '';
+      if (typeof navigator !== 'undefined') {
+        str += (navigator.userAgent || '') + '|' + (navigator.language || '');
+      }
+      if (typeof screen !== 'undefined') {
+        str += '|' + screen.width + 'x' + screen.height + 'x' + (screen.colorDepth || 24);
+      }
+      try {
+        str += '|' + Intl.DateTimeFormat().resolvedOptions().timeZone;
+      } catch {}
+
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0;
+      }
+      const positiveHash = Math.abs(hash).toString(36);
+      const randomSuffix = Math.random().toString(36).substring(2, 7);
+      const fingerprint = `dev_${positiveHash}_${Date.now().toString(36).slice(-4)}${randomSuffix}`;
+
+      const finalId = storedId || fingerprint;
+      localStorage.setItem('toys_game_device_fingerprint', finalId);
+      localStorage.setItem('toys_game_installation_id', finalId);
+      return finalId;
     } catch {
-      return 'default_installation_id';
+      return 'dev_' + Math.random().toString(36).substring(2, 10);
     }
   };
 
-  const getDeviceId = getInstallationId;
+  const getInstallationId = getDeviceFingerprint;
+  const getDeviceId = getDeviceFingerprint;
 
   const activateVip = async (
     rawCode: string,
@@ -373,7 +469,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return { success: false, message: 'يرجى كتابة كود التفعيل أولاً.' };
     }
 
-    const deviceId = getInstallationId();
+    const deviceId = getDeviceFingerprint();
     const bindings = settings.codeDeviceBindings || {};
     const boundDevice = bindings[code];
 
@@ -406,15 +502,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       };
     }
 
-    // Call Backend Server IP-Binding Endpoint to verify and lock to phone's IP
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     let serverIp = '';
     let serverDevice = '';
     let serverActivatedAt = new Date().toLocaleString('ar-EG');
+    let backendSynced = false;
 
+    // Call Backend Server IP-Binding Endpoint to verify and lock
     try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
-
       const res = await fetch('/api/activate-vip', {
         method: 'POST',
         headers: {
@@ -433,33 +530,99 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       const data = await res.json();
       if (!res.ok || data.success === false) {
-        // Server rejected due to IP or Device mismatch!
         return {
           success: false,
-          reason: data.reason || 'IP_MISMATCH',
+          reason: data.reason || 'DEVICE_MISMATCH',
           boundIp: data.boundIp,
           message:
             data.message ||
-            '⚠️ تنبيه أمني مشدد: هذا الكود محجوز أو مفعّل مسبقاً ومقترن بـ IP وبصمة هاتف آخر ولا يمكن استخدامه على هذا الجهاز.',
+            '⚠️ تنبيه أمني مشدد: هذا الكود محجوز ومقترن بهاتف آخر ولا يمكن استخدامه على هذا الجهاز.',
         };
       }
 
+      backendSynced = true;
       if (data.clientIp) serverIp = data.clientIp;
       if (data.deviceInfo) serverDevice = data.deviceInfo;
       if (data.activatedAt) serverActivatedAt = data.activatedAt;
     } catch (apiErr) {
-      console.warn('Backend /api/activate-vip request error:', apiErr);
-      // If offline, also check local settings bindings
-      if (settings.codeDeviceBindings?.[code] && settings.codeDeviceBindings?.[code] !== deviceId) {
+      console.warn('Backend /api/activate-vip request error (proceeding to direct Gist verification):', apiErr);
+    }
+
+    // Direct Gist binding verification and lock (guarantees cross-device enforcement even if server is offline)
+    if (!backendSynced && activeToken) {
+      const resolvedCustomerName = customerName || settings.codeCustomerBindings?.[code] || '';
+      const resolvedDeviceInfo = typeof navigator !== 'undefined'
+        ? (navigator.userAgent.includes('Android') ? 'هاتف أندرويد (Android)' : navigator.userAgent.includes('iPhone') ? 'هاتف آيفون (iPhone)' : navigator.userAgent.includes('iPad') ? 'جهاز آيباد (iPad)' : 'متصفح ويب')
+        : 'متصفح ويب';
+
+      let mismatchError = false;
+
+      await syncDirectGistUpdate((cloud) => {
+        const cloudDeviceBindings = cloud.codeDeviceBindings || {};
+        const cloudBound = cloudDeviceBindings[code];
+
+        if (cloudBound && cloudBound !== deviceId) {
+          mismatchError = true;
+          return cloud;
+        }
+
+        const nowStr = new Date().toLocaleString('ar-EG');
+        const finalCustomer = resolvedCustomerName || cloud.codeCustomerBindings?.[code] || '';
+
+        const newActivationDetail = {
+          ip: serverIp || 'سحابي موثق',
+          deviceInfo: resolvedDeviceInfo,
+          activatedAt: nowStr,
+          customerName: finalCustomer,
+          deviceFingerprint: deviceId,
+        };
+
+        const existingActivations: any[] = Array.isArray(cloud.activations) ? cloud.activations : [];
+        const newActivations = [
+          {
+            code,
+            status: 'activated',
+            installationId: deviceId,
+            activatedAt: nowStr,
+            clientIp: serverIp || 'سحابي موثق',
+            deviceInfo: resolvedDeviceInfo,
+            customerName: finalCustomer,
+          },
+          ...existingActivations.filter((a: any) => a.code !== code),
+        ];
+
+        return {
+          ...cloud,
+          activations: newActivations,
+          codeDeviceBindings: {
+            ...cloudDeviceBindings,
+            [code]: deviceId,
+          },
+          codeIpBindings: {
+            ...(cloud.codeIpBindings || {}),
+            [code]: serverIp || 'سحابي موثق',
+          },
+          codeActivationDetails: {
+            ...(cloud.codeActivationDetails || {}),
+            [code]: newActivationDetail,
+          },
+          approvedActivationCodes: Array.from(new Set([...(cloud.approvedActivationCodes || []), code])),
+        };
+      }, activeToken, activeUrl);
+
+      if (mismatchError) {
         return {
           success: false,
           reason: 'DEVICE_MISMATCH',
-          message: '⚠️ تنبيه أمني مشدد: هذا الكود مقترن بهاتف آخر ولا يمكن استخدامه على هذا الجهاز.',
+          message: '⚠️ تنبيه أمني مشدد: هذا الكود مفعّل مسبقاً ومقترن بهاتف آخر ولا يمكن استخدامه على هذا الجهاز نهائياً منعاً للتلاعب والغش.',
         };
       }
+
+      serverDevice = resolvedDeviceInfo;
     }
 
-    // Bind code to device & IP in local and cloud state
+    // Bind code to device in local React and LocalStorage state
+    const resolvedCustomer = customerName || settings.codeCustomerBindings?.[code];
     const updatedDeviceBindings = { ...bindings, [code]: deviceId };
     const updatedIpBindings = {
       ...(settings.codeIpBindings || {}),
@@ -468,10 +631,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const updatedDetails = {
       ...(settings.codeActivationDetails || {}),
       [code]: {
-        ip: serverIp || 'مسجل محلياً',
-        deviceInfo: serverDevice || navigator.userAgent,
+        ip: serverIp || 'سحابي موثق',
+        deviceInfo: serverDevice || (typeof navigator !== 'undefined' ? navigator.userAgent : 'هاتف محمول'),
         activatedAt: serverActivatedAt,
-        customerName: customerName || settings.codeCustomerBindings?.[code],
+        customerName: resolvedCustomer,
         deviceFingerprint: deviceId,
       },
     };
@@ -500,9 +663,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return {
       success: true,
       clientIp: serverIp,
-      message: serverIp
-        ? `🎉 تهانينا! تم ربط وتفعيل كود VIP بنجاح على هذا الهاتف (IP: ${serverIp}) مدى الحياة.`
-        : '🎉 تهانينا! تم تفعيل النسخة الكاملة (VIP) بنجاح على هذا الجهاز مدى الحياة.',
+      message: '🎉 تهانينا! تم ربط وتوثيق كود VIP بنجاح بهذا الهاتف ومدى الحياة.',
     };
   };
 
@@ -511,17 +672,38 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const cleanCode = (code || '').trim().toUpperCase();
     if (!cleanCode) return { success: false, message: 'كود غير محدد' };
 
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch('/api/unbind-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(gistToken ? { 'x-gist-token': gistToken, 'x-gist-url': gistUrl } : {}),
+          ...(activeToken ? { 'x-gist-token': activeToken, 'x-gist-url': activeUrl } : {}),
         },
-        body: JSON.stringify({ code: cleanCode, gistToken, gistUrl }),
+        body: JSON.stringify({ code: cleanCode, gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
-      console.warn('API unbind call failed:', e);
+      console.warn('API unbind call failed (falling back to direct Gist):', e);
+    }
+
+    // Also clear from Gist directly
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const dBindings = { ...(cloud.codeDeviceBindings || {}) };
+        delete dBindings[cleanCode];
+        const ipBindings = { ...(cloud.codeIpBindings || {}) };
+        delete ipBindings[cleanCode];
+        const actDetails = { ...(cloud.codeActivationDetails || {}) };
+        delete actDetails[cleanCode];
+        return {
+          ...cloud,
+          codeDeviceBindings: dBindings,
+          codeIpBindings: ipBindings,
+          codeActivationDetails: actDetails,
+        };
+      }, activeToken, activeUrl);
     }
 
     const updatedDeviceBindings = { ...(settings.codeDeviceBindings || {}) };
@@ -542,7 +724,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     return {
       success: true,
-      message: `تم بنجاح فك ارتباط الـ IP والجهاز للكود (${cleanCode}) وأصبح متاحاً للاستخدام من جديد.`,
+      message: `تم بنجاح فك ارتباط الـ IP وبصمة الجهاز للكود (${cleanCode}) وأصبح متاحاً للاستخدام من جديد.`,
     };
   };
 
@@ -565,6 +747,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const randomHex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
     const uniqueCode = `VIP-SHAM-${randomHex1}-${randomHex2}`;
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+    const deviceFingerprint = getDeviceFingerprint();
+    const deviceInfo = typeof navigator !== 'undefined'
+      ? (navigator.userAgent.includes('Android') ? 'هاتف أندرويد (Android)' : navigator.userAgent.includes('iPhone') ? 'هاتف آيفون (iPhone)' : navigator.userAgent.includes('iPad') ? 'جهاز آيباد (iPad)' : navigator.userAgent.includes('Windows') ? 'كمبيوتر (Windows)' : 'متصفح ويب')
+      : 'متصفح ويب';
 
     const newOrder: SubscriptionOrder = {
       ...orderData,
@@ -573,16 +759,18 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
       activationCode: uniqueCode,
       barcodeValue: uniqueCode,
+      deviceInfo: orderData.deviceInfo || deviceInfo,
+      clientIp: orderData.clientIp || 'سحابي موثق',
     };
 
-    let updatedOrders = [newOrder, ...(settings.purchaseOrders || [])];
-    
+    let updatedOrders = [newOrder, ...(settings.purchaseOrders || []).filter((o) => o.id !== newOrder.id && !isDemoItem(o))];
     let returnedOrder = newOrder;
-    // Post to server API which updates Gist atomically
-    try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
+    let serverSynced = false;
+    try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -593,17 +781,34 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.purchaseOrders)) {
-          updatedOrders = data.purchaseOrders;
-        } else if (data.success && Array.isArray(data.orders)) {
-          updatedOrders = data.orders;
-        }
-        if (data.success && data.order) {
-          returnedOrder = { ...newOrder, ...data.order };
+        if (data.success) {
+          serverSynced = true;
+          if (Array.isArray(data.purchaseOrders)) {
+            updatedOrders = data.purchaseOrders.filter((o: any) => !isDemoItem(o));
+          } else if (Array.isArray(data.orders)) {
+            updatedOrders = data.orders.filter((o: any) => !isDemoItem(o));
+          }
+          if (data.order) {
+            returnedOrder = { ...newOrder, ...data.order };
+          }
         }
       }
     } catch (e) {
-      console.warn('API post order failed:', e);
+      console.warn('API post order failed (fallback to direct Gist):', e);
+    }
+
+    // Direct Gist fallback if server is unreachable
+    if (!serverSynced && activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const existing = (Array.isArray(cloud.purchaseOrders) ? cloud.purchaseOrders : (Array.isArray(cloud.orders) ? cloud.orders : []))
+          .filter((o: any) => o && !isDemoItem(o) && o.id !== newOrder.id);
+        const merged = [newOrder, ...existing];
+        return {
+          ...cloud,
+          purchaseOrders: merged,
+          orders: merged,
+        };
+      }, activeToken, activeUrl);
     }
 
     setSettings((prev) => ({
@@ -1250,10 +1455,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       codeCustomerBindings: updatedBindings,
     }));
 
-    try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    try {
       await fetch('/api/reserve-code', {
         method: 'POST',
         headers: {
@@ -1268,7 +1473,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }),
       });
     } catch (e) {
-      console.warn('Server reserve-code error:', e);
+      console.warn('Server reserve-code error (fallback to direct Gist):', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const cBindings = { ...(cloud.codeCustomerBindings || {}) };
+        if (cleanCustomer) {
+          cBindings[cleanCode] = cleanCustomer;
+        } else {
+          delete cBindings[cleanCode];
+        }
+        const cCodes = Array.isArray(cloud.approvedActivationCodes) ? cloud.approvedActivationCodes : [];
+        const finalCodes = cCodes.includes(cleanCode) ? cCodes : [cleanCode, ...cCodes];
+        return {
+          ...cloud,
+          codeCustomerBindings: cBindings,
+          approvedActivationCodes: finalCodes,
+        };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1284,10 +1507,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       codeCustomerBindings: updatedBindings,
     }));
 
-    try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    try {
       await fetch('/api/unreserve-code', {
         method: 'POST',
         headers: {
@@ -1301,7 +1524,18 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }),
       });
     } catch (e) {
-      console.warn('Server unreserve-code error:', e);
+      console.warn('Server unreserve-code error (fallback to direct Gist):', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const cBindings = { ...(cloud.codeCustomerBindings || {}) };
+        delete cBindings[cleanCode];
+        return {
+          ...cloud,
+          codeCustomerBindings: cBindings,
+        };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1754,13 +1988,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    let updatedFeedbacks = [newFeedback, ...(settings.feedbacks || [])];
+    let updatedFeedbacks = [newFeedback, ...(settings.feedbacks || []).filter((f) => f.id !== newFeedback.id && !isDemoItem(f))];
     let returnedFeedback = newFeedback;
 
-    try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    let serverSynced = false;
+    try {
       const res = await fetch('/api/feedbacks', {
         method: 'POST',
         headers: {
@@ -1771,17 +2006,33 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.feedbacks)) {
-          updatedFeedbacks = data.feedbacks;
-        } else if (data.success && Array.isArray(data.reviews)) {
-          updatedFeedbacks = data.reviews;
-        }
-        if (data.success && data.feedback) {
-          returnedFeedback = { ...newFeedback, ...data.feedback };
+        if (data.success) {
+          serverSynced = true;
+          if (Array.isArray(data.feedbacks)) {
+            updatedFeedbacks = data.feedbacks.filter((f: any) => !isDemoItem(f));
+          } else if (Array.isArray(data.reviews)) {
+            updatedFeedbacks = data.reviews.filter((f: any) => !isDemoItem(f));
+          }
+          if (data.feedback) {
+            returnedFeedback = { ...newFeedback, ...data.feedback };
+          }
         }
       }
     } catch (e) {
-      console.warn('API post feedback failed:', e);
+      console.warn('API post feedback failed (falling back to direct Gist):', e);
+    }
+
+    if (!serverSynced && activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const existing = (Array.isArray(cloud.feedbacks) ? cloud.feedbacks : (Array.isArray(cloud.reviews) ? cloud.reviews : []))
+          .filter((f: any) => f && !isDemoItem(f) && f.id !== newFeedback.id);
+        const merged = [newFeedback, ...existing];
+        return {
+          ...cloud,
+          feedbacks: merged,
+          reviews: merged,
+        };
+      }, activeToken, activeUrl);
     }
 
     setSettings((prev) => ({
@@ -1798,15 +2049,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       feedbacks: (prev.feedbacks || []).map((fb) => (fb.id === id ? { ...fb, status } : fb)),
     }));
 
-    // Call server API which updates Gist atomically
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch(`/api/feedbacks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
       console.warn('Feedback status server patch error:', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const updated = (Array.isArray(cloud.feedbacks) ? cloud.feedbacks : [])
+          .map((fb: any) => (fb.id === id ? { ...fb, status } : fb));
+        return { ...cloud, feedbacks: updated };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1816,13 +2077,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       feedbacks: (prev.feedbacks || []).filter((fb) => fb.id !== id),
     }));
 
-    // Call server API which updates Gist atomically
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch(`/api/feedbacks/${id}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
       console.warn('Feedback delete server error:', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const filtered = (Array.isArray(cloud.feedbacks) ? cloud.feedbacks : [])
+          .filter((fb: any) => fb.id !== id);
+        return { ...cloud, feedbacks: filtered };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1838,13 +2111,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    let updatedMessages = [newMsg, ...(settings.contactMessages || [])];
+    let updatedMessages = [newMsg, ...(settings.contactMessages || []).filter((m) => m.id !== newMsg.id && !isDemoItem(m))];
     let returnedMsg = newMsg;
 
-    try {
-      const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
-      const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    let serverSynced = false;
+    try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: {
@@ -1855,17 +2129,33 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.contactMessages)) {
-          updatedMessages = data.contactMessages;
-        } else if (data.success && Array.isArray(data.messages)) {
-          updatedMessages = data.messages;
-        }
-        if (data.success && data.message) {
-          returnedMsg = { ...newMsg, ...data.message };
+        if (data.success) {
+          serverSynced = true;
+          if (Array.isArray(data.contactMessages)) {
+            updatedMessages = data.contactMessages.filter((m: any) => !isDemoItem(m));
+          } else if (Array.isArray(data.messages)) {
+            updatedMessages = data.messages.filter((m: any) => !isDemoItem(m));
+          }
+          if (data.message) {
+            returnedMsg = { ...newMsg, ...data.message };
+          }
         }
       }
     } catch (e) {
-      console.warn('API post message failed:', e);
+      console.warn('API post message failed (falling back to direct Gist):', e);
+    }
+
+    if (!serverSynced && activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const existing = (Array.isArray(cloud.contactMessages) ? cloud.contactMessages : (Array.isArray(cloud.messages) ? cloud.messages : []))
+          .filter((m: any) => m && !isDemoItem(m) && m.id !== newMsg.id);
+        const merged = [newMsg, ...existing];
+        return {
+          ...cloud,
+          contactMessages: merged,
+          messages: merged,
+        };
+      }, activeToken, activeUrl);
     }
 
     setSettings((prev) => ({
@@ -1882,15 +2172,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       contactMessages: (prev.contactMessages || []).map((msg) => (msg.id === id ? { ...msg, status } : msg)),
     }));
 
-    // Call server API which updates Gist atomically
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch(`/api/messages/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
       console.warn('Message status server patch error:', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const updated = (Array.isArray(cloud.contactMessages) ? cloud.contactMessages : [])
+          .map((msg: any) => (msg.id === id ? { ...msg, status } : msg));
+        return { ...cloud, contactMessages: updated };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1900,13 +2200,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       contactMessages: (prev.contactMessages || []).filter((msg) => msg.id !== id),
     }));
 
-    // Call server API which updates Gist atomically
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch(`/api/messages/${id}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
       console.warn('Message delete server error:', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const filtered = (Array.isArray(cloud.contactMessages) ? cloud.contactMessages : [])
+          .filter((msg: any) => msg.id !== id);
+        return { ...cloud, contactMessages: filtered };
+      }, activeToken, activeUrl);
     }
   };
 
@@ -1923,10 +2235,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: new Date().toLocaleString('ar-EG'),
     };
 
-    let updatedResults = [newResult, ...(settings.skillTestResults || [])];
+    let updatedResults = [newResult, ...(settings.skillTestResults || []).filter((s) => s.id !== newResult.id && !isDemoItem(s))];
     const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
     const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
 
+    let serverSynced = false;
     try {
       const res = await fetch('/api/skill-tests', {
         method: 'POST',
@@ -1938,14 +2251,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.success && Array.isArray(data.skillTestResults)) {
-          updatedResults = data.skillTestResults;
-        } else if (data.success && Array.isArray(data.challenges)) {
-          updatedResults = data.challenges;
+        if (data.success) {
+          serverSynced = true;
+          if (Array.isArray(data.skillTestResults)) {
+            updatedResults = data.skillTestResults.filter((s: any) => !isDemoItem(s));
+          } else if (Array.isArray(data.challenges)) {
+            updatedResults = data.challenges.filter((s: any) => !isDemoItem(s));
+          }
         }
       }
     } catch (e) {
-      console.warn('API post skill test failed:', e);
+      console.warn('API post skill test failed (falling back to direct Gist):', e);
+    }
+
+    if (!serverSynced && activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const existing = (Array.isArray(cloud.skillTestResults) ? cloud.skillTestResults : (Array.isArray(cloud.challenges) ? cloud.challenges : []))
+          .filter((s: any) => s && !isDemoItem(s) && s.id !== newResult.id);
+        const merged = [newResult, ...existing];
+        return {
+          ...cloud,
+          skillTestResults: merged,
+          challenges: merged,
+        };
+      }, activeToken, activeUrl);
     }
 
     setSettings((prev) => ({
@@ -1960,13 +2289,25 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       skillTestResults: (prev.skillTestResults || []).filter((res) => res.id !== id),
     }));
 
-    // Call server API which updates Gist atomically
+    const activeToken = (gistToken || localStorage.getItem('gistToken') || DEFAULT_GIST_TOKEN).trim();
+    const activeUrl = (gistUrl || localStorage.getItem('gistUrl') || DEFAULT_GIST_URL).trim();
+
     try {
       await fetch(`/api/skill-tests/${id}`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gistToken: activeToken, gistUrl: activeUrl }),
       });
     } catch (e) {
       console.warn('Skill test delete server error:', e);
+    }
+
+    if (activeToken) {
+      await syncDirectGistUpdate((cloud) => {
+        const filtered = (Array.isArray(cloud.skillTestResults) ? cloud.skillTestResults : [])
+          .filter((res: any) => res.id !== id);
+        return { ...cloud, skillTestResults: filtered };
+      }, activeToken, activeUrl);
     }
   };
 

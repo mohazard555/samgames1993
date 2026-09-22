@@ -258,8 +258,19 @@ export async function syncAllStoriesAudioToGist(): Promise<{
         count: Object.keys(memoryAudioCache).length,
       };
     } else {
-      const err = await res.json();
-      throw new Error(err.message || 'فشلت المزامنة');
+      let errorMsg = 'فشلت المزامنة';
+      try {
+        const text = await res.text();
+        if (text) {
+          try {
+            const errJson = JSON.parse(text);
+            errorMsg = errJson.message || errorMsg;
+          } catch {
+            errorMsg = text;
+          }
+        }
+      } catch {}
+      throw new Error(errorMsg);
     }
   } catch (err: any) {
     return {
