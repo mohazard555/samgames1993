@@ -202,5 +202,6 @@ export interface Settings {
   feedbacks?: FeedbackItem[];
   contactMessages?: ContactMessage[];
   skillTestResults?: SkillTestResult[];
+  developerFooterText?: string;
 }
 

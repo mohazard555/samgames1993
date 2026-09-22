@@ -2,6 +2,8 @@ import React from 'react';
 import { Game } from './types';
 import { CHILDREN_STORIES } from './data/childrenStoriesData';
 import { CHILD_SKILLS_GAMES } from './data/childSkillsGamesData';
+import { SMART_CHALLENGES_GAMES } from './data/smartChallengesData';
+import { ADVENTURE_ISLAND_ZONES } from './data/adventureIslandZones';
 import {
   PuzzlePieceIcon,
   RocketLaunchIcon,
@@ -333,6 +335,22 @@ const colors = [
 let gameCounter = 1;
 const list: Game[] = [
   {
+    id: 5555,
+    name: '🏝️ جزيرة المغامرات',
+    description: 'جزيرة كرتونية تفاعلية تضم 24 منطقة ولعبة مستقلة (1200 تحدي تفاعلي) ونظام نجوم ومكافآت 🌟🗺️',
+    category: 'مغامرات وذكاء',
+    color: 'from-teal-400 via-sky-500 to-amber-500',
+    customRoute: '/adventure-island',
+  },
+  {
+    id: 6666,
+    name: 'عالم التحديات الذكية',
+    description: '50 لعبة تفاعلية تعليمية تنمي الذكاء والملاحظة (2500 تحدي) تضم عالم الوقت والساعة ⭐🕐',
+    category: 'تحديات ذكية',
+    color: 'from-amber-400 via-purple-600 to-indigo-600',
+    customRoute: '/smart-challenges',
+  },
+  {
     id: 7777,
     name: 'قصص الأطفال المصورة',
     description: `${CHILDREN_STORIES.length} قصص مصورة تفاعلية للأطفال (${CHILDREN_STORIES.reduce((sum, s) => sum + (s.scenes?.length || 0), 0)} مشهداً مصوراً هادفاً) 📚✨`,
@@ -381,6 +399,30 @@ CHILD_SKILLS_GAMES.forEach((csGame) => {
     category: 'تنمية مهارات',
     color: csGame.color || 'from-amber-400 to-orange-500',
     customRoute: `/my-child-skills/${csGame.id}`,
+  });
+});
+
+// Add the 50 Smart Challenges Games (50 questions each) with distinct IDs
+SMART_CHALLENGES_GAMES.forEach((scGame) => {
+  list.push({
+    id: 6000 + scGame.id,
+    name: `التحديات الذكية: ${scGame.title} (${scGame.icon})`,
+    description: `${scGame.shortDesc} - ${scGame.skill} (50 تحديًا)`,
+    category: scGame.category === 'time' ? 'عالم الوقت والساعة' : 'تحديات ذكية',
+    color: scGame.color || 'from-sky-400 to-indigo-500',
+    customRoute: `/smart-challenges/${scGame.id}`,
+  });
+});
+
+// Add the 24 Adventure Island Games (50 questions each) with distinct IDs
+ADVENTURE_ISLAND_ZONES.forEach((zone) => {
+  list.push({
+    id: 5000 + zone.id,
+    name: `جزيرة المغامرات: ${zone.name} (${zone.icon})`,
+    description: `${zone.gameTitle} - ${zone.shortDesc} (50 تحديًا)`,
+    category: 'جزيرة المغامرات',
+    color: zone.color || 'from-teal-500 to-emerald-600',
+    customRoute: `/adventure-island/${zone.id}`,
   });
 });
 

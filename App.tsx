@@ -16,6 +16,10 @@ import VisualQuizHomePage from './pages/VisualQuizHomePage';
 import VisualQuizGamePage from './pages/VisualQuizGamePage';
 import ChildSkillsHomePage from './pages/ChildSkillsHomePage';
 import ChildSkillsGamePage from './pages/ChildSkillsGamePage';
+import SmartChallengesHomePage from './pages/SmartChallengesHomePage';
+import SmartChallengeGamePage from './pages/SmartChallengeGamePage';
+import { AdventureIslandHomePage } from './pages/AdventureIslandHomePage';
+import { AdventureIslandGamePage } from './pages/AdventureIslandGamePage';
 import StoriesHomePage from './pages/StoriesHomePage';
 import StoryReaderPage from './pages/StoryReaderPage';
 import ChildSplashScreen from './components/ChildSplashScreen';
@@ -49,6 +53,10 @@ const MainRoutes: React.FC = () => {
           <Route path="/visual-quiz/:categoryId" element={<VisualQuizGamePage />} />
           <Route path="/my-child-skills" element={<ChildSkillsHomePage />} />
           <Route path="/my-child-skills/:gameId" element={<ChildSkillsGamePage />} />
+          <Route path="/smart-challenges" element={<SmartChallengesHomePage />} />
+          <Route path="/smart-challenges/:gameId" element={<SmartChallengeGamePage />} />
+          <Route path="/adventure-island" element={<AdventureIslandHomePage />} />
+          <Route path="/adventure-island/:gameId" element={<AdventureIslandGamePage />} />
           <Route path="/stories" element={<StoriesHomePage />} />
           <Route path="/stories/:storyId" element={<StoryReaderPage />} />
           <Route path="/children-stories" element={<StoriesHomePage />} />

@@ -1,8 +1,14 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../contexts/SettingsContext';
 
 const Footer: React.FC = () => {
+  const { settings } = useSettings();
+  const developerText = settings.developerFooterText !== undefined && settings.developerFooterText !== ''
+    ? settings.developerFooterText
+    : 'Developer: M.K Studio — 2025';
+
   return (
     <footer className="bg-white/50 backdrop-blur-sm mt-12 py-6 px-4">
       <div className="container mx-auto text-center text-gray-500">
@@ -12,7 +18,7 @@ const Footer: React.FC = () => {
             <Link to="/contact" className="hover:text-sky-600 transition-colors">اتصل بنا</Link>
             <Link to="/feedback" className="hover:text-sky-600 transition-colors">شاركنا رأيك</Link>
         </div>
-        <p>Developer: M.K Studio — 2025</p>
+        <p className="font-medium text-sm text-gray-600">{developerText}</p>
       </div>
     </footer>
   );

@@ -1,6 +1,6 @@
 {
   "name": "ToysGame World",
-  "description": "A fun and engaging interactive game and stories world for kids with quizzes, 40 skill games, 5 interactive illustrated stories, puzzles, and educational challenges.",
+  "description": "A fun and engaging interactive game and stories world for kids with interactive Adventure Island (24 cartoon regions, 1200 challenges), quizzes, 40 skill games, 50 smart challenges, 5 interactive illustrated stories, puzzles, and educational adventures.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

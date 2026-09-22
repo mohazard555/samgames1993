@@ -9,6 +9,7 @@ import WhatsNewModal from './WhatsNewModal';
 import VipSubscriptionModal from './VipSubscriptionModal';
 import { GAMES } from '../constants';
 import { Game } from '../types';
+import { CHILDREN_STORIES } from '../data/childrenStoriesData';
 
 const Header: React.FC = () => {
   const { settings, isVipActive, isAdminUnlocked, lockAdmin } = useSettings();
@@ -40,6 +41,22 @@ const Header: React.FC = () => {
     }
   });
 
+  useEffect(() => {
+    const syncNotificationState = () => {
+      try {
+        setHasUnreadNotifications(localStorage.getItem('toysGameNotificationsCleared') !== 'true');
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('storage', syncNotificationState);
+    window.addEventListener('toys_notifications_cleared', syncNotificationState);
+    return () => {
+      window.removeEventListener('storage', syncNotificationState);
+      window.removeEventListener('toys_notifications_cleared', syncNotificationState);
+    };
+  }, []);
+
   const handleClearNotifications = () => {
     try {
       localStorage.setItem('toysGameNotificationsCleared', 'true');
@@ -47,6 +64,7 @@ const Header: React.FC = () => {
       console.error(e);
     }
     setHasUnreadNotifications(false);
+    window.dispatchEvent(new Event('toys_notifications_cleared'));
   };
 
   const handleSelectNewGame = (game: Game) => {
@@ -94,6 +112,34 @@ const Header: React.FC = () => {
         الألعاب
       </NavLink>
       <NavLink
+        to="/adventure-island"
+        className={
+          mobile
+            ? `${mobileNavLinkClass({ isActive: false })} text-teal-800 bg-teal-50 hover:bg-teal-100 flex items-center justify-between`
+            : `${navLinkClass({ isActive: false })} flex items-center gap-1.5 text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-300 font-black`
+        }
+        onClick={() => setIsMenuOpen(false)}
+      >
+        <span>🏝️ جزيرة المغامرات</span>
+        <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-black px-1.5 py-0.2 rounded-full animate-bounce">
+          خريطة 24 لعبة
+        </span>
+      </NavLink>
+      <NavLink
+        to="/smart-challenges"
+        className={
+          mobile
+            ? `${mobileNavLinkClass({ isActive: false })} text-indigo-700 bg-indigo-50 hover:bg-indigo-100 flex items-center justify-between`
+            : `${navLinkClass({ isActive: false })} flex items-center gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200`
+        }
+        onClick={() => setIsMenuOpen(false)}
+      >
+        <span>🌟 عالم التحديات</span>
+        <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full animate-pulse">
+          50 لعبة
+        </span>
+      </NavLink>
+      <NavLink
         to="/my-child-skills"
         className={
           mobile
@@ -118,7 +164,7 @@ const Header: React.FC = () => {
       >
         <span>📚 قصص الأطفال</span>
         <span className="bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">
-          5 قصص
+          {CHILDREN_STORIES.length} قصص
         </span>
       </NavLink>
       <NavLink to="/skill-test" className={mobile ? mobileNavLinkClass : `${navLinkClass({ isActive: false })} text-amber-700 bg-amber-50 hover:bg-amber-100`} onClick={() => setIsMenuOpen(false)}>

@@ -98,15 +98,23 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
 
         {/* Footer */}
         <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center gap-2">
-          <button
-            onClick={onClearNotifications}
-            className="text-xs text-gray-600 hover:text-gray-800 font-bold underline"
-          >
-            تحديد الكل كمقروء ومسح التنبيه
-          </button>
+          {hasUnread ? (
+            <button
+              onClick={onClearNotifications}
+              className="text-xs text-amber-700 hover:text-amber-900 font-black underline flex items-center gap-1 active:scale-95 cursor-pointer"
+            >
+              <span>✓</span>
+              <span>تحديد الكل كمقروء ومسح التنبيه</span>
+            </button>
+          ) : (
+            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+              <span>✓</span>
+              <span>تمت قراءة جميع الإشعارات</span>
+            </span>
+          )}
           <button
             onClick={onClose}
-            className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-xl transition-colors"
+            className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-xl transition-colors cursor-pointer"
           >
             إغلاق
           </button>

@@ -132,6 +132,7 @@ const defaultSettings: Settings = {
   feedbacks: [],
   contactMessages: [],
   skillTestResults: [],
+  developerFooterText: 'Developer: M.K Studio — 2025',
 };
 
 
@@ -1396,6 +1397,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         paidSettings: newSettings.paidSettings,
         adSettings: newSettings.adSettings,
         googleAdSettings: newSettings.googleAdSettings,
+        developerFooterText: newSettings.developerFooterText,
       };
       localStorage.setItem('toysGameSettings', JSON.stringify(uiPreferencesToPersist));
     } catch (error) {
